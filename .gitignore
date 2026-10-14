@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.env
+*.log
+
+# Runtime data (AI result cache). Never committed, so git deploys never touch it.
+data/
+
+# IDE settings
+.idea/
+
+# Local Solo process config
+solo.yml

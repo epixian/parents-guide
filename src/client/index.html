@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pairents Guide</title>
+    <meta name="description" content="AI summaries of parental concerns for movies, TV shows, and books." />
+  </head>
+  <body>
+    <header class="site-header">
+      <a href="#/" class="brand">Pairents Guide</a>
+      <form id="search-form" class="search" role="search">
+        <input id="search-input" type="search" name="q" placeholder="Movie, TV show, or book title" autocomplete="off" required minlength="2" />
+        <button type="submit">Search</button>
+      </form>
+      <details class="prefs" id="prefs">
+        <summary>My concerns</summary>
+        <div id="prefs-body"></div>
+      </details>
+    </header>
+    <main id="app" aria-live="polite"></main>
+    <footer class="site-footer">
+      Ratings are AI-generated and may contain mistakes. Check important details yourself.
+    </footer>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

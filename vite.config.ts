@@ -15,7 +15,8 @@ export default defineConfig(({ mode }) => {
       port: 5188,
       strictPort: true,
       proxy: {
-        "/api": `http://localhost:${apiPort}`,
+        // Trailing slash matters: "/api" would also proxy the client module /api.ts.
+        "/api/": `http://localhost:${apiPort}`,
       },
     },
   };

@@ -1,3 +1,5 @@
+import type { CreditEntry, WorkInfo } from "../../shared/types.js";
+
 /** Metadata about one work (or TV season) that grounds the AI classification. */
 export interface WorkDetails {
   title: string;
@@ -8,10 +10,32 @@ export interface WorkDetails {
   released: boolean;
   /** Plain-text metadata lines passed to the AI prompt. */
   context: string[];
+  /** Catalog facts shown in the info box. */
+  info: WorkInfo;
 }
 
 export function truncate(text: string | null | undefined, max: number): string {
   if (!text) return "";
   const clean = text.replace(/\s+/g, " ").trim();
   return clean.length > max ? `${clean.slice(0, max - 1)}…` : clean;
+}
+
+/** Build the credits list, dropping empty and duplicate entries. */
+export function credits(groups: [label: string, entries: (CreditEntry | null)[]][]): WorkInfo["credits"] {
+  return groups
+    .map(([label, entries]) => {
+      const seen = new Set<string>();
+      const unique = entries.filter((e): e is CreditEntry => {
+        if (!e?.name || seen.has(e.name)) return false;
+        seen.add(e.name);
+        return true;
+      });
+      return { label, entries: unique };
+    })
+    .filter((c) => c.entries.length > 0);
+}
+
+/** "Label: a, b, c" prompt lines for each credit. */
+export function creditLines(info: WorkInfo): string[] {
+  return info.credits.map((c) => `${c.label}: ${c.entries.map((e) => e.name).join(", ")}`);
 }

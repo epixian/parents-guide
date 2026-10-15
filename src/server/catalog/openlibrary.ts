@@ -1,7 +1,7 @@
 import { fetchJson } from "../http.js";
 import { isReleased } from "../refreshPolicy.js";
-import type { SearchResult } from "../../shared/types.js";
-import { truncate, type WorkDetails } from "./types.js";
+import type { SearchResult, WorkInfo } from "../../shared/types.js";
+import { credits, truncate, type WorkDetails } from "./types.js";
 
 const BASE = "https://openlibrary.org";
 const HEADERS = { "user-agent": "pairents-guide/0.1", accept: "application/json" };
@@ -10,6 +10,7 @@ interface SearchDoc {
   key: string;
   title: string;
   author_name?: string[];
+  author_key?: string[];
   first_publish_year?: number;
   cover_i?: number;
 }
@@ -17,7 +18,7 @@ interface SearchDoc {
 function searchDocs(q: string, limit: number): Promise<{ docs: SearchDoc[] }> {
   const params = new URLSearchParams({
     q,
-    fields: "key,title,author_name,first_publish_year,cover_i",
+    fields: "key,title,author_name,author_key,first_publish_year,cover_i",
     limit: String(limit),
   });
   return fetchJson(`${BASE}/search.json?${params}`, { headers: HEADERS });
@@ -51,25 +52,73 @@ function publicationDate(work: Work, firstPublishYear: number | undefined): stri
   const raw = work.first_publish_date?.trim();
   if (raw && !/^\d{4}$/.test(raw)) {
     const parsed = Date.parse(`${raw} UTC`);
-    if (!Number.isNaN(parsed)) return new Date(parsed).toISOString().slice(0, 10);
+    // The work record and the search index sometimes disagree (The Hobbit:
+    // "January 1938" vs 1937). Trust the full date only if it is not later.
+    const iso = Number.isNaN(parsed) ? null : new Date(parsed).toISOString().slice(0, 10);
+    if (iso && (!firstPublishYear || Number(iso.slice(0, 4)) <= firstPublishYear)) return iso;
   }
   const year = raw && /^\d{4}$/.test(raw) ? Number(raw) : firstPublishYear;
   return year ? `${year}-01-01` : null;
 }
 
+interface Edition {
+  publish_date?: string;
+  publishers?: string[];
+  languages?: { key: string }[];
+}
+
+/**
+ * Publisher of the earliest English (or unlabeled) edition. Open Library
+ * edition data is noisy, so the AI's answer replaces this when it has one.
+ */
+function earliestPublisher(editions: Edition[]): string | null {
+  let best: { year: number; publisher: string } | null = null;
+  for (const e of editions) {
+    const publisher = e.publishers?.[0]?.trim();
+    const year = Number(/\d{4}/.exec(e.publish_date ?? "")?.[0]);
+    const english = !e.languages?.length || e.languages.some((l) => l.key === "/languages/eng");
+    if (!publisher || !year || !english) continue;
+    if (!best || year < best.year) best = { year, publisher };
+  }
+  return best?.publisher ?? null;
+}
+
+const publisherEntry = (name: string | null) => (name ? { name, url: null } : null);
+
 export async function getBook(workId: string, now: Date): Promise<WorkDetails> {
-  const [work, search] = await Promise.all([
+  const [work, search, editions] = await Promise.all([
     fetchJson<Work>(`${BASE}/works/${workId}.json`, { headers: HEADERS }),
     searchDocs(`key:/works/${workId}`, 1),
+    fetchJson<{ entries?: Edition[] }>(`${BASE}/works/${workId}/editions.json?limit=100`, { headers: HEADERS }).catch(
+      () => ({ entries: [] as Edition[] }),
+    ),
   ]);
   const doc = search.docs[0];
   const releaseDate = publicationDate(work, doc?.first_publish_year);
   const description = typeof work.description === "string" ? work.description : work.description?.value;
+  const authors = doc?.author_name ?? [];
+
+  const info: WorkInfo = {
+    years: releaseDate ? releaseDate.slice(0, 4) : null,
+    rating: null,
+    credits: credits([
+      [
+        "Author",
+        authors.slice(0, 3).map((name, i) => {
+          const key = doc?.author_key?.[i];
+          return { name, url: key && /^OL\d+A$/.test(key) ? `${BASE}/authors/${key}` : null };
+        }),
+      ],
+      ["Publisher", [publisherEntry(earliestPublisher(editions.entries ?? []))]],
+    ]),
+    imageUrl: doc?.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null,
+    source: { name: "Open Library", url: `${BASE}/works/${workId}` },
+  };
 
   const context = [
     `Type: book`,
     `Title: ${work.title}`,
-    doc?.author_name?.length ? `Author: ${doc.author_name.join(", ")}` : "",
+    authors.length ? `Author: ${authors.join(", ")}` : "",
     `First published: ${releaseDate ?? "unknown"}`,
     description ? `Description: ${truncate(description, 2000)}` : "",
     work.subjects?.length ? `Subjects: ${work.subjects.slice(0, 40).join(", ")}` : "",
@@ -79,10 +128,11 @@ export async function getBook(workId: string, now: Date): Promise<WorkDetails> {
 
   return {
     title: work.title,
-    subtitle: doc?.author_name?.length ? `by ${doc.author_name.slice(0, 3).join(", ")}` : null,
+    subtitle: authors.length ? `by ${authors.slice(0, 3).join(", ")}` : null,
     releaseDate,
     // Unknown publication date: allow rating (almost always an older book).
     released: releaseDate === null || isReleased(releaseDate, now),
     context,
+    info,
   };
 }

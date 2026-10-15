@@ -415,3 +415,95 @@ main {
     width: auto;
   }
 }
+
+/* Info box: poster, title, year, rating, credits, themes */
+.info {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  margin: 8px 0 16px;
+}
+
+.poster {
+  flex: none;
+  width: 120px;
+  border-radius: 6px;
+  background: var(--border);
+}
+
+.info-text {
+  min-width: 0;
+}
+
+.info h1 {
+  margin: 0 0 6px;
+}
+
+.info .facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 10px;
+  color: var(--muted);
+}
+
+.rating {
+  padding: 0 6px;
+  border: 1.5px solid var(--text);
+  border-radius: 4px;
+  color: var(--text);
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+
+.info dl {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+
+.info dl div {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 8px;
+}
+
+.info dt {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.info dd {
+  margin: 0;
+  min-width: 0;
+}
+
+@media (max-width: 520px) {
+  .poster {
+    width: 84px;
+  }
+
+  .info dl div {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+.info .source {
+  margin: 10px 0 0;
+  font-size: 0.85rem;
+}
+
+.site-footer p {
+  margin: 0 0 6px;
+}
+
+.site-footer .sources {
+  font-size: 0.8rem;
+}
+
+.site-footer a {
+  color: inherit;
+}

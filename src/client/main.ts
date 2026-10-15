@@ -7,7 +7,7 @@ import {
   type CategoryId,
   type TreatmentId,
 } from "../shared/categories.js";
-import type { CategoryRange, Report, SearchResult, SeriesResponse } from "../shared/types.js";
+import type { CategoryRange, CreditEntry, Report, SearchResult, SeriesResponse, WorkInfo } from "../shared/types.js";
 import { api } from "./api.js";
 import { loadHidden, saveHidden, visibleCategories } from "./prefs.js";
 
@@ -79,6 +79,42 @@ function treatmentChip(id: TreatmentId | null | undefined): string {
   const t = id && id !== "not_present" ? TREATMENT_BY_ID.get(id) : undefined;
   if (!t) return "";
   return `<span class="treatment" data-treatment="${t.id}" title="${esc(t.description)}">${esc(t.label)}</span>`;
+}
+
+/** A credited name, linked to its catalog page when the URL is known. */
+function creditHtml(e: CreditEntry): string {
+  return e.url && /^https:\/\//.test(e.url)
+    ? `<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.name)}</a>`
+    : esc(e.name);
+}
+
+/** Title, poster, year, rating, credits, and themes. */
+function infoBox(title: string, subtitle: string | null, info: WorkInfo | undefined, themes: string[] = []): string {
+  const facts = [
+    info?.years ? `<span>${esc(info.years)}</span>` : "",
+    info?.rating
+      ? `<span class="rating" title="${esc(info.rating.system)} rating">${esc(info.rating.value)}</span>`
+      : "",
+  ].filter(Boolean);
+  // Values are HTML: credits may contain links.
+  const rows: [label: string, html: string][] = [
+    ...(info?.credits ?? []).map((c): [string, string] => [c.label, (c.entries ?? []).map(creditHtml).join(", ")]),
+    ...(themes.length ? [["Themes", esc(themes.join(" · "))] as [string, string]] : []),
+  ];
+  return `
+    <section class="info">
+      ${info?.imageUrl ? `<img class="poster" src="${esc(info.imageUrl)}" alt="" />` : ""}
+      <div class="info-text">
+        <h1>${esc(title)}${subtitle ? ` <span class="muted">— ${esc(subtitle)}</span>` : ""}</h1>
+        ${facts.length ? `<p class="facts">${facts.join("")}</p>` : ""}
+        ${
+          rows.length
+            ? `<dl>${rows.map(([label, html]) => `<div><dt>${esc(label)}</dt><dd>${html}</dd></div>`).join("")}</dl>`
+            : ""
+        }
+        ${info?.source ? `<p class="source"><a href="${esc(info.source.url)}" target="_blank" rel="noopener">View on ${esc(info.source.name)}</a></p>` : ""}
+      </div>
+    </section>`;
 }
 
 function setLoading(message: string): void {
@@ -164,8 +200,17 @@ async function showReport(id: string): Promise<string> {
   }
   const r = res.report;
   return `${back}
-    <h1>${esc(r.title)}${r.subtitle ? ` <span class="muted">— ${esc(r.subtitle)}</span>` : ""}</h1>
+    ${infoBox(r.title, r.kind === "tv-season" ? r.subtitle : null, r.info, r.themes)}
     ${reportCard(r, res.stale)}`;
+}
+
+/** Themes across the rated seasons, most frequent first. */
+function seriesThemes(s: SeriesResponse): string[] {
+  const counts = new Map<string, number>();
+  for (const season of s.seasons) {
+    for (const t of season.report?.themes ?? []) counts.set(t, (counts.get(t) ?? 0) + 1);
+  }
+  return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([t]) => t);
 }
 
 async function showSeries(tmdbId: string): Promise<string> {
@@ -182,7 +227,7 @@ async function showSeries(tmdbId: string): Promise<string> {
     .join("");
 
   return `
-    <h1>${esc(s.title)} ${s.year ? `<span class="muted">(${s.year})</span>` : ""}</h1>
+    ${infoBox(s.title, null, s.info, seriesThemes(s))}
     ${s.overview ? `<p>${esc(s.overview)}</p>` : ""}
     <section class="card">
       <h2>Whole series</h2>

@@ -30,6 +30,12 @@ function parseId(id: string): { kind: Report["kind"]; load: (now: Date) => Promi
   throw new HttpError(400, "Invalid id");
 }
 
+/** False when the info box is missing or in an older format (before linked credits). */
+function hasCurrentInfo(report: Report): boolean {
+  const info = report.info;
+  return !!info && "source" in info && info.credits.every((c) => Array.isArray(c.entries));
+}
+
 export class ReportService {
   /** One AI lookup at a time per id; concurrent requests share the result. */
   private readonly inFlight = new Map<string, Promise<ReportResponse>>();
@@ -46,7 +52,7 @@ export class ReportService {
     const now = new Date();
     const cached = await this.cache.get(id);
     if (cached && !shouldRefresh({ releaseDate: cached.releaseDate, refreshedAt: cached.refreshedAt, now })) {
-      return { status: "ok", report: cached };
+      return { status: "ok", report: hasCurrentInfo(cached) ? cached : await this.addInfo(cached, load, now) };
     }
 
     const pending = this.inFlight.get(id);
@@ -55,6 +61,19 @@ export class ReportService {
     const task = this.lookup(id, kind, load, cached, clientKey, now).finally(() => this.inFlight.delete(id));
     this.inFlight.set(id, task);
     return task;
+  }
+
+  /** Add or update catalog facts on a saved result. No AI call. */
+  private async addInfo(cached: Report, load: (now: Date) => Promise<WorkDetails>, now: Date): Promise<Report> {
+    try {
+      const work = await load(now);
+      const updated = { ...cached, info: work.info };
+      await this.cache.set(updated);
+      return updated;
+    } catch (err) {
+      console.warn(`Could not add info to ${cached.id}: ${(err as Error).message}`);
+      return cached;
+    }
   }
 
   private async lookup(
@@ -130,6 +149,7 @@ export class ReportService {
       title: series.title,
       year: series.year,
       overview: series.overview,
+      info: series.info,
       seasons,
       aggregate: {
         ratedSeasons: rated.length,

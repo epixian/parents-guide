@@ -1,11 +1,12 @@
 import { CATEGORIES } from "../shared/categories.js";
-import type { RecentResponse, Report, ReportResponse, SeriesResponse } from "../shared/types.js";
+import type { RecentItem, RecentResponse, Report, ReportResponse, SeriesResponse } from "../shared/types.js";
 import { cachePathFor, type ReportCache } from "./cache.js";
 import { getBook } from "./catalog/openlibrary.js";
 import { getMovie, getTvSeason, getTvSeries } from "./catalog/tmdb.js";
 import type { WorkDetails } from "./catalog/types.js";
 import { classify } from "./classify.js";
 import { HttpError } from "./http.js";
+import type { Popularity } from "./popularity.js";
 import type { RateLimiter } from "./rateLimit.js";
 import { TitleIndex } from "./titleIndex.js";
 import { isReleased, shouldRefresh } from "./refreshPolicy.js";
@@ -48,7 +49,21 @@ export class ReportService {
   constructor(
     private readonly cache: ReportCache,
     private readonly limiter: RateLimiter,
+    private readonly popularity: Popularity,
   ) {}
+
+  /** Most viewed titles of the last week that have a saved result. */
+  async getTrending(limit: number): Promise<RecentItem[]> {
+    await this.loadIndex();
+    // Ask for extra ids: some may be series with no rated season yet.
+    const ids = this.popularity.trending(limit * 2).map((t) => t.id);
+    return this.index.items(ids).slice(0, limit);
+  }
+
+  /** Count a page view for the trending list. TV seasons count toward their series. */
+  recordView(id: string, visitorKey: string): void {
+    this.popularity.record(id.replace(/^(tmdb-tv-\d+)-s\d+$/, "$1"), visitorKey);
+  }
 
   /** Newest saved titles for each media kind. No catalog or AI calls. */
   async getRecent(limit: number): Promise<RecentResponse> {

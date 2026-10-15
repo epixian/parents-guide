@@ -40,9 +40,20 @@ export function createApi(reports: ReportService): Hono {
 
   api.get("/recent", async (c) => c.json(await reports.getRecent(8)));
 
-  api.get("/report/:id", async (c) => c.json(await reports.getReport(c.req.param("id"), clientKey(c))));
+  api.get("/trending", async (c) => c.json(await reports.getTrending(8)));
 
-  api.get("/tv/:tmdbId", async (c) => c.json(await reports.getSeries(c.req.param("tmdbId"))));
+  api.get("/report/:id", async (c) => {
+    const id = c.req.param("id");
+    const res = await reports.getReport(id, clientKey(c));
+    if (res.status === "ok") reports.recordView(id, clientKey(c));
+    return c.json(res);
+  });
+
+  api.get("/tv/:tmdbId", async (c) => {
+    const series = await reports.getSeries(c.req.param("tmdbId"));
+    reports.recordView(series.id, clientKey(c));
+    return c.json(series);
+  });
 
   api.notFound((c) => c.json<ApiError>({ error: "Not found" }, 404));
 

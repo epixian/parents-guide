@@ -812,3 +812,7 @@ main {
   color: var(--notice-text);
   background: var(--notice-bg);
 }
+
+.trending {
+  margin-bottom: 24px;
+}

@@ -451,6 +451,27 @@ function recentHref(item: RecentItem): string {
   return item.kind === "tv" ? `#/tv/${item.id.replace("tmdb-tv-", "")}` : `#/r/${item.id}`;
 }
 
+function cardHtml(item: RecentItem, showKind: boolean): string {
+  return `
+    <li>
+      <a href="${recentHref(item)}">
+        ${item.imageUrl ? `<img src="${esc(item.imageUrl)}" alt="" loading="lazy" />` : `<span class="noimg" aria-hidden="true"></span>`}
+        <span class="card-title">${esc(item.title)}</span>
+        <span class="muted small">${[showKind ? KIND_LABEL[item.kind] : "", item.years ?? ""].filter(Boolean).map(esc).join(" · ")}</span>
+      </a>
+    </li>`;
+}
+
+/** Most viewed titles of the last week, all types in one row. Empty when nothing trends yet. */
+function trendingHtml(items: RecentItem[]): string {
+  if (!items.length) return "";
+  return `
+    <section class="recent trending">
+      <h2>Trending this week</h2>
+      <ul class="cards">${items.map((item) => cardHtml(item, true)).join("")}</ul>
+    </section>`;
+}
+
 /** One row of poster cards per media kind. A kind with no saved titles is left out. */
 function recentHtml(recent: RecentResponse): string {
   const rows = (Object.keys(RECENT_HEADINGS) as RecentItem["kind"][])
@@ -459,20 +480,7 @@ function recentHtml(recent: RecentResponse): string {
       (kind) => `
       <section class="recent-row">
         <h3>${RECENT_HEADINGS[kind]}</h3>
-        <ul class="cards">
-          ${recent[kind]
-            .map(
-              (item) => `
-            <li>
-              <a href="${recentHref(item)}">
-                ${item.imageUrl ? `<img src="${esc(item.imageUrl)}" alt="" loading="lazy" />` : `<span class="noimg" aria-hidden="true"></span>`}
-                <span class="card-title">${esc(item.title)}</span>
-                ${item.years ? `<span class="muted small">${esc(item.years)}</span>` : ""}
-              </a>
-            </li>`,
-            )
-            .join("")}
-        </ul>
+        <ul class="cards">${recent[kind].map((item) => cardHtml(item, false)).join("")}</ul>
       </section>`,
     );
   return rows.length ? `<section class="recent"><h2>Recently added</h2>${rows.join("")}</section>` : "";
@@ -480,14 +488,15 @@ function recentHtml(recent: RecentResponse): string {
 
 async function showHome(): Promise<string> {
   searchInput.value = "";
-  // The list is a bonus: if it fails to load, show the home page without it.
-  const recent = await api.recent().catch(() => null);
+  // These lists are a bonus: if one fails to load, show the home page without it.
+  const [trending, recent] = await Promise.all([api.trending().catch(() => []), api.recent().catch(() => null)]);
   return `
     <section class="hero">
       <h1>Know what is in it before your kids see it.</h1>
       <p>Search for a movie, TV show, or book. You get an AI summary of content that parents may want to know about: violence, language, sexual content, and more.</p>
       <p class="muted">Use "My concerns" to choose the topics you care about.</p>
     </section>
+    ${trendingHtml(trending)}
     ${recent ? recentHtml(recent) : ""}`;
 }
 

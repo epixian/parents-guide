@@ -7,6 +7,7 @@ import { Hono } from "hono";
 import { createApi } from "./app.js";
 import { FileReportCache } from "./cache.js";
 import { config } from "./config.js";
+import { Popularity } from "./popularity.js";
 import { RateLimiter } from "./rateLimit.js";
 import { ReportService } from "./reports.js";
 
@@ -15,8 +16,18 @@ fs.mkdirSync(config.cacheDir, { recursive: true });
 const limiter = new RateLimiter(config.aiLookupsPerIpPerHour, 60 * 60 * 1000);
 setInterval(() => limiter.sweep(), 10 * 60 * 1000).unref();
 
-const reports = new ReportService(new FileReportCache(config.cacheDir), limiter);
+const popularity = new Popularity(path.join(config.cacheDir, "popularity.json"));
+await popularity.load();
+
+const reports = new ReportService(new FileReportCache(config.cacheDir), limiter, popularity);
 void reports.loadIndex();
+
+// Save pending view counts when Supervisor (or Ctrl+C) stops the server.
+for (const signal of ["SIGTERM", "SIGINT"] as const) {
+  process.once(signal, () => {
+    void popularity.flush().finally(() => process.exit(0));
+  });
+}
 
 const app = new Hono();
 app.route("/api", createApi(reports));

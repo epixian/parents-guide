@@ -71,6 +71,10 @@ function mergeTitle(results: ResultEntry[]): IndexEntry {
   };
 }
 
+function toItem(t: IndexEntry): RecentItem {
+  return { id: t.id, kind: t.kind, title: t.title, years: t.years, imageUrl: t.imageUrl, addedAt: t.addedAt };
+}
+
 /**
  * In-memory index of every saved result, for the home page and (later)
  * browsing and filtering. Built from the cache folder once at startup, then
@@ -98,20 +102,21 @@ export class TitleIndex {
     return [...groups.values()].map(mergeTitle);
   }
 
+  /** Card data for the given title ids, in the same order. Unknown ids are skipped. */
+  items(ids: string[]): RecentItem[] {
+    const byId = new Map(this.titles().map((t) => [t.id, t]));
+    return ids.flatMap((id) => {
+      const t = byId.get(id);
+      return t ? [toItem(t)] : [];
+    });
+  }
+
   recent(limit: number): RecentResponse {
     const out: RecentResponse = { movie: [], tv: [], book: [] };
     const sorted = this.titles().sort((a, b) => b.addedAt.localeCompare(a.addedAt));
     for (const t of sorted) {
       if (out[t.kind].length >= limit) continue;
-      const item: RecentItem = {
-        id: t.id,
-        kind: t.kind,
-        title: t.title,
-        years: t.years,
-        imageUrl: t.imageUrl,
-        addedAt: t.addedAt,
-      };
-      out[t.kind].push(item);
+      out[t.kind].push(toItem(t));
     }
     return out;
   }

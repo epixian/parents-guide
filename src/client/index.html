@@ -12,18 +12,27 @@
   </head>
   <body>
     <header class="site-header">
-      <a href="#/" class="brand" aria-label="Pairents' Gaide home">
+      <a href="#/" class="brand" aria-label="Pairents' Guide home">
         <!--
-          Logo: PAIRENTS' over GAIDE, sharing one tall "AI".
-          Small letters are 20px with baselines at y=20 and y=44. The tall AI
-          spans from the top row's cap height to the bottom row's baseline.
+          Logo: PAIRENTS' over GUIDE, sharing one "AI" arrow. The A sits on the
+          I so the two letters form an arrow that points up, tilted 14 degrees
+          to the left around the arrow's middle (32, 21).
+          Small letters are 20px with baselines at y=20 and y=39.5. The A's
+          baseline is on the top row's baseline. The I's baseline (y=41.65)
+          is a little below the bottom row's baseline, so the I hangs below
+          GUIDE. The I is stretched 18% upward from its baseline, leaving a
+          small gap under the A's crossbar.
+          The P and the R are kerned to the A's slanted sides.
         -->
-        <svg class="logo" viewBox="0 0 150 50" role="img" aria-hidden="true">
-          <text class="logo-small" x="20" y="20" text-anchor="end">P</text>
-          <text class="logo-small" x="20" y="44" text-anchor="end">G</text>
-          <text class="logo-ai" x="24" y="44" textLength="50" lengthAdjust="spacingAndGlyphs">AI</text>
-          <text class="logo-small" x="78" y="20">RENTS'</text>
-          <text class="logo-small" x="78" y="44">DE</text>
+        <svg class="logo" viewBox="0 -1.5 114 45" role="img" aria-hidden="true">
+          <text class="logo-small" x="21.1" y="20" text-anchor="end">P</text>
+          <text class="logo-small" x="30.45" y="39.5" text-anchor="end">GU</text>
+          <g class="logo-ai" transform="rotate(-14 32 21)">
+            <text x="32" y="20.5" text-anchor="middle">A</text>
+            <text x="32" y="41.65" text-anchor="middle" transform="matrix(1 0 0 1.18 0 -7.497)">I</text>
+          </g>
+          <text class="logo-small" x="43.4" y="20">RENTS'</text>
+          <text class="logo-small" x="40.55" y="39.5">DE</text>
         </svg>
       </a>
       <form id="search-form" class="search" role="search">

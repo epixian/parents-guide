@@ -353,7 +353,8 @@ function saveSearchFilter(f: SearchFilter): void {
   }
 }
 
-function resultItem(r: SearchResult, rated = false): string {
+/** One search result row. rated: the saved rating, for the badge and the composite bars. */
+function resultItem(r: SearchResult, rated?: IndexEntry): string {
   return `
     <li>
       <a href="${r.kind === "tv" ? `#/tv/${r.id.replace("tmdb-tv-", "")}` : `#/r/${r.id}`}">
@@ -364,6 +365,7 @@ function resultItem(r: SearchResult, rated = false): string {
           ${rated ? `<span class="badge rated">Rated</span>` : ""}
           ${r.released === false ? `<span class="badge upcoming">Not yet released</span>` : ""}
           ${r.detail ? `<span class="muted small block">${esc(r.detail)}</span>` : ""}
+          ${rated ? `<span class="block result-bars">${miniComposites(rated)}</span>` : ""}
         </span>
       </a>
     </li>`;
@@ -379,9 +381,23 @@ function applySearchFilter(filter: SearchFilter): void {
   }
 }
 
-/** Catalog search results (TMDB and Open Library), grouped by type, with the type filter. */
-function catalogHtml({ results, warnings }: { results: SearchResult[]; warnings: string[] }, rated: Set<string>): string {
-  const groups = SEARCH_KINDS.map((k) => ({ ...k, items: results.filter((r) => r.kind === k.kind) })).filter(
+/** A rated title as a search result row. */
+function ratedResult(t: IndexEntry): SearchResult {
+  const year = Number(/\d{4}/.exec(t.years ?? "")?.[0]);
+  return { id: t.id, kind: t.kind, title: t.title, year: year || null, detail: null, imageUrl: t.imageUrl, released: true };
+}
+
+interface SearchRow {
+  r: SearchResult;
+  rated?: IndexEntry;
+}
+
+/**
+ * Search results grouped by type, with the type filter. Rated titles come
+ * first in each group; pending adds a spinner below while the catalog search runs.
+ */
+function searchResultsHtml(rows: SearchRow[], warnings: string[], pending: boolean): string {
+  const groups = SEARCH_KINDS.map((k) => ({ ...k, items: rows.filter((row) => row.r.kind === k.kind) })).filter(
     (g) => g.items.length,
   );
   // A remembered filter for a type with no results falls back to "All".
@@ -396,7 +412,7 @@ function catalogHtml({ results, warnings }: { results: SearchResult[]; warnings:
     ${
       groups.length
         ? `<nav class="filters" aria-label="Filter results">
-            ${filterButton("all", "All", results.length)}
+            ${filterButton("all", "All", rows.length)}
             ${groups.map((g) => filterButton(g.kind, g.label, g.items.length)).join("")}
           </nav>
           ${groups
@@ -404,57 +420,58 @@ function catalogHtml({ results, warnings }: { results: SearchResult[]; warnings:
               (g) => `
             <section class="result-group" data-kind="${g.kind}"${filter !== "all" && filter !== g.kind ? " hidden" : ""}>
               <h2>${esc(g.label)}</h2>
-              <ul class="results">${g.items.map((r) => resultItem(r, rated.has(r.id))).join("")}</ul>
+              <ul class="results">${g.items.map((row) => resultItem(row.r, row.rated)).join("")}</ul>
             </section>`,
             )
             .join("")}`
-        : `<p class="status">No matches. Try another spelling.</p>`
-    }`;
+        : pending
+          ? ""
+          : `<p class="status">No matches. Try another spelling.</p>`
+    }
+    ${pending ? `<p class="status"><span class="spinner" aria-hidden="true"></span>Searching movies, TV shows, and books…</p>` : ""}`;
 }
 
-/** Rated titles shown at the top of the search results. */
-const RATED_SHOWN = 12;
+/** Rated titles to ask for: enough to fill the list and to filter them out of the catalog results. */
+const RATED_LIMIT = 60;
 
 /**
- * Search: titles that are already rated show at once (from the server's index),
- * and the slower catalog search fills in below, behind a spinner.
+ * Search: titles that are already rated show at once (from the server's index).
+ * The slower catalog search then adds its results to the same list, without
+ * the titles that are already shown.
  */
 async function showSearch(q: string): Promise<string> {
   searchInput.value = q;
   setLoading(`Searching for "${q}"…`);
   const catalog = api.search(q);
   catalog.catch(() => {}); // Handled in afterRender; avoids an unhandled rejection meanwhile.
-  // Ask for more than are shown, to mark rated titles in the catalog results.
-  const rated = await api.browse(new URLSearchParams({ q, limit: "60" }).toString()).catch(() => null);
-  const ratedIds = new Set(rated?.items.map((t) => t.id) ?? []);
+  const rated = await api.browse(new URLSearchParams({ q, limit: String(RATED_LIMIT) }).toString()).catch(() => null);
+  const ratedRows: SearchRow[] = (rated?.items ?? []).map((t) => ({ r: ratedResult(t), rated: t }));
+  const ratedIds = new Set(ratedRows.map((row) => row.r.id));
+  const moreRated =
+    rated && rated.total > RATED_LIMIT
+      ? `<p><a href="#/browse?${new URLSearchParams({ q })}">See all ${rated.total} rated matches →</a></p>`
+      : "";
 
   const seq = navSeq;
   afterRender = () => {
     void catalog
-      .then((res) => catalogHtml(res, ratedIds))
-      .catch((err: unknown) => errorHtml(err))
+      .then(({ results, warnings }) => {
+        const added = results.filter((r) => !ratedIds.has(r.id)).map((r): SearchRow => ({ r }));
+        return searchResultsHtml([...ratedRows, ...added], warnings, false) + moreRated;
+      })
+      // The rated titles stay; the error shows below them.
+      .catch((err: unknown) => searchResultsHtml(ratedRows, [], false) + moreRated + errorHtml(err))
       .then((html) => {
-        const box = document.querySelector<HTMLElement>("#search-catalog");
+        const box = document.querySelector<HTMLElement>("#search-results");
         if (seq !== navSeq || !box) return;
         box.innerHTML = html;
         box.removeAttribute("aria-busy");
       });
   };
 
-  const ratedHtml = rated?.total
-    ? `<section class="recent rated-matches">
-        <h2>Already rated</h2>
-        <ul class="cards">${rated.items.slice(0, RATED_SHOWN).map((t) => cardHtml(t, true, miniComposites(t))).join("")}</ul>
-        ${rated.total > RATED_SHOWN ? `<p><a href="#/browse?${new URLSearchParams({ q })}">See all ${rated.total} rated matches →</a></p>` : ""}
-      </section>`
-    : "";
-
   return `
     <h1>Results for "${esc(q)}"</h1>
-    ${ratedHtml}
-    <div id="search-catalog" aria-busy="true">
-      <p class="status"><span class="spinner" aria-hidden="true"></span>Searching movies, TV shows, and books…</p>
-    </div>`;
+    <div id="search-results" aria-busy="true">${searchResultsHtml(ratedRows, [], true)}</div>`;
 }
 
 async function showReport(id: string): Promise<string> {

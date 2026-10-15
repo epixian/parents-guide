@@ -948,8 +948,8 @@ a.audience:hover {
   color: var(--level-1);
 }
 
-.rated-matches {
-  margin-bottom: 8px;
+.result-bars {
+  margin-top: 6px;
 }
 
 .badge.upcoming {
@@ -1127,7 +1127,8 @@ a.audience:hover {
 
 /* One grid for all rows, so the columns line up: label, average, highest. */
 .minibars:hover .minibars-tip,
-.cards a:focus-visible .minibars-tip {
+.cards a:focus-visible .minibars-tip,
+.results a:focus-visible .minibars-tip {
   display: grid;
   grid-template-columns: auto auto auto;
   gap: 2px 8px;

@@ -182,15 +182,18 @@ export type TreatmentId = (typeof TREATMENTS)[number]["id"];
 // a group. Stance topics (faith, LGBTQ, morals, ...) are left out, because
 // their amount alone does not say whether the content is a concern; parents
 // read those in the ratings table. Product placement is informational only.
-export const COMPOSITES: readonly { id: string; label: string; categories: readonly CategoryId[] }[] = [
+// short: for small spaces such as the browse cards.
+export const COMPOSITES: readonly { id: string; label: string; short: string; categories: readonly CategoryId[] }[] = [
   {
     id: "violence_language",
     label: "Violence & language",
+    short: "V&L",
     categories: ["violence", "war", "frightening", "profanity", "gods_name"],
   },
   {
     id: "sex_romance",
     label: "Sex/Nudity/Romance",
+    short: "S/N/R",
     categories: ["sexual_content", "nudity", "romance"],
   },
 ];

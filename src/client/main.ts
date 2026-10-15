@@ -10,9 +10,12 @@ import {
   type CategoryId,
   type TreatmentId,
 } from "../shared/categories.js";
+import { THEME_TAGS } from "../shared/themes.js";
 import type {
+  BrowseResponse,
   CategoryRange,
   CreditEntry,
+  IndexEntry,
   RecentItem,
   RecentResponse,
   Report,
@@ -21,7 +24,7 @@ import type {
   WorkInfo,
 } from "../shared/types.js";
 import { api } from "./api.js";
-import { loadHidden, saveHidden, visibleCategories } from "./prefs.js";
+import { loadHidden, markTipSeen, saveHidden, tipSeen, visibleCategories } from "./prefs.js";
 
 const app = document.querySelector<HTMLElement>("#app")!;
 const searchForm = document.querySelector<HTMLFormElement>("#search-form")!;
@@ -95,6 +98,22 @@ prefsBody.addEventListener("click", (e) => {
   void route();
 });
 
+// First-visit tip next to "My concerns". Opening the panel also counts as seen.
+const tip = document.querySelector<HTMLElement>("#concerns-tip")!;
+const prefsDetails = document.querySelector<HTMLDetailsElement>("#prefs")!;
+
+function dismissTip(): void {
+  if (tip.hidden) return;
+  tip.hidden = true;
+  markTipSeen();
+}
+
+tip.hidden = tipSeen();
+document.querySelector("#concerns-tip-close")!.addEventListener("click", dismissTip);
+prefsDetails.addEventListener("toggle", () => {
+  if (prefsDetails.open) dismissTip();
+});
+
 // ---------- Rendering helpers ----------
 
 function scoreBar(score: number): string {
@@ -132,11 +151,15 @@ function titleHeader(title: string, subtitle: string | null, info: WorkInfo | un
       ? `<span class="rating" title="${esc(info.rating.system)} rating">${esc(info.rating.value)}</span>`
       : "",
   ].filter(Boolean);
+  // Books: the authors, linked like the other credits. They also stay in the details box.
+  const authors = info?.credits.find((c) => c.label === "Author")?.entries ?? [];
+  const byline = authors.map(creditHtml).join(", ");
   return `
     <section class="title-area${info?.imageUrl ? " has-poster" : ""}">
       ${info?.imageUrl ? `<img class="poster" src="${esc(info.imageUrl)}" alt="" />` : ""}
       <div class="title-text">
         <h1>${esc(title)}${subtitle ? ` <span class="muted">— ${esc(subtitle)}</span>` : ""}</h1>
+        ${byline ? `<p class="byline">by ${byline}</p>` : ""}
         ${facts.length ? `<p class="facts">${facts.join("")}</p>` : ""}
       </div>
       ${composites}
@@ -451,13 +474,14 @@ function recentHref(item: RecentItem): string {
   return item.kind === "tv" ? `#/tv/${item.id.replace("tmdb-tv-", "")}` : `#/r/${item.id}`;
 }
 
-function cardHtml(item: RecentItem, showKind: boolean): string {
+function cardHtml(item: RecentItem, showKind: boolean, extra = ""): string {
   return `
     <li>
       <a href="${recentHref(item)}">
         ${item.imageUrl ? `<img src="${esc(item.imageUrl)}" alt="" loading="lazy" />` : `<span class="noimg" aria-hidden="true"></span>`}
         <span class="card-title">${esc(item.title)}</span>
         <span class="muted small">${[showKind ? KIND_LABEL[item.kind] : "", item.years ?? ""].filter(Boolean).map(esc).join(" · ")}</span>
+        ${extra}
       </a>
     </li>`;
 }
@@ -479,11 +503,16 @@ function recentHtml(recent: RecentResponse): string {
     .map(
       (kind) => `
       <section class="recent-row">
-        <h3>${RECENT_HEADINGS[kind]}</h3>
+        <div class="row-head">
+          <h3>${RECENT_HEADINGS[kind]}</h3>
+          <a href="#/browse?kind=${kind}">Browse all ${RECENT_HEADINGS[kind].toLowerCase()} →</a>
+        </div>
         <ul class="cards">${recent[kind].map((item) => cardHtml(item, false)).join("")}</ul>
       </section>`,
     );
-  return rows.length ? `<section class="recent"><h2>Recently added</h2>${rows.join("")}</section>` : "";
+  return rows.length
+    ? `<section class="recent"><h2>Recently added</h2>${rows.join("")}<p><a href="#/browse">Browse all rated titles →</a></p></section>`
+    : "";
 }
 
 async function showHome(): Promise<string> {
@@ -493,12 +522,209 @@ async function showHome(): Promise<string> {
   return `
     <section class="hero">
       <h1>Know what is in it before your kids see it.</h1>
-      <p>Search for a movie, TV show, or book. You get an AI summary of content that parents may want to know about: violence, language, sexual content, and more.</p>
-      <p class="muted">Use "My concerns" to choose the topics you care about.</p>
+      <p>AI-generated summaries of movies, TV shows, and books for content that parents may want to know about.</p>
     </section>
     ${trendingHtml(trending)}
     ${recent ? recentHtml(recent) : ""}`;
 }
+
+// ---------- Browse ----------
+
+// The filters live in the URL (#/browse?kind=movie&max.violence=2...), so a
+// filtered list can be bookmarked or shared. The server reads the same query
+// string; see src/server/browse.ts.
+
+const MAX_OPTIONS: [value: string, label: string][] = [
+  ["", "Any level"],
+  ...Array.from({ length: SCORE_MAX }, (_, n): [string, string] => [String(n), n ? `${n} (${SCORE_LABELS[n]}) or less` : "None (0)"]),
+];
+const HIDE_TREATMENTS = TREATMENTS.filter((t) => t.id !== "not_present");
+
+/** Small average-score chips for a browse card, for the topics the user has not hidden. */
+function miniComposites(t: IndexEntry): string {
+  const visible = new Set(visibleCategories(hidden).map((c) => c.id));
+  const chips = COMPOSITES.flatMap((group) => {
+    const result = summarize(group.categories.filter((id) => visible.has(id)).map((id) => t.scores[id]));
+    if (!result) return [];
+    const upTo = t.kind === "tv" ? "up to " : "";
+    return [
+      `<span class="mini" data-level="${Math.round(result.avg)}" title="${esc(`${group.label}: ${upTo}${result.avg.toFixed(1)} average, highest ${result.max}`)}">${esc(group.short)} ${result.avg.toFixed(1)}</span>`,
+    ];
+  });
+  return chips.length ? `<span class="minis">${chips.join("")}</span>` : "";
+}
+
+function browseCards(items: IndexEntry[]): string {
+  return items.map((t) => cardHtml(t, true, miniComposites(t))).join("");
+}
+
+/** One topic row: a level limit, and treatment checkboxes for topics that have a treatment. */
+function topicFilter(c: Category, params: URLSearchParams): string {
+  const max = params.get(`max.${c.id}`) ?? "";
+  const hiddenTreatments = new Set(params.getAll(`hide.${c.id}`).flatMap((v) => v.split(",")));
+  return `
+    <div class="topic-filter">
+      <label><span>${esc(c.label)}</span>
+        <select name="max.${c.id}">${MAX_OPTIONS.map(([v, label]) => `<option value="${v}"${v === max ? " selected" : ""}>${esc(label)}</option>`).join("")}</select>
+      </label>
+      ${
+        c.hasTreatment
+          ? `<span class="hide-treatments"><span class="muted small">Leave out:</span>${HIDE_TREATMENTS.map(
+              (t) =>
+                `<label class="chip-check" title="${esc(t.description)}"><input type="checkbox" name="hide.${c.id}" value="${t.id}"${hiddenTreatments.has(t.id) ? " checked" : ""} />${esc(t.label)}</label>`,
+            ).join("")}</span>`
+          : ""
+      }
+    </div>`;
+}
+
+/** Number of topic limits set in the query. */
+function topicFilterCount(params: URLSearchParams): number {
+  return new Set([...params.keys()].filter((k) => /^(max|hide)\./.test(k)).map((k) => k.replace(/^\w+\./, ""))).size;
+}
+
+/** Theme tag chips: selected tags first, then tags in the current results by count. */
+function tagChips(res: BrowseResponse, selected: Set<string>): string {
+  const counts = new Map(res.tags.map((t) => [t.tag as string, t.count]));
+  const tags = [...selected, ...res.tags.map((t) => t.tag).filter((t) => !selected.has(t))];
+  if (!tags.length) return `<span class="muted small">No theme tags in these results.</span>`;
+  return tags
+    .map(
+      (tag) =>
+        `<label class="chip-check"><input type="checkbox" name="tag" value="${esc(tag)}"${selected.has(tag) ? " checked" : ""} />${esc(tag.replace(/-/g, " "))} <span class="count">${counts.get(tag) ?? 0}</span></label>`,
+    )
+    .join("");
+}
+
+function browseResultsHtml(res: BrowseResponse): string {
+  if (!res.total) return `<p class="status">No titles match these filters.</p>`;
+  return `
+    <p class="muted">${res.total} title${res.total === 1 ? "" : "s"}</p>
+    <ul class="cards grid">${browseCards(res.items)}</ul>
+    ${res.items.length < res.total ? `<p><button type="button" class="button" data-more="${res.items.length}">Show more</button></p>` : ""}`;
+}
+
+/** The query string for the current form values. Empty values are left out. */
+function browseParams(form: HTMLFormElement): URLSearchParams {
+  const params = new URLSearchParams();
+  for (const [key, value] of new FormData(form)) {
+    if (typeof value === "string" && value.trim() && !(key === "sort" && value === "added")) params.append(key, value.trim());
+  }
+  return params;
+}
+
+async function showBrowse(query: string): Promise<string> {
+  searchInput.value = "";
+  setLoading("Loading titles…");
+  const params = new URLSearchParams(query);
+  const res = await api.browse(params.toString());
+  const kind = params.get("kind") ?? "";
+  const sort = params.get("sort") ?? "added";
+  const selectedTags = new Set(params.getAll("tag").filter((t) => (THEME_TAGS as readonly string[]).includes(t)));
+  // Show the topics the user has not hidden, and any topic the URL filters on.
+  const topics = CATEGORIES.filter((c) => !hidden.has(c.id) || params.has(`max.${c.id}`) || params.has(`hide.${c.id}`));
+  const limits = topicFilterCount(params);
+
+  return `
+    <h1>Browse rated titles</h1>
+    <form id="browse-form" class="browse-form">
+      <div class="browse-row">
+        <label><span>Type</span>
+          <select name="kind">
+            <option value="">All</option>
+            ${SEARCH_KINDS.map((k) => `<option value="${k.kind}"${k.kind === kind ? " selected" : ""}>${esc(k.label)}</option>`).join("")}
+          </select>
+        </label>
+        <label><span>Title</span><input type="search" name="q" value="${esc(params.get("q") ?? "")}" placeholder="Title contains" /></label>
+        <label><span>Sort by</span>
+          <select name="sort">
+            ${[["added", "Recently added"], ["title", "Title"], ["year", "Year (newest)"]]
+              .map(([v, label]) => `<option value="${v}"${v === sort ? " selected" : ""}>${label}</option>`)
+              .join("")}
+          </select>
+        </label>
+        <button type="button" data-browse-clear>Clear filters</button>
+      </div>
+      <details class="topic-filters"${limits ? " open" : ""}>
+        <summary>Topic limits <span class="count" id="limit-count">${limits ? `(${limits} set)` : ""}</span></summary>
+        ${CATEGORY_SECTIONS.map((section) => {
+          const rows = topics.filter((c) => c.section === section.id).map((c) => topicFilter(c, params)).join("");
+          return rows ? `<fieldset class="pref-section"><legend>${esc(section.label)}</legend>${rows}</fieldset>` : "";
+        }).join("")}
+        <p class="muted small">TV series use their highest level across rated seasons. "Leave out" removes a title if any rated season has that treatment.</p>
+      </details>
+      <div class="tag-chips" id="browse-tags" aria-label="Theme tags">${tagChips(res, selectedTags)}</div>
+    </form>
+    <div id="browse-results">${browseResultsHtml(res)}</div>`;
+}
+
+// Each filter change gets a number, so a slow response cannot overwrite a newer one.
+let browseSeq = 0;
+
+/** Apply the form to the URL and reload the results, without rebuilding the form. */
+async function updateBrowse(form: HTMLFormElement): Promise<void> {
+  const seq = ++browseSeq;
+  const params = browseParams(form);
+  history.replaceState(null, "", `#/browse${params.size ? `?${params}` : ""}`);
+  const limits = topicFilterCount(params);
+  document.querySelector("#limit-count")!.textContent = limits ? `(${limits} set)` : "";
+  const results = document.querySelector<HTMLElement>("#browse-results")!;
+  results.setAttribute("aria-busy", "true");
+  try {
+    const res = await api.browse(params.toString());
+    if (seq !== browseSeq) return;
+    results.innerHTML = browseResultsHtml(res);
+    document.querySelector("#browse-tags")!.innerHTML = tagChips(res, new Set(params.getAll("tag")));
+  } catch (err) {
+    if (seq === browseSeq) results.innerHTML = errorHtml(err);
+  } finally {
+    if (seq === browseSeq) results.removeAttribute("aria-busy");
+  }
+}
+
+/** Add the next page of results below the current ones. */
+async function showMoreBrowse(button: HTMLButtonElement): Promise<void> {
+  const form = document.querySelector<HTMLFormElement>("#browse-form");
+  if (!form) return;
+  const params = browseParams(form);
+  params.set("offset", button.dataset.more!);
+  button.disabled = true;
+  try {
+    const res = await api.browse(params.toString());
+    document.querySelector("#browse-results .cards")?.insertAdjacentHTML("beforeend", browseCards(res.items));
+    const shown = res.offset + res.items.length;
+    if (shown < res.total) {
+      button.dataset.more = String(shown);
+      button.disabled = false;
+    } else button.remove();
+  } catch (err) {
+    button.insertAdjacentHTML("afterend", errorHtml(err));
+    button.remove();
+  }
+}
+
+let browseTyping: ReturnType<typeof setTimeout> | undefined;
+
+app.addEventListener("change", (e) => {
+  const form = (e.target as HTMLElement).closest<HTMLFormElement>("#browse-form");
+  if (form && (e.target as HTMLElement).getAttribute("name") !== "q") void updateBrowse(form);
+});
+
+app.addEventListener("input", (e) => {
+  const input = e.target as HTMLInputElement;
+  const form = input.closest<HTMLFormElement>("#browse-form");
+  if (!form || input.name !== "q") return;
+  clearTimeout(browseTyping);
+  browseTyping = setTimeout(() => void updateBrowse(form), 300);
+});
+
+app.addEventListener("submit", (e) => {
+  const form = (e.target as HTMLElement).closest<HTMLFormElement>("#browse-form");
+  if (!form) return;
+  e.preventDefault();
+  clearTimeout(browseTyping);
+  void updateBrowse(form);
+});
 
 // ---------- Routing ----------
 
@@ -519,6 +745,7 @@ async function route(): Promise<void> {
     if ((m = /^\/search\?q=(.+)$/.exec(hash))) html = await showSearch(decodeURIComponent(m[1]!));
     else if ((m = /^\/r\/([\w-]+)$/.exec(hash))) html = await showReport(m[1]!);
     else if ((m = /^\/tv\/(\d+)$/.exec(hash))) html = await showSeries(m[1]!);
+    else if ((m = /^\/browse(?:\?(.*))?$/.exec(hash))) html = await showBrowse(m[1] ?? "");
     else html = await showHome();
   } catch (err) {
     html = errorHtml(err);
@@ -540,6 +767,20 @@ app.addEventListener("click", (e) => {
   if (filter) {
     saveSearchFilter(filter as SearchFilter);
     applySearchFilter(filter as SearchFilter);
+    return;
+  }
+
+  const more = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-more]");
+  if (more) {
+    void showMoreBrowse(more);
+    return;
+  }
+
+  if ((e.target as HTMLElement).closest("button[data-browse-clear]")) {
+    // Filter changes replace the URL without a hashchange event, so the hash may already match.
+    clearTimeout(browseTyping);
+    if (location.hash === "#/browse") void route();
+    else location.hash = "#/browse";
     return;
   }
 

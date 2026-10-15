@@ -1,4 +1,4 @@
-import type { RecentItem, RecentResponse, ReportResponse, SearchResult, SeriesResponse } from "../shared/types.js";
+import type { BrowseResponse, RecentItem, RecentResponse, ReportResponse, SearchResult, SeriesResponse } from "../shared/types.js";
 
 async function get<T>(url: string): Promise<T> {
   const res = await fetch(url, { headers: { accept: "application/json" } });
@@ -12,5 +12,7 @@ export const api = {
   report: (id: string) => get<ReportResponse>(`/api/report/${encodeURIComponent(id)}`),
   recent: () => get<RecentResponse>("/api/recent"),
   trending: () => get<RecentItem[]>("/api/trending"),
+  /** query: the browse filters as a query string (see src/server/browse.ts). */
+  browse: (query: string) => get<BrowseResponse>(`/api/browse?${query}`),
   series: (tmdbId: string) => get<SeriesResponse>(`/api/tv/${encodeURIComponent(tmdbId)}`),
 };

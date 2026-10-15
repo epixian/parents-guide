@@ -26,3 +26,22 @@ export function saveHidden(hidden: Set<CategoryId>): void {
 export function visibleCategories(hidden: Set<CategoryId>) {
   return CATEGORIES.filter((c) => !hidden.has(c.id));
 }
+
+// Set when the visitor dismisses the "My concerns" tip, so it shows only once.
+const TIP_KEY = "pairents.concernsTipSeen";
+
+export function tipSeen(): boolean {
+  try {
+    return localStorage.getItem(TIP_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function markTipSeen(): void {
+  try {
+    localStorage.setItem(TIP_KEY, "1");
+  } catch {
+    // Storage blocked: the tip shows again on the next visit.
+  }
+}

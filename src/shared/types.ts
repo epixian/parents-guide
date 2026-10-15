@@ -144,6 +144,18 @@ export interface IndexEntry {
   treatments: Partial<Record<CategoryId, TreatmentId[]>>;
 }
 
+export type BrowseSort = "added" | "title" | "year";
+
+/** One page of browse results. See src/server/browse.ts for the filters. */
+export interface BrowseResponse {
+  /** Number of titles that match the filters. */
+  total: number;
+  offset: number;
+  items: IndexEntry[];
+  /** Theme tags across all matches, most common first. */
+  tags: { tag: ThemeTag; count: number }[];
+}
+
 export interface ApiError {
   error: string;
 }

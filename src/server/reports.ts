@@ -1,5 +1,6 @@
 import { CATEGORIES } from "../shared/categories.js";
-import type { RecentItem, RecentResponse, Report, ReportResponse, SeriesResponse } from "../shared/types.js";
+import type { BrowseResponse, RecentItem, RecentResponse, Report, ReportResponse, SeriesResponse } from "../shared/types.js";
+import { browseTitles, type BrowseFilters } from "./browse.js";
 import { cachePathFor, type ReportCache } from "./cache.js";
 import { getBook } from "./catalog/openlibrary.js";
 import { getMovie, getTvSeason, getTvSeries } from "./catalog/tmdb.js";
@@ -70,6 +71,12 @@ export class ReportService {
   async getRecent(limit: number): Promise<RecentResponse> {
     await this.loadIndex();
     return this.index.recent(limit);
+  }
+
+  /** Saved titles that match the browse filters. No catalog or AI calls. */
+  async browse(filters: BrowseFilters): Promise<BrowseResponse> {
+    await this.loadIndex();
+    return browseTitles(this.index.titles(), filters);
   }
 
   /** Build the index from the cache folder one time. Call at startup to avoid a slow first request. */

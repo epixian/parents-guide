@@ -30,10 +30,18 @@
         <input id="search-input" type="search" name="q" placeholder="Movie, TV show, or book title" autocomplete="off" required minlength="2" />
         <button type="submit">Search</button>
       </form>
-      <details class="prefs" id="prefs">
-        <summary>My concerns</summary>
-        <div id="prefs-body"></div>
-      </details>
+      <a href="#/browse" class="nav-link">Browse</a>
+      <div class="prefs-anchor">
+        <details class="prefs" id="prefs">
+          <summary>My concerns</summary>
+          <div id="prefs-body"></div>
+        </details>
+        <!-- First-visit tip. Shown by main.ts until the visitor dismisses it or opens "My concerns". -->
+        <div class="tip" id="concerns-tip" role="note" hidden>
+          <p>Choose the topics you care about. Other topics are hidden on every page.</p>
+          <button type="button" id="concerns-tip-close">Got it</button>
+        </div>
+      </div>
     </header>
     <main id="app" aria-live="polite"></main>
     <footer class="site-footer">

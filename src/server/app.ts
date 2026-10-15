@@ -1,6 +1,7 @@
 import { getConnInfo } from "@hono/node-server/conninfo";
 import { Hono, type Context } from "hono";
 import type { ApiError, SearchResult } from "../shared/types.js";
+import { parseBrowseQuery } from "./browse.js";
 import { searchOpenLibrary } from "./catalog/openlibrary.js";
 import { searchTmdb } from "./catalog/tmdb.js";
 import { config } from "./config.js";
@@ -41,6 +42,11 @@ export function createApi(reports: ReportService): Hono {
   api.get("/recent", async (c) => c.json(await reports.getRecent(8)));
 
   api.get("/trending", async (c) => c.json(await reports.getTrending(8)));
+
+  api.get("/browse", async (c) => {
+    const filters = parseBrowseQuery(new URL(c.req.url).searchParams);
+    return c.json(await reports.browse(filters));
+  });
 
   api.get("/report/:id", async (c) => {
     const id = c.req.param("id");

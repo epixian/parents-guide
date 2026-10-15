@@ -145,8 +145,50 @@ button,
   color: var(--accent-text);
 }
 
+.prefs-anchor,
 .prefs {
   position: relative;
+}
+
+/* First-visit tip: a callout below "My concerns", pointing up at it. */
+.tip {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 9;
+  width: min(260px, calc(100vw - 32px));
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--accent);
+  color: var(--accent-text);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.15);
+  font-size: 0.9rem;
+}
+
+.tip[hidden] {
+  display: none;
+}
+
+.tip::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  right: 24px;
+  border: 8px solid transparent;
+  border-bottom-color: var(--accent);
+}
+
+.tip p {
+  margin: 0 0 8px;
+}
+
+.tip button {
+  padding: 4px 12px;
+  border-color: var(--accent-text);
+  background: transparent;
+  color: var(--accent-text);
+  font-size: 0.85rem;
 }
 
 .prefs summary {
@@ -179,8 +221,20 @@ button,
     position: relative;
   }
 
+  .prefs-anchor,
   .prefs {
     position: static;
+  }
+
+  .tip {
+    left: 16px;
+    right: 16px;
+    width: auto;
+    margin-top: 4px;
+  }
+
+  .tip::before {
+    display: none;
   }
 
   .prefs[open] #prefs-body {
@@ -216,8 +270,17 @@ main {
   padding: 16px;
 }
 
+/* Same 24px gap below as between the home page sections (see .trending). */
 .hero {
-  padding: 32px 0;
+  margin-bottom: 24px;
+}
+
+.hero h1 {
+  margin-top: 8px;
+}
+
+.hero p:last-child {
+  margin-bottom: 0;
 }
 
 .muted {
@@ -501,6 +564,11 @@ main {
   min-width: 0;
 }
 
+.title-area .byline {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+}
+
 .title-area .facts {
   display: flex;
   flex-wrap: wrap;
@@ -575,8 +643,21 @@ main {
   margin-bottom: 4px;
 }
 
-.recent-row h3 {
+.row-head {
+  display: flex;
+  gap: 8px 16px;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
   margin: 16px 0 8px;
+}
+
+.row-head a {
+  font-size: 0.9rem;
+}
+
+.recent-row h3 {
+  margin: 0;
   font-size: 1rem;
   color: var(--muted);
 }
@@ -816,3 +897,147 @@ main {
 .trending {
   margin-bottom: 24px;
 }
+
+/* Header link to the browse page */
+.nav-link {
+  font-weight: 600;
+}
+
+/* Browse page: filter form and a wrapping grid of cards */
+.browse-form {
+  margin-bottom: 16px;
+}
+
+.browse-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: flex-end;
+  margin-bottom: 8px;
+}
+
+.browse-row label,
+.topic-filter > label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.browse-form select,
+.browse-form input[type="search"] {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.browse-row input[type="search"] {
+  width: 14rem;
+  max-width: 100%;
+}
+
+.topic-filters {
+  margin: 8px 0;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.topic-filters summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.topic-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: flex-end;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.topic-filter > label {
+  flex: 0 1 16rem;
+}
+
+.topic-filter > label span {
+  color: var(--text);
+}
+
+.hide-treatments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.chip-check {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 2px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  background: var(--surface);
+}
+
+.chip-check input {
+  margin: 0;
+}
+
+.chip-check:has(input:checked) {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.chip-check .count {
+  opacity: 0.75;
+  font-variant-numeric: tabular-nums;
+}
+
+.tag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cards.grid {
+  flex-wrap: wrap;
+  overflow-x: visible;
+}
+
+#browse-results[aria-busy="true"] {
+  opacity: 0.5;
+}
+
+/* Average-score chips on browse cards, colored by level */
+.minis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.mini {
+  padding: 0 6px;
+  border-left: 4px solid var(--level-0);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.mini[data-level="1"] { border-left-color: var(--level-1); }
+.mini[data-level="2"] { border-left-color: var(--level-2); }
+.mini[data-level="3"] { border-left-color: var(--level-3); }
+.mini[data-level="4"] { border-left-color: var(--level-4); }
+.mini[data-level="5"] { border-left-color: var(--level-5); }

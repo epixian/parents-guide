@@ -71,6 +71,7 @@ npm test             # unit tests
 npm run typecheck
 npm run build        # dist/server + dist/client
 npm start            # production server (serves the built client too)
+npm run backup:sync  # copy CACHE_DIR to the S3 backup bucket (--restore to copy back)
 ```
 
 A production build needs only `npm ci`, `npm run build`, and `npm start`, with a
@@ -78,6 +79,15 @@ A production build needs only `npm ci`, `npm run build`, and `npm start`, with a
 deploys never touch saved results. Behind a reverse proxy, set `TRUST_PROXY=1`
 so the per-IP limit uses the client address; the server listens on
 `127.0.0.1` unless `HOST` says otherwise.
+
+### Off-site backup
+
+Set the `S3_*` values in `.env` to copy every saved result to an S3-compatible
+bucket (AWS S3, DigitalOcean Spaces, Cloudflare R2, Backblaze B2, MinIO) as soon
+as it is written. The view counts and the usage log go up every 10 minutes. The
+local disk stays the source of truth, and a failed upload never fails a request.
+Run `npm run backup:sync` once for the files saved before the backup was on, and
+`npm run backup:sync -- --restore` to copy the bucket back into an empty `CACHE_DIR`.
 
 Configuration lives in `.env` (see `.env.example`). Change the category list in `src/shared/categories.ts`, and bump `PROMPT_VERSION` in `src/server/classify.ts` when you change it or the prompt.
 

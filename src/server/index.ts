@@ -5,6 +5,7 @@ import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
 import { createApi } from "./app.js";
+import { backup } from "./backup.js";
 import { FileReportCache } from "./cache.js";
 import { config } from "./config.js";
 import { Popularity } from "./popularity.js";
@@ -22,13 +23,37 @@ setInterval(() => limiter.sweep(), 10 * 60 * 1000).unref();
 const popularity = new Popularity(path.join(config.cacheDir, "popularity.json"));
 await popularity.load();
 
-const reports = new ReportService(new FileReportCache(config.cacheDir), limiter, popularity);
+const reports = new ReportService(
+  new FileReportCache(config.cacheDir, (rel) => backup?.queue(rel)),
+  limiter,
+  popularity,
+);
+
+// The view counts and the usage log change often; copy them off-site every 10 minutes if changed.
+const LOG_FILES = ["popularity.json", "usage.jsonl"];
+const uploadedMtime = new Map<string, number>();
+function backupLogs(): void {
+  for (const rel of LOG_FILES) {
+    const mtime = fs.statSync(path.join(config.cacheDir, rel), { throwIfNoEntry: false })?.mtimeMs;
+    if (mtime && mtime !== uploadedMtime.get(rel)) {
+      uploadedMtime.set(rel, mtime);
+      backup?.queue(rel);
+    }
+  }
+}
+if (backup) setInterval(backupLogs, 10 * 60 * 1000).unref();
 void reports.loadIndex();
 
 // Save pending view counts when Supervisor (or Ctrl+C) stops the server.
 for (const signal of ["SIGTERM", "SIGINT"] as const) {
   process.once(signal, () => {
-    void popularity.flush().finally(() => process.exit(0));
+    void popularity
+      .flush()
+      .then(() => {
+        backupLogs();
+        return backup?.flush(10_000);
+      })
+      .finally(() => process.exit(0));
   });
 }
 
@@ -72,4 +97,5 @@ serve({ fetch: app.fetch, port: config.port, hostname: config.host }, (info) => 
   console.log(`Cache directory: ${config.cacheDir}`);
   if (!config.anthropicApiKey) console.warn("ANTHROPIC_API_KEY is not set: new AI lookups will fail.");
   if (!config.tmdbApiKey) console.warn("TMDB_API_KEY is not set: movie and TV search will fail.");
+  console.log(config.s3 ? `Backup: s3://${config.s3.bucket}/${config.s3.prefix}` : "Backup: off (S3_BUCKET not set)");
 });

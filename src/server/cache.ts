@@ -26,7 +26,11 @@ export function cachePathFor(id: string): string | null {
 const RESULT_DIRS = new Set(["movie", "tv", "book"]);
 
 export class FileReportCache implements ReportCache {
-  constructor(private readonly root: string) {}
+  /** onWrite: called with the path inside root after each saved result (used for the off-site backup). */
+  constructor(
+    private readonly root: string,
+    private readonly onWrite?: (rel: string) => void,
+  ) {}
 
   private resolve(id: string): string {
     const rel = cachePathFor(id);
@@ -73,5 +77,6 @@ export class FileReportCache implements ReportCache {
     const tmp = `${file}.${process.pid}.${Date.now()}.tmp`;
     await fs.writeFile(tmp, `${JSON.stringify(report, null, 2)}\n`, "utf8");
     await fs.rename(tmp, file);
+    this.onWrite?.(cachePathFor(report.id)!);
   }
 }

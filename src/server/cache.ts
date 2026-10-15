@@ -23,6 +23,8 @@ export function cachePathFor(id: string): string | null {
   return null;
 }
 
+const RESULT_DIRS = new Set(["movie", "tv", "book"]);
+
 export class FileReportCache implements ReportCache {
   constructor(private readonly root: string) {}
 
@@ -52,7 +54,8 @@ export class FileReportCache implements ReportCache {
     const files = await fs.readdir(this.root, { recursive: true }).catch(() => [] as string[]);
     const reports: Report[] = [];
     for (const rel of files) {
-      if (!rel.endsWith(".json")) continue;
+      // Only the result folders; CACHE_DIR also holds other files (batch-catalog/, popularity.json).
+      if (!rel.endsWith(".json") || !RESULT_DIRS.has(rel.split(path.sep)[0]!)) continue;
       try {
         const report = JSON.parse(await fs.readFile(path.join(this.root, rel), "utf8")) as Report;
         if (report.schemaVersion === SCHEMA_VERSION && cachePathFor(report.id) === rel) reports.push(report);

@@ -15,3 +15,6 @@ solo.yml
 # Local operations notes (server paths and deploy details)
 DEPLOY.md
 BATCH.md
+
+# Local Lighthouse reports
+.lighthouse/

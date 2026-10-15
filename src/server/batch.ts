@@ -20,6 +20,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
+import { backup } from "./backup.js";
 import { FileReportCache, cachePathFor } from "./cache.js";
 import type { WorkDetails } from "./catalog/types.js";
 import { waitForBatch } from "./batchApi.js";
@@ -31,7 +32,7 @@ import { estimateCost, recordUsage } from "./usage.js";
 /** Catalog requests at a time, to stay well under TMDB and Open Library limits. */
 const CATALOG_CONCURRENCY = 4;
 
-const cache = new FileReportCache(config.cacheDir);
+const cache = new FileReportCache(config.cacheDir, (rel) => backup?.queue(rel));
 
 const CATALOG_DIR = path.join(config.cacheDir, "batch-catalog");
 const CATALOG_MAX_AGE_MS = 7 * 86_400_000;
@@ -143,6 +144,11 @@ async function saveResults(
       failed++;
       console.warn(`failed ${id}: ${(err as Error).message}`);
     }
+  }
+  if (backup) {
+    backup.queue("usage.jsonl");
+    console.log("Waiting for the off-site backup uploads…");
+    await backup.flush(120_000);
   }
   console.log(`\nDone: ${saved} saved, ${failed} failed, cost≈$${cost.toFixed(4)}.`);
   console.log("Restart the server so the home page lists include the new titles.");

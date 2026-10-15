@@ -28,6 +28,39 @@ function gitCommit(): string {
 // package.json is two levels up from both src/server/ and dist/server/.
 const pkg = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8")) as { name: string };
 
+/** S3-compatible bucket for the off-site copy of CACHE_DIR (see backup.ts). */
+export interface S3Config {
+  /** Empty for AWS S3; e.g. https://nyc3.digitaloceanspaces.com or https://<account>.r2.cloudflarestorage.com */
+  endpoint: string;
+  region: string;
+  bucket: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  /** Key prefix, e.g. "cache/". Empty or ending in "/". */
+  prefix: string;
+  /** Path-style URLs (bucket in the path). Needed by MinIO and some other services. */
+  forcePathStyle: boolean;
+}
+
+function s3Config(): S3Config | null {
+  const bucket = process.env.S3_BUCKET || "";
+  if (!bucket) return null;
+  const accessKeyId = process.env.S3_ACCESS_KEY_ID || "";
+  const secretAccessKey = process.env.S3_SECRET_ACCESS_KEY || "";
+  if (!accessKeyId || !secretAccessKey) throw new Error("S3_BUCKET is set, so S3_ACCESS_KEY_ID and S3_SECRET_ACCESS_KEY are required");
+  const prefix = (process.env.S3_PREFIX || "").replace(/^\/+/, "");
+  return {
+    endpoint: process.env.S3_ENDPOINT || "",
+    // Most S3-compatible services ignore the region; "us-east-1" is the usual placeholder.
+    region: process.env.S3_REGION || "us-east-1",
+    bucket,
+    accessKeyId,
+    secretAccessKey,
+    prefix: prefix && !prefix.endsWith("/") ? `${prefix}/` : prefix,
+    forcePathStyle: process.env.S3_FORCE_PATH_STYLE === "1",
+  };
+}
+
 export const config = {
   // App name and commit, for the User-Agent of catalog requests.
   appName: pkg.name,
@@ -46,4 +79,6 @@ export const config = {
   // Open Library allows about 3 requests per second; without one, about 1.
   openLibraryContact: process.env.OPENLIBRARY_CONTACT || "",
   model: "claude-haiku-4-5",
+  /** Off-site backup bucket, or null when S3_BUCKET is not set. */
+  s3: s3Config(),
 };

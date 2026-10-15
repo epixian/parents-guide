@@ -38,8 +38,8 @@ if (fs.existsSync(path.join(clientDir, "index.html"))) {
   app.use("/*", serveStatic({ root: path.relative(process.cwd(), clientDir) }));
 }
 
-serve({ fetch: app.fetch, port: config.port }, (info) => {
-  console.log(`API listening on http://localhost:${info.port}`);
+serve({ fetch: app.fetch, port: config.port, hostname: config.host }, (info) => {
+  console.log(`API listening on http://${config.host}:${info.port}`);
   console.log(`Cache directory: ${config.cacheDir}`);
   if (!config.anthropicApiKey) console.warn("ANTHROPIC_API_KEY is not set: new AI lookups will fail.");
   if (!config.tmdbApiKey) console.warn("TMDB_API_KEY is not set: movie and TV search will fail.");

@@ -16,6 +16,10 @@ function intEnv(name: string, fallback: number): number {
 
 export const config = {
   port: intEnv("PORT", 8787),
+  // Localhost only by default: Nginx (or the Vite dev proxy) is the only
+  // client. Reached directly, a client could fake X-Forwarded-For and get
+  // around the per-IP AI limit when TRUST_PROXY=1.
+  host: process.env.HOST || "127.0.0.1",
   cacheDir: path.resolve(process.env.CACHE_DIR || "./data/cache"),
   anthropicApiKey: process.env.ANTHROPIC_API_KEY || "",
   tmdbApiKey: process.env.TMDB_API_KEY || "",

@@ -10,6 +10,7 @@ import { config } from "./config.js";
 import { Popularity } from "./popularity.js";
 import { RateLimiter } from "./rateLimit.js";
 import { ReportService } from "./reports.js";
+import { SearchCache } from "./searchCache.js";
 
 fs.mkdirSync(config.cacheDir, { recursive: true });
 
@@ -30,7 +31,12 @@ for (const signal of ["SIGTERM", "SIGINT"] as const) {
 }
 
 const app = new Hono();
-app.route("/api", createApi(reports));
+const searchCache = new SearchCache(config.cacheDir);
+// Delete expired search answers once an hour, so the folder holds about six hours of searches.
+setInterval(() => void searchCache.prune(), 60 * 60 * 1000).unref();
+void searchCache.prune();
+
+app.route("/api", createApi(reports, searchCache));
 
 // Production: serve the built client. In development, Vite serves it instead.
 const clientDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../client");

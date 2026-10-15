@@ -353,7 +353,7 @@ function saveSearchFilter(f: SearchFilter): void {
   }
 }
 
-function resultItem(r: SearchResult): string {
+function resultItem(r: SearchResult, rated = false): string {
   return `
     <li>
       <a href="${r.kind === "tv" ? `#/tv/${r.id.replace("tmdb-tv-", "")}` : `#/r/${r.id}`}">
@@ -361,6 +361,7 @@ function resultItem(r: SearchResult): string {
         <span class="result-text">
           <strong>${esc(r.title)}</strong> ${r.year ? `<span class="muted">(${r.year})</span>` : ""}
           <span class="badge">${KIND_LABEL[r.kind]}</span>
+          ${rated ? `<span class="badge rated">Rated</span>` : ""}
           ${r.released === false ? `<span class="badge upcoming">Not yet released</span>` : ""}
           ${r.detail ? `<span class="muted small block">${esc(r.detail)}</span>` : ""}
         </span>
@@ -378,10 +379,8 @@ function applySearchFilter(filter: SearchFilter): void {
   }
 }
 
-async function showSearch(q: string): Promise<string> {
-  searchInput.value = q;
-  setLoading(`Searching for "${q}"…`);
-  const { results, warnings } = await api.search(q);
+/** Catalog search results (TMDB and Open Library), grouped by type, with the type filter. */
+function catalogHtml({ results, warnings }: { results: SearchResult[]; warnings: string[] }, rated: Set<string>): string {
   const groups = SEARCH_KINDS.map((k) => ({ ...k, items: results.filter((r) => r.kind === k.kind) })).filter(
     (g) => g.items.length,
   );
@@ -393,7 +392,6 @@ async function showSearch(q: string): Promise<string> {
     `<button type="button" data-filter="${value}" aria-pressed="${value === filter}">${esc(label)} <span class="count">${count}</span></button>`;
 
   return `
-    <h1>Results for "${esc(q)}"</h1>
     ${warnings.map((w) => `<p class="notice">${esc(w)}</p>`).join("")}
     ${
       groups.length
@@ -406,12 +404,57 @@ async function showSearch(q: string): Promise<string> {
               (g) => `
             <section class="result-group" data-kind="${g.kind}"${filter !== "all" && filter !== g.kind ? " hidden" : ""}>
               <h2>${esc(g.label)}</h2>
-              <ul class="results">${g.items.map(resultItem).join("")}</ul>
+              <ul class="results">${g.items.map((r) => resultItem(r, rated.has(r.id))).join("")}</ul>
             </section>`,
             )
             .join("")}`
         : `<p class="status">No matches. Try another spelling.</p>`
     }`;
+}
+
+/** Rated titles shown at the top of the search results. */
+const RATED_SHOWN = 12;
+
+/**
+ * Search: titles that are already rated show at once (from the server's index),
+ * and the slower catalog search fills in below, behind a spinner.
+ */
+async function showSearch(q: string): Promise<string> {
+  searchInput.value = q;
+  setLoading(`Searching for "${q}"…`);
+  const catalog = api.search(q);
+  catalog.catch(() => {}); // Handled in afterRender; avoids an unhandled rejection meanwhile.
+  // Ask for more than are shown, to mark rated titles in the catalog results.
+  const rated = await api.browse(new URLSearchParams({ q, limit: "60" }).toString()).catch(() => null);
+  const ratedIds = new Set(rated?.items.map((t) => t.id) ?? []);
+
+  const seq = navSeq;
+  afterRender = () => {
+    void catalog
+      .then((res) => catalogHtml(res, ratedIds))
+      .catch((err: unknown) => errorHtml(err))
+      .then((html) => {
+        const box = document.querySelector<HTMLElement>("#search-catalog");
+        if (seq !== navSeq || !box) return;
+        box.innerHTML = html;
+        box.removeAttribute("aria-busy");
+      });
+  };
+
+  const ratedHtml = rated?.total
+    ? `<section class="recent rated-matches">
+        <h2>Already rated</h2>
+        <ul class="cards">${rated.items.slice(0, RATED_SHOWN).map((t) => cardHtml(t, true, miniComposites(t))).join("")}</ul>
+        ${rated.total > RATED_SHOWN ? `<p><a href="#/browse?${new URLSearchParams({ q })}">See all ${rated.total} rated matches →</a></p>` : ""}
+      </section>`
+    : "";
+
+  return `
+    <h1>Results for "${esc(q)}"</h1>
+    ${ratedHtml}
+    <div id="search-catalog" aria-busy="true">
+      <p class="status"><span class="spinner" aria-hidden="true"></span>Searching movies, TV shows, and books…</p>
+    </div>`;
 }
 
 async function showReport(id: string): Promise<string> {
@@ -814,6 +857,9 @@ app.addEventListener("submit", (e) => {
 // Each navigation gets a number, so a slow response cannot overwrite a newer view.
 let navSeq = 0;
 
+/** Work a view needs after its HTML is on the page (e.g. filling in a slow part). Views set it. */
+let afterRender: (() => void) | null = null;
+
 /** Line for the site footer about the current page (e.g. the rating date). Views set it. */
 let pageMeta = "";
 const pageMetaEl = document.querySelector<HTMLElement>("#page-meta")!;
@@ -821,6 +867,7 @@ const pageMetaEl = document.querySelector<HTMLElement>("#page-meta")!;
 async function route(): Promise<void> {
   const seq = ++navSeq;
   pageMeta = "";
+  afterRender = null;
   const hash = location.hash.replace(/^#/, "") || "/";
   let html: string;
   try {
@@ -836,6 +883,10 @@ async function route(): Promise<void> {
   if (seq !== navSeq) return;
   app.innerHTML = html;
   watchMore();
+  // The cast undoes TypeScript's narrowing to null: the awaited view above may have set it.
+  const after = afterRender as (() => void) | null;
+  afterRender = null;
+  after?.();
   pageMetaEl.textContent = pageMeta;
   pageMetaEl.hidden = !pageMeta;
 }

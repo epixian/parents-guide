@@ -943,6 +943,15 @@ a.audience:hover {
   color: var(--muted);
 }
 
+.badge.rated {
+  border-color: var(--level-1);
+  color: var(--level-1);
+}
+
+.rated-matches {
+  margin-bottom: 8px;
+}
+
 .badge.upcoming {
   border-color: var(--notice-text);
   color: var(--notice-text);

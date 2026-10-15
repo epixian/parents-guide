@@ -7,6 +7,7 @@ import { searchTmdb } from "./catalog/tmdb.js";
 import { config } from "./config.js";
 import { HttpError } from "./http.js";
 import type { ReportService } from "./reports.js";
+import type { SearchCache } from "./searchCache.js";
 
 function clientKey(c: Context): string {
   if (config.trustProxy) {
@@ -18,7 +19,7 @@ function clientKey(c: Context): string {
   return getConnInfo(c).remote.address ?? "unknown";
 }
 
-export function createApi(reports: ReportService): Hono {
+export function createApi(reports: ReportService, searchCache: SearchCache): Hono {
   const api = new Hono();
 
   api.get("/health", (c) => c.json({ ok: true }));
@@ -26,6 +27,8 @@ export function createApi(reports: ReportService): Hono {
   api.get("/search", async (c) => {
     const q = (c.req.query("q") ?? "").trim();
     if (q.length < 2 || q.length > 200) throw new HttpError(400, "Query must be 2-200 characters");
+    const cached = await searchCache.get(q);
+    if (cached) return c.json(cached);
 
     // One catalog failing (e.g. no TMDB key) should not hide the other's results.
     const [screen, books] = await Promise.allSettled([searchTmdb(q), searchOpenLibrary(q)]);
@@ -36,6 +39,8 @@ export function createApi(reports: ReportService): Hono {
     if (books.status === "fulfilled") results.push(...books.value.slice(0, 8));
     else warnings.push(`Book search failed: ${(books.reason as Error).message}`);
     if (!results.length && warnings.length === 2) throw new HttpError(502, warnings.join(" "));
+    // Cache complete answers only, so a catalog outage is not remembered.
+    if (!warnings.length) await searchCache.set(q, { results, warnings });
     return c.json({ results, warnings });
   });
 

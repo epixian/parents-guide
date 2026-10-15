@@ -509,14 +509,15 @@ function recentHref(item: RecentItem): string {
   return item.kind === "tv" ? `#/tv/${item.id.replace("tmdb-tv-", "")}` : `#/r/${item.id}`;
 }
 
+/** extra: HTML between the poster and the title (the composite bars). */
 function cardHtml(item: RecentItem, showKind: boolean, extra = ""): string {
   return `
     <li>
       <a href="${recentHref(item)}">
         ${item.imageUrl ? `<img src="${esc(item.imageUrl)}" alt="" loading="lazy" />` : `<span class="noimg" aria-hidden="true"></span>`}
+        ${extra}
         <span class="card-title">${esc(item.title)}</span>
         <span class="muted small">${[showKind ? KIND_LABEL[item.kind] : "", item.years ?? ""].filter(Boolean).map(esc).join(" · ")}</span>
-        ${extra}
       </a>
     </li>`;
 }

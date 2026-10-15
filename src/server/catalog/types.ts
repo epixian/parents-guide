@@ -1,4 +1,4 @@
-import type { CreditEntry, WorkInfo } from "../../shared/types.js";
+import type { AudienceScore, CreditEntry, WorkInfo } from "../../shared/types.js";
 
 /** Metadata about one work (or TV season) that grounds the AI classification. */
 export interface WorkDetails {
@@ -18,6 +18,21 @@ export function truncate(text: string | null | undefined, max: number): string {
   if (!text) return "";
   const clean = text.replace(/\s+/g, " ").trim();
   return clean.length > max ? `${clean.slice(0, max - 1)}…` : clean;
+}
+
+/**
+ * Audience score with one decimal, or null when there are fewer than
+ * minVotes votes: a handful of votes says little about a title.
+ */
+export function audienceScore(
+  source: string,
+  average: number | null | undefined,
+  count: number | null | undefined,
+  scale: number,
+  minVotes: number,
+): AudienceScore | null {
+  if (!average || !count || count < minVotes) return null;
+  return { source, average: Math.round(average * 10) / 10, scale, count };
 }
 
 /** Build the credits list, dropping empty and duplicate entries. */

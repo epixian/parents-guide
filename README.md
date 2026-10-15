@@ -34,6 +34,8 @@ Results refresh only when someone requests them, based on the title's age (see `
 | 1 year to < 2 years | 1 year |
 | 2 years or more | never |
 
+Catalog facts (credits, poster, and the audience score from TMDB or Open Library) are reloaded on the next view when they are more than 30 days old. This is a catalog call only, with no AI cost. A book keeps the publisher that the AI gave.
+
 No AI lookup happens before the release date. A TV season's age comes from its most recent aired episode. A book with only a publication year uses January 1 of that year.
 
 ## Local development

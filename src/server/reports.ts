@@ -1,5 +1,13 @@
 import { CATEGORIES } from "../shared/categories.js";
-import type { BrowseResponse, RecentItem, RecentResponse, Report, ReportResponse, SeriesResponse } from "../shared/types.js";
+import type {
+  BrowseResponse,
+  RecentItem,
+  RecentResponse,
+  Report,
+  ReportResponse,
+  SeriesResponse,
+  WorkInfo,
+} from "../shared/types.js";
 import { browseTitles, type BrowseFilters } from "./browse.js";
 import { cachePathFor, type ReportCache } from "./cache.js";
 import { getBook } from "./catalog/openlibrary.js";
@@ -34,10 +42,21 @@ export function parseId(id: string): { kind: Report["kind"]; load: (now: Date) =
   throw new HttpError(400, "Invalid id");
 }
 
-/** False when the info box is missing or in an older format (before linked credits). */
-function hasCurrentInfo(report: Report): boolean {
+/** Catalog facts (credits, poster, audience score) older than this are reloaded on the next view. No AI call. */
+const INFO_MAX_AGE_MS = 30 * 86_400_000;
+
+/** False when the info box is missing, in an older format, or older than INFO_MAX_AGE_MS. */
+function hasCurrentInfo(report: Report, now: Date): boolean {
   const info = report.info;
-  return !!info && "source" in info && info.credits.every((c) => Array.isArray(c.entries));
+  if (!info?.fetchedAt || !info.credits.every((c) => Array.isArray(c.entries))) return false;
+  return now.getTime() - Date.parse(info.fetchedAt) < INFO_MAX_AGE_MS;
+}
+
+/** New catalog facts, but keep a book's publisher: it came from the AI, which knows first editions better. */
+export function mergeInfo(kind: Report["kind"], old: WorkInfo | undefined, fresh: WorkInfo): WorkInfo {
+  const publisher = kind === "book" ? old?.credits.find((c) => c.label === "Publisher") : undefined;
+  if (!publisher) return fresh;
+  return { ...fresh, credits: [...fresh.credits.filter((c) => c.label !== "Publisher"), publisher] };
 }
 
 export class ReportService {
@@ -101,7 +120,7 @@ export class ReportService {
     const now = new Date();
     const cached = await this.cache.get(id);
     if (cached && !shouldRefresh({ releaseDate: cached.releaseDate, refreshedAt: cached.refreshedAt, now })) {
-      return { status: "ok", report: hasCurrentInfo(cached) ? cached : await this.addInfo(cached, load, now) };
+      return { status: "ok", report: hasCurrentInfo(cached, now) ? cached : await this.addInfo(cached, load, now) };
     }
 
     const pending = this.inFlight.get(id);
@@ -116,7 +135,7 @@ export class ReportService {
   private async addInfo(cached: Report, load: (now: Date) => Promise<WorkDetails>, now: Date): Promise<Report> {
     try {
       const work = await load(now);
-      const updated = { ...cached, info: work.info };
+      const updated = { ...cached, info: mergeInfo(cached.kind, cached.info, work.info) };
       await this.save(updated);
       return updated;
     } catch (err) {

@@ -12,6 +12,7 @@ import {
 } from "../shared/categories.js";
 import { THEME_TAGS } from "../shared/themes.js";
 import type {
+  AudienceScore,
   BrowseResponse,
   CategoryRange,
   CreditEntry,
@@ -143,6 +144,20 @@ function creditHtml(e: CreditEntry): string {
     : esc(e.name);
 }
 
+/** "27k" for 27,123; small counts as they are. */
+const compactCount = (n: number) => new Intl.NumberFormat("en", { notation: "compact" }).format(n);
+
+/** Audience score from the catalog, e.g. "★ 8.7/10 TMDB". The vote count is in the tooltip. */
+function audienceHtml(a: AudienceScore | null | undefined, sourceUrl: string | undefined): string {
+  if (!a) return "";
+  const text = `★ ${a.average.toFixed(1)}/${a.scale}`;
+  const tip = `Average user score on ${a.source}, from ${a.count.toLocaleString("en")} votes`;
+  const inner = `${esc(text)} <span class="muted small">${esc(a.source)} · ${esc(compactCount(a.count))} votes</span>`;
+  return sourceUrl && /^https:\/\//.test(sourceUrl)
+    ? `<a class="audience" href="${esc(sourceUrl)}" target="_blank" rel="noopener" title="${esc(tip)}">${inner}</a>`
+    : `<span class="audience" title="${esc(tip)}">${inner}</span>`;
+}
+
 /** Title area: poster, title, year, rating, and the composites. Details go lower on the page. */
 function titleHeader(title: string, subtitle: string | null, info: WorkInfo | undefined, composites: string): string {
   const facts = [
@@ -150,6 +165,7 @@ function titleHeader(title: string, subtitle: string | null, info: WorkInfo | un
     info?.rating
       ? `<span class="rating" title="${esc(info.rating.system)} rating">${esc(info.rating.value)}</span>`
       : "",
+    audienceHtml(info?.audience, info?.source?.url),
   ].filter(Boolean);
   // Books: the authors, linked like the other credits. They also stay in the details box.
   const authors = info?.credits.find((c) => c.label === "Author")?.entries ?? [];

@@ -2,7 +2,7 @@ import { config } from "../config.js";
 import { HttpError, fetchJson } from "../http.js";
 import { isReleased } from "../refreshPolicy.js";
 import type { CreditEntry, SearchResult, WorkInfo } from "../../shared/types.js";
-import { creditLines, credits, truncate, type WorkDetails } from "./types.js";
+import { audienceScore, creditLines, credits, truncate, type WorkDetails } from "./types.js";
 
 const BASE = "https://api.themoviedb.org/3";
 const IMAGE_BASE = "https://image.tmdb.org/t/p/w92";
@@ -84,8 +84,14 @@ function topCast(c: Credits | undefined, n = 5): CreditEntry[] {
     .map(person);
 }
 
+/** TMDB user score (0-10). */
+const tmdbScore = (d: { vote_average?: number; vote_count?: number }) =>
+  audienceScore("TMDB", d.vote_average, d.vote_count, 10, 25);
+
 interface MovieDetails {
   title: string;
+  vote_average?: number;
+  vote_count?: number;
   release_date?: string;
   overview?: string;
   tagline?: string;
@@ -120,6 +126,8 @@ export async function getMovie(tmdbId: string, now: Date): Promise<WorkDetails> 
     ]),
     imageUrl: poster(m.poster_path),
     source: { name: "TMDB", url: `${SITE}/movie/${tmdbId}` },
+    audience: tmdbScore(m),
+    fetchedAt: now.toISOString(),
   };
 
   const context = [
@@ -141,6 +149,8 @@ export async function getMovie(tmdbId: string, now: Date): Promise<WorkDetails> 
 
 interface TvDetails {
   name: string;
+  vote_average?: number;
+  vote_count?: number;
   first_air_date?: string;
   last_air_date?: string;
   status?: string;
@@ -197,6 +207,8 @@ export async function getTvSeries(tmdbId: string): Promise<TvSeries> {
       ]),
       imageUrl: poster(tv.poster_path),
       source: { name: "TMDB", url: `${SITE}/tv/${tmdbId}` },
+      audience: tmdbScore(tv),
+      fetchedAt: new Date().toISOString(),
     },
     // Season 0 holds specials; it is not rated.
     seasons: (tv.seasons ?? [])
@@ -244,6 +256,9 @@ export async function getTvSeason(tmdbId: string, seasonNumber: number, now: Dat
     ]),
     imageUrl: poster(season.poster_path ?? tv.poster_path),
     source: { name: "TMDB", url: `${SITE}/tv/${tmdbId}/season/${seasonNumber}` },
+    // TMDB has vote counts for whole series only, so a season shows the series score.
+    audience: tmdbScore(tv),
+    fetchedAt: now.toISOString(),
   };
 
   const context = [

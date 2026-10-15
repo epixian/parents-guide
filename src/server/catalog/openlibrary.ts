@@ -1,7 +1,7 @@
 import { fetchJson } from "../http.js";
 import { isReleased } from "../refreshPolicy.js";
 import type { SearchResult, WorkInfo } from "../../shared/types.js";
-import { credits, truncate, type WorkDetails } from "./types.js";
+import { audienceScore, credits, truncate, type WorkDetails } from "./types.js";
 
 const BASE = "https://openlibrary.org";
 const HEADERS = { "user-agent": "pairents-guide/0.1", accept: "application/json" };
@@ -13,12 +13,14 @@ interface SearchDoc {
   author_key?: string[];
   first_publish_year?: number;
   cover_i?: number;
+  ratings_average?: number;
+  ratings_count?: number;
 }
 
-function searchDocs(q: string, limit: number): Promise<{ docs: SearchDoc[] }> {
+function searchDocs(q: string, limit: number, extraFields = ""): Promise<{ docs: SearchDoc[] }> {
   const params = new URLSearchParams({
     q,
-    fields: "key,title,author_name,author_key,first_publish_year,cover_i",
+    fields: `key,title,author_name,author_key,first_publish_year,cover_i${extraFields}`,
     limit: String(limit),
   });
   return fetchJson(`${BASE}/search.json?${params}`, { headers: HEADERS });
@@ -90,7 +92,7 @@ const publisherEntry = (name: string | null) => (name ? { name, url: null } : nu
 export async function getBook(workId: string, now: Date): Promise<WorkDetails> {
   const [work, search, editions] = await Promise.all([
     fetchJson<Work>(`${BASE}/works/${workId}.json`, { headers: HEADERS }),
-    searchDocs(`key:/works/${workId}`, 1),
+    searchDocs(`key:/works/${workId}`, 1, ",ratings_average,ratings_count"),
     fetchJson<{ entries?: Edition[] }>(`${BASE}/works/${workId}/editions.json?limit=100`, { headers: HEADERS }).catch(
       () => ({ entries: [] as Edition[] }),
     ),
@@ -115,6 +117,9 @@ export async function getBook(workId: string, now: Date): Promise<WorkDetails> {
     ]),
     imageUrl: doc?.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null,
     source: { name: "Open Library", url: `${BASE}/works/${workId}` },
+    // Open Library reader ratings (1-5 stars). Books get fewer ratings than movies get votes.
+    audience: audienceScore("Open Library", doc?.ratings_average, doc?.ratings_count, 5, 10),
+    fetchedAt: now.toISOString(),
   };
 
   const context = [

@@ -36,6 +36,18 @@ export interface WorkInfo {
   imageUrl: string | null;
   /** The title's page at its catalog source. */
   source: { name: string; url: string } | null;
+  /** Average user score at the catalog source. Null when it has too few votes. Older files may not have it. */
+  audience?: AudienceScore | null;
+  /** ISO timestamp of the catalog lookup. The server reloads facts older than 30 days. Older files may not have it. */
+  fetchedAt?: string;
+}
+
+/** Average user score at a catalog source, e.g. TMDB 8.7 / 10 from 27,000 votes. */
+export interface AudienceScore {
+  source: string;
+  average: number;
+  scale: number;
+  count: number;
 }
 
 export interface CategoryRating {

@@ -564,6 +564,16 @@ main {
   min-width: 0;
 }
 
+.audience {
+  color: var(--text);
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+}
+
+a.audience:hover {
+  text-decoration: underline;
+}
+
 .title-area .byline {
   margin: 0 0 6px;
   font-size: 1.05rem;

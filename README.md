@@ -57,11 +57,17 @@ npm run dev:client   # Web app on http://localhost:5188 (proxies /api)
 Other commands:
 
 ```sh
-npm test             # refresh policy tests
+npm test             # unit tests
 npm run typecheck
 npm run build        # dist/server + dist/client
 npm start            # production server (serves the built client too)
 ```
+
+A production build needs only `npm ci`, `npm run build`, and `npm start`, with a
+`.env` beside it. Set `CACHE_DIR` to an absolute path outside the checkout, so
+deploys never touch saved results. Behind a reverse proxy, set `TRUST_PROXY=1`
+so the per-IP limit uses the client address; the server listens on
+`127.0.0.1` unless `HOST` says otherwise.
 
 Configuration lives in `.env` (see `.env.example`). Change the category list in `src/shared/categories.ts`, and bump `PROMPT_VERSION` in `src/server/classify.ts` when you change it or the prompt.
 
@@ -72,101 +78,10 @@ Every AI call writes one line to the server log, for example
 line to `<CACHE_DIR>/usage.jsonl`. To total the cost:
 
 ```sh
-node -e 'let t=0;for(const l of require("fs").readFileSync(process.argv[1],"utf8").split("\n"))if(l)t+=JSON.parse(l).cost??0;console.log("$"+t.toFixed(2))' /path/to/cache/usage.jsonl
+node -e 'let t=0;for(const l of require("fs").readFileSync(process.argv[1],"utf8").split("\n"))if(l)t+=JSON.parse(l).cost??0;console.log("$"+t.toFixed(2))' data/cache/usage.jsonl
 ```
 
 ## Rating many titles at batch prices
 
-The Batch API costs half the normal price. Results take minutes to hours, so
-use it to fill the cache before launch, not for live requests.
-
-1. Write a file with one report id per line (`#` starts a comment):
-
-   ```
-   tmdb-movie-603
-   tmdb-tv-1399-s01
-   ol-OL27482W
-   ```
-
-2. Check what it will do (no AI calls, no cost):
-
-   ```sh
-   npm run batch -- titles.txt --dry-run      # production build
-   npm run batch:dev -- titles.txt --dry-run  # on a dev machine, no build needed
-   ```
-
-3. Run it without `--dry-run`. The script skips saved and unreleased titles,
-   sends one batch, waits for it, and saves each result to `CACHE_DIR`. If the
-   script stops, run `npm run batch -- --resume <batch-id>` with the id it printed.
-
-4. Restart the server, so the home page lists include the new titles.
-
-On the server, run it from the site's `current` directory, so it uses the
-site's `.env` and writes straight to the production cache. To run it on a dev
-machine instead, copy the results up without replacing anything the server has:
-
-```sh
-rsync -av --ignore-existing --exclude popularity.json --exclude usage.jsonl \
-  data/cache/ forge@your-droplet:/path/to/cache/
-```
-
-## Deploying (DigitalOcean droplet + Laravel Forge)
-
-The cache must live outside the git checkout, so deploys never touch it.
-
-1. **Create the site** in Forge for your domain, pointing at this repository. Turn on quick deploy (auto deploy on push).
-2. **Create the cache directory** on the server (as the `forge` user):
-
-   ```sh
-   mkdir -p /path/to/cache
-   ```
-
-3. **Environment**: in the site's environment settings, set:
-
-   ```
-   ANTHROPIC_API_KEY=...
-   TMDB_API_KEY=...
-   PORT=8787
-   CACHE_DIR=/path/to/cache
-   TRUST_PROXY=1
-   AI_LOOKUPS_PER_IP_PER_HOUR=30
-   ```
-
-   Forge writes these to `.env` in the site directory, and the server reads that file at startup. `.env` is in `.gitignore`.
-
-4. **Deploy script**: replace the default (PHP) script with:
-
-   ```sh
-   cd $FORGE_SITE_PATH
-   git pull origin $FORGE_SITE_BRANCH
-   npm ci
-   npm run build
-   sudo -S supervisorctl restart daemon-XXXXX:*   # replace with your daemon's name from Forge
-   ```
-
-   If your Forge setup uses a different restart command for daemons, use that. You can also restart the daemon from the Forge UI.
-
-5. **Daemon**: add a daemon on the server:
-   - Command: `node dist/server/index.js`
-   - Directory: the site directory (for example `/home/forge/your-domain.com`)
-   - User: `forge`
-
-6. **Nginx**: edit the site's Nginx config so requests go to the Node server. Replace the `location /` block with:
-
-   ```nginx
-   location / {
-       proxy_pass http://127.0.0.1:8787;
-       proxy_http_version 1.1;
-       proxy_set_header Host $host;
-       proxy_set_header X-Real-IP $remote_addr;
-       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-       proxy_set_header X-Forwarded-Proto $scheme;
-       proxy_read_timeout 120s;
-   }
-   ```
-
-   A new AI lookup can take up to about a minute, so keep `proxy_read_timeout` above that.
-
-7. **Node.js**: the server needs Node.js 22 or later. Check with `node --version` on the droplet.
-
-If you later turn on zero-downtime deploys (a new release directory for each deploy), nothing changes: `CACHE_DIR` is an absolute path outside the release directories.
+`npm run batch -- <ids-file> [--dry-run]` rates a list of report ids through the
+Batch API at half price. See the comment at the top of `src/server/batch.ts`.

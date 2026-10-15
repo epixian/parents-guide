@@ -11,3 +11,7 @@ data/
 
 # Local Solo process config
 solo.yml
+
+# Local operations notes (server paths and deploy details)
+DEPLOY.md
+BATCH.md

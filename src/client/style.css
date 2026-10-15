@@ -565,9 +565,54 @@ main {
 }
 
 .audience {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
   color: var(--text);
   text-decoration: none;
   font-variant-numeric: tabular-nums;
+}
+
+/* TMDB-style user score ring */
+.score-ring {
+  width: 36px;
+  height: 36px;
+  flex: none;
+}
+
+.score-ring[data-tone="high"] { --ring: #21d07a; }
+.score-ring[data-tone="mid"] { --ring: #d2d531; }
+.score-ring[data-tone="low"] { --ring: #db2360; }
+
+.ring-bg {
+  fill: #081c22;
+}
+
+.ring-track,
+.ring-fill {
+  fill: none;
+  stroke: var(--ring);
+  stroke-width: 3;
+}
+
+.ring-track {
+  opacity: 0.3;
+}
+
+.ring-fill {
+  stroke-linecap: round;
+}
+
+.ring-text {
+  fill: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.ring-pct {
+  font-size: 6px;
 }
 
 a.audience:hover {
@@ -1029,25 +1074,67 @@ a.audience:hover {
   opacity: 0.5;
 }
 
-/* Average-score chips on browse cards, colored by level */
-.minis {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+/* Poster cards: stacked-bar icon for the composites, numbers on hover */
+.minibars {
+  position: relative;
+  align-self: flex-start;
+  padding: 2px 0;
 }
 
-.mini {
-  padding: 0 6px;
-  border-left: 4px solid var(--level-0);
-  border-radius: 4px;
+/* A 1px gap between the bars shows the page background. */
+.minibars-icon {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.minibars-icon .bar,
+.minibars-icon .bar > span {
+  border-radius: 0;
+}
+
+.minibars-icon .bar {
+  width: 80px;
+  height: 5px;
+  margin: 0;
+}
+
+.minibars-tip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  z-index: 5;
+  min-width: 150px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
   background: var(--surface);
   color: var(--text);
-  font-size: 0.75rem;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.15);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+/* One grid for all rows, so the columns line up: label, average, highest. */
+.minibars:hover .minibars-tip,
+.cards a:focus-visible .minibars-tip {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  gap: 2px 8px;
   font-variant-numeric: tabular-nums;
 }
 
-.mini[data-level="1"] { border-left-color: var(--level-1); }
-.mini[data-level="2"] { border-left-color: var(--level-2); }
-.mini[data-level="3"] { border-left-color: var(--level-3); }
-.mini[data-level="4"] { border-left-color: var(--level-4); }
-.mini[data-level="5"] { border-left-color: var(--level-5); }
+/* The last card in a row: open toward the left, so the tip stays inside the row. */
+.cards li:last-child .minibars-tip {
+  left: auto;
+  right: 0;
+}
+
+.tip-row {
+  display: contents;
+}
+
+.tip-note {
+  grid-column: 1 / -1;
+}

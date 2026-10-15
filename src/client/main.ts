@@ -147,12 +147,31 @@ function creditHtml(e: CreditEntry): string {
 /** "27k" for 27,123; small counts as they are. */
 const compactCount = (n: number) => new Intl.NumberFormat("en", { notation: "compact" }).format(n);
 
-/** Audience score from the catalog, e.g. "★ 8.7/10 TMDB". The vote count is in the tooltip. */
+/**
+ * Percent ring in the style TMDB uses for its user score: green from 70%,
+ * yellow from 40%, red below.
+ */
+function scoreRing(percent: number): string {
+  const tone = percent >= 70 ? "high" : percent >= 40 ? "mid" : "low";
+  return `
+    <svg class="score-ring" data-tone="${tone}" viewBox="0 0 36 36" aria-hidden="true">
+      <circle cx="18" cy="18" r="18" class="ring-bg" />
+      <circle cx="18" cy="18" r="14.5" class="ring-track" />
+      <circle cx="18" cy="18" r="14.5" class="ring-fill" pathLength="100" stroke-dasharray="${percent} 100" transform="rotate(-90 18 18)" />
+      <text x="18" y="18" class="ring-text">${percent}<tspan class="ring-pct" dy="-3">%</tspan></text>
+    </svg>`;
+}
+
+/**
+ * Audience score from the catalog. TMDB: a percent ring ("87%" for 8.7/10).
+ * Others: "★ 4.2/5". The full vote count is in the tooltip.
+ */
 function audienceHtml(a: AudienceScore | null | undefined, sourceUrl: string | undefined): string {
   if (!a) return "";
-  const text = `★ ${a.average.toFixed(1)}/${a.scale}`;
-  const tip = `Average user score on ${a.source}, from ${a.count.toLocaleString("en")} votes`;
-  const inner = `${esc(text)} <span class="muted small">${esc(a.source)} · ${esc(compactCount(a.count))} votes</span>`;
+  const tip = `Average user score on ${a.source}: ${a.average.toFixed(1)} of ${a.scale}, from ${a.count.toLocaleString("en")} votes`;
+  const score =
+    a.scale === 10 ? scoreRing(Math.round(a.average * 10)) : esc(`★ ${a.average.toFixed(1)}/${a.scale}`);
+  const inner = `${score} <span class="muted small">${esc(a.source)} · ${esc(compactCount(a.count))} votes</span>`;
   return sourceUrl && /^https:\/\//.test(sourceUrl)
     ? `<a class="audience" href="${esc(sourceUrl)}" target="_blank" rel="noopener" title="${esc(tip)}">${inner}</a>`
     : `<span class="audience" title="${esc(tip)}">${inner}</span>`;
@@ -508,7 +527,7 @@ function trendingHtml(items: RecentItem[]): string {
   return `
     <section class="recent trending">
       <h2>Trending this week</h2>
-      <ul class="cards">${items.map((item) => cardHtml(item, true)).join("")}</ul>
+      <ul class="cards">${items.map((item) => cardHtml(item, true, miniComposites(item))).join("")}</ul>
     </section>`;
 }
 
@@ -523,7 +542,7 @@ function recentHtml(recent: RecentResponse): string {
           <h3>${RECENT_HEADINGS[kind]}</h3>
           <a href="#/browse?kind=${kind}">Browse all ${RECENT_HEADINGS[kind].toLowerCase()} →</a>
         </div>
-        <ul class="cards">${recent[kind].map((item) => cardHtml(item, false)).join("")}</ul>
+        <ul class="cards">${recent[kind].map((item) => cardHtml(item, false, miniComposites(item))).join("")}</ul>
       </section>`,
     );
   return rows.length
@@ -556,18 +575,41 @@ const MAX_OPTIONS: [value: string, label: string][] = [
 ];
 const HIDE_TREATMENTS = TREATMENTS.filter((t) => t.id !== "not_present");
 
-/** Small average-score chips for a browse card, for the topics the user has not hidden. */
-function miniComposites(t: IndexEntry): string {
+/**
+ * Small stacked-bar icon for a poster card: one short bar per composite
+ * (average, with the highest score striped behind it). Hover or focus shows
+ * the numbers. Only topics the user has not hidden count.
+ */
+function miniComposites(t: Pick<RecentItem, "kind" | "scores">): string {
   const visible = new Set(visibleCategories(hidden).map((c) => c.id));
-  const chips = COMPOSITES.flatMap((group) => {
+  const rows = COMPOSITES.flatMap((group) => {
     const result = summarize(group.categories.filter((id) => visible.has(id)).map((id) => t.scores[id]));
-    if (!result) return [];
-    const upTo = t.kind === "tv" ? "up to " : "";
-    return [
-      `<span class="mini" data-level="${Math.round(result.avg)}" title="${esc(`${group.label}: ${upTo}${result.avg.toFixed(1)} average, highest ${result.max}`)}">${esc(group.short)} ${result.avg.toFixed(1)}</span>`,
-    ];
+    return result ? [{ group, ...result }] : [];
   });
-  return chips.length ? `<span class="minis">${chips.join("")}</span>` : "";
+  if (!rows.length) return "";
+  const upTo = t.kind === "tv" ? "up to " : "";
+  const text = (r: (typeof rows)[number]) =>
+    `${r.group.label}: ${upTo}${r.avg.toFixed(1)} / ${SCORE_MAX}${r.max > r.avg ? `, highest ${r.max}` : ""}`;
+  const bars = rows
+    .map(
+      (r) => `
+        <span class="bar layered">
+          ${r.max > r.avg ? `<span class="bar-max" data-level="${r.max}" style="width:${pct(r.max)}"></span>` : ""}
+          <span class="bar-avg" data-level="${Math.round(r.avg)}" style="width:${pct(r.avg)}"></span>
+        </span>`,
+    )
+    .join("");
+  const tip = rows
+    .map(
+      (r) =>
+        `<span class="tip-row"><span>${esc(r.group.label)}</span><strong>${r.avg.toFixed(1)}</strong><span class="muted">${r.max > r.avg ? `highest ${r.max}` : ""}</span></span>`,
+    )
+    .join("");
+  return `
+    <span class="minibars" role="img" aria-label="${esc(rows.map(text).join("; "))}">
+      <span class="minibars-icon" aria-hidden="true">${bars}</span>
+      <span class="minibars-tip" aria-hidden="true">${upTo ? `<span class="tip-note muted">Up to, across seasons</span>` : ""}${tip}</span>
+    </span>`;
 }
 
 function browseCards(items: IndexEntry[]): string {

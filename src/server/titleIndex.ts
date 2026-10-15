@@ -72,7 +72,15 @@ function mergeTitle(results: ResultEntry[]): IndexEntry {
 }
 
 function toItem(t: IndexEntry): RecentItem {
-  return { id: t.id, kind: t.kind, title: t.title, years: t.years, imageUrl: t.imageUrl, addedAt: t.addedAt };
+  return {
+    id: t.id,
+    kind: t.kind,
+    title: t.title,
+    years: t.years,
+    imageUrl: t.imageUrl,
+    addedAt: t.addedAt,
+    scores: t.scores,
+  };
 }
 
 /**

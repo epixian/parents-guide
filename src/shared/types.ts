@@ -134,6 +134,8 @@ export interface RecentItem {
   years: string | null;
   imageUrl: string | null;
   addedAt: string;
+  /** Highest score per category (across seasons for TV), for the card's composite bars. */
+  scores: Partial<Record<CategoryId, number>>;
 }
 
 export type RecentResponse = Record<MediaKind, RecentItem[]>;

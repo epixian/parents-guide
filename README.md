@@ -1,4 +1,4 @@
-# Pairents Guide
+# Pairents' Gaide
 
 AI summaries of parental concerns for movies, TV shows, and books. A user searches a title, picks the correct match, and gets a summary plus a 0-5 score for each concern category (violence, language, sexual content, and more). Users hide the categories they do not care about; that choice stays in the browser (`localStorage`).
 

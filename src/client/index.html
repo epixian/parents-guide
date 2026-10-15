@@ -3,12 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pairents Guide</title>
+    <title>Pairents' Gaide</title>
     <meta name="description" content="AI summaries of parental concerns for movies, TV shows, and books." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600&display=swap" />
   </head>
   <body>
     <header class="site-header">
-      <a href="#/" class="brand">Pairents Guide</a>
+      <a href="#/" class="brand" aria-label="Pairents' Gaide home">
+        <!--
+          Logo: PAIRENTS' over GAIDE, sharing one tall "AI".
+          Small letters are 20px with baselines at y=20 and y=44. The tall AI
+          spans from the top row's cap height to the bottom row's baseline.
+        -->
+        <svg class="logo" viewBox="0 0 150 50" role="img" aria-hidden="true">
+          <text class="logo-small" x="20" y="20" text-anchor="end">P</text>
+          <text class="logo-small" x="20" y="44" text-anchor="end">G</text>
+          <text class="logo-ai" x="24" y="44" textLength="50" lengthAdjust="spacingAndGlyphs">AI</text>
+          <text class="logo-small" x="78" y="20">RENTS'</text>
+          <text class="logo-small" x="78" y="44">DE</text>
+        </svg>
+      </a>
       <form id="search-form" class="search" role="search">
         <input id="search-input" type="search" name="q" placeholder="Movie, TV show, or book title" autocomplete="off" required minlength="2" />
         <button type="submit">Search</button>

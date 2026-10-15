@@ -70,10 +70,41 @@ h2 {
 }
 
 .brand {
-  font-weight: 700;
-  font-size: 1.15rem;
+  display: block;
   color: var(--text);
   text-decoration: none;
+  line-height: 0;
+}
+
+.brand:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.logo {
+  display: block;
+  height: 44px;
+  width: auto;
+  overflow: visible;
+}
+
+.logo text {
+  font-family: "Fredoka", "Arial Rounded MT Bold", system-ui, sans-serif;
+  font-weight: 600;
+}
+
+.logo-small {
+  font-size: 20px;
+  letter-spacing: 0.5px;
+  fill: currentColor;
+}
+
+/* 54px makes the AI cap height (about 0.7em) reach from the top row's cap
+   line (y=6) to the bottom row's baseline (y=44). */
+.logo-ai {
+  font-size: 54px;
+  fill: var(--accent);
 }
 
 .search {

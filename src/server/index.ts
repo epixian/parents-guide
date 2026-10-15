@@ -16,6 +16,7 @@ const limiter = new RateLimiter(config.aiLookupsPerIpPerHour, 60 * 60 * 1000);
 setInterval(() => limiter.sweep(), 10 * 60 * 1000).unref();
 
 const reports = new ReportService(new FileReportCache(config.cacheDir), limiter);
+void reports.loadIndex();
 
 const app = new Hono();
 app.route("/api", createApi(reports));

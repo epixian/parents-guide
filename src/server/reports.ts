@@ -1,5 +1,5 @@
 import { CATEGORIES } from "../shared/categories.js";
-import type { Report, ReportResponse, SeriesResponse } from "../shared/types.js";
+import type { RecentResponse, Report, ReportResponse, SeriesResponse } from "../shared/types.js";
 import { cachePathFor, type ReportCache } from "./cache.js";
 import { getBook } from "./catalog/openlibrary.js";
 import { getMovie, getTvSeason, getTvSeries } from "./catalog/tmdb.js";
@@ -7,6 +7,7 @@ import type { WorkDetails } from "./catalog/types.js";
 import { classify } from "./classify.js";
 import { HttpError } from "./http.js";
 import type { RateLimiter } from "./rateLimit.js";
+import { TitleIndex } from "./titleIndex.js";
 import { isReleased, shouldRefresh } from "./refreshPolicy.js";
 
 export function seasonReportId(tmdbId: string, seasonNumber: number): string {
@@ -40,10 +41,35 @@ export class ReportService {
   /** One AI lookup at a time per id; concurrent requests share the result. */
   private readonly inFlight = new Map<string, Promise<ReportResponse>>();
 
+  private readonly index = new TitleIndex();
+  /** Loads the title index from the cache folder on first use. */
+  private indexReady: Promise<void> | null = null;
+
   constructor(
     private readonly cache: ReportCache,
     private readonly limiter: RateLimiter,
   ) {}
+
+  /** Newest saved titles for each media kind. No catalog or AI calls. */
+  async getRecent(limit: number): Promise<RecentResponse> {
+    await this.loadIndex();
+    return this.index.recent(limit);
+  }
+
+  /** Build the index from the cache folder one time. Call at startup to avoid a slow first request. */
+  loadIndex(): Promise<void> {
+    this.indexReady ??= this.cache.listAll().then((all) => {
+      all.forEach((r) => this.index.add(r));
+      console.log(`Title index: ${all.length} saved results`);
+    });
+    return this.indexReady;
+  }
+
+  /** Save a result and keep the home page list current. */
+  private async save(report: Report): Promise<void> {
+    await this.cache.set(report);
+    this.index.add(report);
+  }
 
   async getReport(id: string, clientKey: string): Promise<ReportResponse> {
     if (!cachePathFor(id)) throw new HttpError(400, "Invalid id");
@@ -68,7 +94,7 @@ export class ReportService {
     try {
       const work = await load(now);
       const updated = { ...cached, info: work.info };
-      await this.cache.set(updated);
+      await this.save(updated);
       return updated;
     } catch (err) {
       console.warn(`Could not add info to ${cached.id}: ${(err as Error).message}`);
@@ -110,7 +136,9 @@ export class ReportService {
 
     try {
       const report = await classify(id, kind, work, now);
-      await this.cache.set(report);
+      // A refresh keeps the date the title was first added.
+      report.addedAt = cached?.addedAt ?? cached?.refreshedAt ?? report.refreshedAt;
+      await this.save(report);
       console.log(`Classified ${id} (${work.title}${work.subtitle ? `, ${work.subtitle}` : ""})`);
       return { status: "ok", report };
     } catch (err) {

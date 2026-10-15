@@ -10,6 +10,8 @@ import { SCHEMA_VERSION, type Report } from "../shared/types.js";
 export interface ReportCache {
   get(id: string): Promise<Report | null>;
   set(report: Report): Promise<void>;
+  /** Every saved result with the current schema. */
+  listAll(): Promise<Report[]>;
 }
 
 /** Map a validated report id to a path relative to the cache root. Returns null for invalid ids. */
@@ -44,6 +46,21 @@ export class FileReportCache implements ReportCache {
       }
       throw err;
     }
+  }
+
+  async listAll(): Promise<Report[]> {
+    const files = await fs.readdir(this.root, { recursive: true }).catch(() => [] as string[]);
+    const reports: Report[] = [];
+    for (const rel of files) {
+      if (!rel.endsWith(".json")) continue;
+      try {
+        const report = JSON.parse(await fs.readFile(path.join(this.root, rel), "utf8")) as Report;
+        if (report.schemaVersion === SCHEMA_VERSION && cachePathFor(report.id) === rel) reports.push(report);
+      } catch {
+        // Corrupt or partly written file: skip it.
+      }
+    }
+    return reports;
   }
 
   async set(report: Report): Promise<void> {

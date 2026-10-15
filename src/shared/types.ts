@@ -1,4 +1,5 @@
 import type { CategoryId, TreatmentId } from "./categories.js";
+import type { ThemeTag } from "./themes.js";
 
 /** Bump when the Report shape changes. Cached files with another version are re-rated. */
 export const SCHEMA_VERSION = 2;
@@ -55,6 +56,8 @@ export interface Report {
   releaseDate: string | null;
   /** ISO timestamp of the AI lookup that produced this result. */
   refreshedAt: string;
+  /** ISO timestamp of the first AI lookup for this id. Kept across refreshes. Older files may not have it. */
+  addedAt?: string;
   model: string;
   promptVersion: number;
   summary: string;
@@ -65,6 +68,8 @@ export interface Report {
   positives: string[];
   /** Major themes, e.g. "grief", "coming of age". From the AI. Older files may not have it. */
   themes?: string[];
+  /** Theme tags from the fixed list, for filtering. Older files may not have them. */
+  themeTags?: ThemeTag[];
   /** Catalog facts. Older cached files may not have it; the server adds it on the next read. */
   info?: WorkInfo;
 }
@@ -104,6 +109,37 @@ export interface SeriesResponse {
     partial: boolean;
     categories: Partial<Record<CategoryId, CategoryRange>>;
   };
+}
+
+/** One title in the home page "Recently added" lists. */
+export interface RecentItem {
+  /** Page to open: a report id, or a series id (tmdb-tv-1399) for TV. */
+  id: string;
+  kind: MediaKind;
+  title: string;
+  years: string | null;
+  imageUrl: string | null;
+  addedAt: string;
+}
+
+export type RecentResponse = Record<MediaKind, RecentItem[]>;
+
+/** One title in the browse index. TV series merge their rated seasons. */
+export interface IndexEntry {
+  /** Report id, or series id (tmdb-tv-1399) for TV. */
+  id: string;
+  kind: MediaKind;
+  title: string;
+  years: string | null;
+  imageUrl: string | null;
+  addedAt: string;
+  /** 1 for movies and books; number of rated seasons for TV. */
+  ratedParts: number;
+  themeTags: ThemeTag[];
+  /** Highest score per category (across seasons for TV). */
+  scores: Partial<Record<CategoryId, number>>;
+  /** Every treatment seen per category (across seasons for TV). */
+  treatments: Partial<Record<CategoryId, TreatmentId[]>>;
 }
 
 export interface ApiError {

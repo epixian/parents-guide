@@ -7,7 +7,16 @@ import {
   type CategoryId,
   type TreatmentId,
 } from "../shared/categories.js";
-import type { CategoryRange, CreditEntry, Report, SearchResult, SeriesResponse, WorkInfo } from "../shared/types.js";
+import type {
+  CategoryRange,
+  CreditEntry,
+  RecentItem,
+  RecentResponse,
+  Report,
+  SearchResult,
+  SeriesResponse,
+  WorkInfo,
+} from "../shared/types.js";
 import { api } from "./api.js";
 import { loadHidden, saveHidden, visibleCategories } from "./prefs.js";
 
@@ -258,14 +267,50 @@ async function showSeries(tmdbId: string): Promise<string> {
     </ul>`;
 }
 
-function showHome(): string {
+const RECENT_HEADINGS: Record<RecentItem["kind"], string> = { movie: "Movies", tv: "TV shows", book: "Books" };
+
+function recentHref(item: RecentItem): string {
+  return item.kind === "tv" ? `#/tv/${item.id.replace("tmdb-tv-", "")}` : `#/r/${item.id}`;
+}
+
+/** One row of poster cards per media kind. A kind with no saved titles is left out. */
+function recentHtml(recent: RecentResponse): string {
+  const rows = (Object.keys(RECENT_HEADINGS) as RecentItem["kind"][])
+    .filter((kind) => recent[kind]?.length)
+    .map(
+      (kind) => `
+      <section class="recent-row">
+        <h3>${RECENT_HEADINGS[kind]}</h3>
+        <ul class="cards">
+          ${recent[kind]
+            .map(
+              (item) => `
+            <li>
+              <a href="${recentHref(item)}">
+                ${item.imageUrl ? `<img src="${esc(item.imageUrl)}" alt="" loading="lazy" />` : `<span class="noimg" aria-hidden="true"></span>`}
+                <span class="card-title">${esc(item.title)}</span>
+                ${item.years ? `<span class="muted small">${esc(item.years)}</span>` : ""}
+              </a>
+            </li>`,
+            )
+            .join("")}
+        </ul>
+      </section>`,
+    );
+  return rows.length ? `<section class="recent"><h2>Recently added</h2>${rows.join("")}</section>` : "";
+}
+
+async function showHome(): Promise<string> {
   searchInput.value = "";
+  // The list is a bonus: if it fails to load, show the home page without it.
+  const recent = await api.recent().catch(() => null);
   return `
     <section class="hero">
       <h1>Know what is in it before your kids see it.</h1>
       <p>Search for a movie, TV show, or book. You get an AI summary of content that parents may want to know about: violence, language, sexual content, and more.</p>
       <p class="muted">Use "My concerns" to choose the topics you care about.</p>
-    </section>`;
+    </section>
+    ${recent ? recentHtml(recent) : ""}`;
 }
 
 // ---------- Routing ----------
@@ -282,7 +327,7 @@ async function route(): Promise<void> {
     if ((m = /^\/search\?q=(.+)$/.exec(hash))) html = await showSearch(decodeURIComponent(m[1]!));
     else if ((m = /^\/r\/([\w-]+)$/.exec(hash))) html = await showReport(m[1]!);
     else if ((m = /^\/tv\/(\d+)$/.exec(hash))) html = await showSeries(m[1]!);
-    else html = showHome();
+    else html = await showHome();
   } catch (err) {
     html = errorHtml(err);
   }

@@ -538,3 +538,57 @@ main {
 .site-footer a {
   color: inherit;
 }
+
+/* Home page: recently added titles, one scrolling row of cards per media kind */
+.recent h2 {
+  margin-bottom: 4px;
+}
+
+.recent-row h3 {
+  margin: 16px 0 8px;
+  font-size: 1rem;
+  color: var(--muted);
+}
+
+.cards {
+  display: flex;
+  gap: 12px;
+  margin: 0;
+  padding: 0 0 8px;
+  list-style: none;
+  overflow-x: auto;
+}
+
+.cards li {
+  flex: none;
+  width: 110px;
+}
+
+.cards a {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.cards img,
+.cards .noimg {
+  width: 110px;
+  height: 165px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--border);
+}
+
+.cards a:hover .card-title,
+.cards a:focus-visible .card-title {
+  text-decoration: underline;
+}
+
+.card-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}

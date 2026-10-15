@@ -10,13 +10,14 @@ import {
   type CategoryId,
   type TreatmentId,
 } from "../shared/categories.js";
+import { THEME_TAGS, normalizeThemeTags } from "../shared/themes.js";
 import { SCHEMA_VERSION, type CategoryRating, type Report, type WorkInfo } from "../shared/types.js";
 import type { WorkDetails } from "./catalog/types.js";
 import { config } from "./config.js";
 import { HttpError } from "./http.js";
 
 /** Bump when the prompt or the category list changes. Stored in each cached result. */
-export const PROMPT_VERSION = 3;
+export const PROMPT_VERSION = 4;
 
 // The API does not enforce numeric ranges or enums inside nested objects; the
 // SDK only checks them after the response arrives, and a failed check wastes
@@ -38,6 +39,7 @@ const outputSchema = z.object({
   ),
   positives: z.array(z.string()),
   themes: z.array(z.string()),
+  theme_tags: z.array(z.string()).describe(`Two to five of: ${THEME_TAGS.join(", ")}`),
   original_publisher: z.string(),
 });
 
@@ -70,6 +72,7 @@ Other rules:
 - Be factual and neutral. Describe what is in the work; do not moralize or tell parents what to decide.
 - In each category's notes, give one to three short sentences with specific examples (scenes, words, themes). Mild spoilers are acceptable when needed to describe content. If a score is 0, say briefly that the content is absent or negligible.
 - themes lists three to six major themes of the work in a few words each, such as "grief and loss", "coming of age", "friendship", "redemption", or "power and corruption".
+- theme_tags lists two to five tags from this fixed list that best match the major themes, spelled exactly as shown: ${THEME_TAGS.join(", ")}.
 - original_publisher: for a book, the publisher of the first edition (e.g. "George Allen & Unwin" for The Hobbit), or an empty string if you are not sure. For movies and TV, always an empty string.
 - positives lists up to five short positive elements, such as courage, honesty, sacrifice, forgiveness, faith, strong family bonds, or educational value. Use an empty list if there are none.
 - The summary is three to five sentences: the overall content profile and the most important concerns.
@@ -153,6 +156,7 @@ export async function classify(id: string, kind: Report["kind"], work: WorkDetai
     categories: normalizeCategories(out.categories),
     positives: out.positives.slice(0, 5),
     themes: out.themes.slice(0, 6),
+    themeTags: normalizeThemeTags(out.theme_tags).slice(0, 5),
     info: withPublisher(work.info, kind === "book" ? out.original_publisher.trim() : ""),
   };
 }

@@ -38,6 +38,8 @@ export function createApi(reports: ReportService): Hono {
     return c.json({ results, warnings });
   });
 
+  api.get("/recent", async (c) => c.json(await reports.getRecent(8)));
+
   api.get("/report/:id", async (c) => c.json(await reports.getReport(c.req.param("id"), clientKey(c))));
 
   api.get("/tv/:tmdbId", async (c) => c.json(await reports.getSeries(c.req.param("tmdbId"))));

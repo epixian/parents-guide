@@ -41,7 +41,19 @@ app.route("/api", createApi(reports, searchCache));
 // Production: serve the built client. In development, Vite serves it instead.
 const clientDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../client");
 if (fs.existsSync(path.join(clientDir, "index.html"))) {
-  app.use("/*", serveStatic({ root: path.relative(process.cwd(), clientDir) }));
+  app.use(
+    "/*",
+    serveStatic({
+      root: path.relative(process.cwd(), clientDir),
+      onFound: (filePath, c) => {
+        // Vite puts a content hash in every file name under assets/, and the
+        // font file never changes, so browsers can keep these for a year.
+        // Other files (index.html, favicon) must be checked again on each visit.
+        const immutable = /[\\/](assets|fonts)[\\/]/.test(filePath);
+        c.header("Cache-Control", immutable ? "public, max-age=31536000, immutable" : "no-cache");
+      },
+    }),
+  );
 }
 
 serve({ fetch: app.fetch, port: config.port, hostname: config.host }, (info) => {

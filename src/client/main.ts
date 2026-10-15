@@ -191,7 +191,7 @@ function titleHeader(title: string, subtitle: string | null, info: WorkInfo | un
   const byline = authors.map(creditHtml).join(", ");
   return `
     <section class="title-area${info?.imageUrl ? " has-poster" : ""}">
-      ${info?.imageUrl ? `<img class="poster" src="${esc(info.imageUrl)}" alt="" />` : ""}
+      ${info?.imageUrl ? `<img class="poster" src="${esc(info.imageUrl)}" alt="" width="120" height="180" />` : ""}
       <div class="title-text">
         <h1>${esc(title)}${subtitle ? ` <span class="muted">— ${esc(subtitle)}</span>` : ""}</h1>
         ${byline ? `<p class="byline">by ${byline}</p>` : ""}
@@ -358,7 +358,7 @@ function resultItem(r: SearchResult, rated?: IndexEntry): string {
   return `
     <li>
       <a href="${r.kind === "tv" ? `#/tv/${r.id.replace("tmdb-tv-", "")}` : `#/r/${r.id}`}">
-        ${r.imageUrl ? `<img src="${esc(r.imageUrl)}" alt="" loading="lazy" />` : `<span class="noimg" aria-hidden="true"></span>`}
+        ${r.imageUrl ? `<img src="${esc(r.imageUrl)}" alt="" width="110" height="165" loading="lazy" decoding="async" />` : `<span class="noimg" aria-hidden="true"></span>`}
         <span class="result-text">
           <strong>${esc(r.title)}</strong> ${r.year ? `<span class="muted">(${r.year})</span>` : ""}
           <span class="badge">${KIND_LABEL[r.kind]}</span>
@@ -578,7 +578,7 @@ function cardHtml(item: RecentItem, showKind: boolean, extra = ""): string {
   return `
     <li>
       <a href="${recentHref(item)}">
-        ${item.imageUrl ? `<img src="${esc(item.imageUrl)}" alt="" loading="lazy" />` : `<span class="noimg" aria-hidden="true"></span>`}
+        ${item.imageUrl ? `<img src="${esc(item.imageUrl)}" alt="" width="110" height="165" loading="lazy" decoding="async" />` : `<span class="noimg" aria-hidden="true"></span>`}
         ${extra}
         <span class="card-title">${esc(item.title)}</span>
         <span class="muted small">${[showKind ? KIND_LABEL[item.kind] : "", item.years ?? ""].filter(Boolean).map(esc).join(" · ")}</span>
@@ -885,6 +885,7 @@ let afterRender: (() => void) | null = null;
 /** Line for the site footer about the current page (e.g. the rating date). Views set it. */
 let pageMeta = "";
 const pageMetaEl = document.querySelector<HTMLElement>("#page-meta")!;
+const footerEl = document.querySelector<HTMLElement>(".site-footer")!;
 
 /** Name of the current page, added to the site name in the browser tab. Views set it. */
 let pageTitle = "";
@@ -921,6 +922,7 @@ async function route(): Promise<void> {
   after?.();
   pageMetaEl.textContent = pageMeta;
   pageMetaEl.hidden = !pageMeta;
+  footerEl.hidden = false;
   document.title = pageTitle ? `${SITE_TITLE} - ${pageTitle}` : SITE_TITLE;
 }
 

@@ -33,6 +33,8 @@ export async function searchOpenLibrary(query: string): Promise<SearchResult[]> 
       kind: "book" as const,
       title: d.title,
       year: d.first_publish_year ?? null,
+      // Same rule as the rating: an unknown year counts as released.
+      released: !d.first_publish_year || d.first_publish_year <= new Date().getUTCFullYear(),
       detail: d.author_name?.length ? `by ${d.author_name.slice(0, 3).join(", ")}` : null,
       imageUrl: d.cover_i ? `https://covers.openlibrary.org/b/id/${d.cover_i}-S.jpg` : null,
     }));

@@ -775,3 +775,40 @@ main {
     display: block;
   }
 }
+
+/* Search results: type filters and grouped lists */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+
+.filters button {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+}
+
+.filters button[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.filters .count {
+  opacity: 0.75;
+  font-variant-numeric: tabular-nums;
+}
+
+.result-group h2 {
+  margin: 20px 0 4px;
+  font-size: 1rem;
+  color: var(--muted);
+}
+
+.badge.upcoming {
+  border-color: var(--notice-text);
+  color: var(--notice-text);
+  background: var(--notice-bg);
+}

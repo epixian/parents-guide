@@ -269,30 +269,89 @@ function summarySection(report: Report): string {
 
 // ---------- Views ----------
 
+const SEARCH_KINDS: { kind: SearchResult["kind"]; label: string }[] = [
+  { kind: "movie", label: "Movies" },
+  { kind: "tv", label: "TV shows" },
+  { kind: "book", label: "Books" },
+];
+
+type SearchFilter = SearchResult["kind"] | "all";
+const SEARCH_FILTER_KEY = "pairents.searchFilter";
+
+function loadSearchFilter(): SearchFilter {
+  try {
+    const v = localStorage.getItem(SEARCH_FILTER_KEY);
+    return v === "movie" || v === "tv" || v === "book" ? v : "all";
+  } catch {
+    return "all";
+  }
+}
+
+function saveSearchFilter(f: SearchFilter): void {
+  try {
+    localStorage.setItem(SEARCH_FILTER_KEY, f);
+  } catch {
+    // Storage blocked: the filter lasts for this page view only.
+  }
+}
+
+function resultItem(r: SearchResult): string {
+  return `
+    <li>
+      <a href="${r.kind === "tv" ? `#/tv/${r.id.replace("tmdb-tv-", "")}` : `#/r/${r.id}`}">
+        ${r.imageUrl ? `<img src="${esc(r.imageUrl)}" alt="" loading="lazy" />` : `<span class="noimg" aria-hidden="true"></span>`}
+        <span class="result-text">
+          <strong>${esc(r.title)}</strong> ${r.year ? `<span class="muted">(${r.year})</span>` : ""}
+          <span class="badge">${KIND_LABEL[r.kind]}</span>
+          ${r.released === false ? `<span class="badge upcoming">Not yet released</span>` : ""}
+          ${r.detail ? `<span class="muted small block">${esc(r.detail)}</span>` : ""}
+        </span>
+      </a>
+    </li>`;
+}
+
+/** Show only the selected type's group (or all groups), and mark the pressed filter button. */
+function applySearchFilter(filter: SearchFilter): void {
+  for (const group of app.querySelectorAll<HTMLElement>(".result-group")) {
+    group.hidden = filter !== "all" && group.dataset.kind !== filter;
+  }
+  for (const button of app.querySelectorAll<HTMLButtonElement>("button[data-filter]")) {
+    button.setAttribute("aria-pressed", String(button.dataset.filter === filter));
+  }
+}
+
 async function showSearch(q: string): Promise<string> {
   searchInput.value = q;
   setLoading(`Searching for "${q}"…`);
   const { results, warnings } = await api.search(q);
+  const groups = SEARCH_KINDS.map((k) => ({ ...k, items: results.filter((r) => r.kind === k.kind) })).filter(
+    (g) => g.items.length,
+  );
+  // A remembered filter for a type with no results falls back to "All".
+  const saved = loadSearchFilter();
+  const filter: SearchFilter = groups.some((g) => g.kind === saved) ? saved : "all";
+
+  const filterButton = (value: SearchFilter, label: string, count: number) =>
+    `<button type="button" data-filter="${value}" aria-pressed="${value === filter}">${esc(label)} <span class="count">${count}</span></button>`;
+
   return `
     <h1>Results for "${esc(q)}"</h1>
     ${warnings.map((w) => `<p class="notice">${esc(w)}</p>`).join("")}
     ${
-      results.length
-        ? `<ul class="results">${results
+      groups.length
+        ? `<nav class="filters" aria-label="Filter results">
+            ${filterButton("all", "All", results.length)}
+            ${groups.map((g) => filterButton(g.kind, g.label, g.items.length)).join("")}
+          </nav>
+          ${groups
             .map(
-              (r) => `
-          <li>
-            <a href="${r.kind === "tv" ? `#/tv/${r.id.replace("tmdb-tv-", "")}` : `#/r/${r.id}`}">
-              ${r.imageUrl ? `<img src="${esc(r.imageUrl)}" alt="" loading="lazy" />` : `<span class="noimg" aria-hidden="true"></span>`}
-              <span class="result-text">
-                <strong>${esc(r.title)}</strong> ${r.year ? `<span class="muted">(${r.year})</span>` : ""}
-                <span class="badge">${KIND_LABEL[r.kind]}</span>
-                ${r.detail ? `<span class="muted small block">${esc(r.detail)}</span>` : ""}
-              </span>
-            </a>
-          </li>`,
+              (g) => `
+            <section class="result-group" data-kind="${g.kind}"${filter !== "all" && filter !== g.kind ? " hidden" : ""}>
+              <h2>${esc(g.label)}</h2>
+              <ul class="results">${g.items.map(resultItem).join("")}</ul>
+            </section>`,
             )
-            .join("")}</ul>`
+            .join("")}`
         : `<p class="status">No matches. Try another spelling.</p>`
     }`;
 }
@@ -468,6 +527,13 @@ searchForm.addEventListener("submit", (e) => {
 });
 
 app.addEventListener("click", (e) => {
+  const filter = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-filter]")?.dataset.filter;
+  if (filter) {
+    saveSearchFilter(filter as SearchFilter);
+    applySearchFilter(filter as SearchFilter);
+    return;
+  }
+
   const id = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-jump]")?.dataset.jump;
   if (!id) return;
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;

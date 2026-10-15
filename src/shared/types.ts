@@ -15,6 +15,8 @@ export interface SearchResult {
   /** Short line for disambiguation (author, overview excerpt). */
   detail: string | null;
   imageUrl: string | null;
+  /** False when the catalog has a future release date or none (movies and TV). Shown as a label. */
+  released: boolean;
 }
 
 /** One credited person or company, with a link to its catalog page when known. */

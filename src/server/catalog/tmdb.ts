@@ -46,6 +46,7 @@ export async function searchTmdb(query: string): Promise<SearchResult[]> {
         kind,
         title: (kind === "movie" ? r.title : r.name) ?? "Untitled",
         year: yearOf(kind === "movie" ? r.release_date : r.first_air_date),
+        released: isReleased((kind === "movie" ? r.release_date : r.first_air_date) || null, new Date()),
         detail: truncate(r.overview, 140) || null,
         imageUrl: r.poster_path ? `${IMAGE_BASE}${r.poster_path}` : null,
       };

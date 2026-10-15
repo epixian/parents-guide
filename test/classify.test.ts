@@ -1,0 +1,73 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import type Anthropic from "@anthropic-ai/sdk";
+import { CATEGORIES } from "../src/shared/categories.js";
+import type { WorkDetails } from "../src/server/catalog/types.js";
+import { buildRequest, reportFromMessage } from "../src/server/classify.js";
+import { estimateCost } from "../src/server/usage.js";
+
+const work: WorkDetails = {
+  title: "Test Movie",
+  subtitle: null,
+  releaseDate: "2020-05-01",
+  released: true,
+  context: ["Type: movie", "Title: Test Movie"],
+  info: { years: "2020", rating: null, credits: [], imageUrl: null, source: null },
+};
+
+function message(text: string, stop: Anthropic.Message["stop_reason"] = "end_turn"): Anthropic.Message {
+  return {
+    id: "msg_test",
+    type: "message",
+    role: "assistant",
+    model: "claude-haiku-4-5",
+    stop_reason: stop,
+    content: [{ type: "text", text }],
+    usage: { input_tokens: 3000, output_tokens: 1500 },
+  } as unknown as Anthropic.Message;
+}
+
+const output = {
+  summary: "A short test summary.",
+  confidence: "high",
+  categories: Object.fromEntries(
+    CATEGORIES.map((c) => [c.id, c.hasTreatment ? { score: 1, treatment: "Critical", notes: "n" } : { score: 2, notes: "n" }]),
+  ),
+  positives: ["courage"],
+  themes: ["friendship"],
+  theme_tags: ["Friendship", "not-a-tag"],
+  original_publisher: "",
+};
+
+test("buildRequest uses a plain JSON schema, so it also works in a batch", () => {
+  const req = buildRequest(work);
+  assert.equal(req.model, "claude-haiku-4-5");
+  const format = req.output_config?.format as { type: string; schema: unknown; parse?: unknown };
+  assert.equal(format.type, "json_schema");
+  assert.equal(typeof format.schema, "object");
+  assert.equal(format.parse, undefined);
+});
+
+test("reportFromMessage builds a normalized report", () => {
+  const report = reportFromMessage("tmdb-movie-1", "movie", work, new Date("2026-10-14T00:00:00Z"), message(JSON.stringify(output)));
+  assert.equal(report.title, "Test Movie");
+  assert.equal(report.categories.lgbtq.treatment, "critical");
+  assert.equal(report.categories.violence.treatment, null);
+  assert.deepEqual(report.themeTags, ["friendship"]);
+  assert.equal(report.refreshedAt, "2026-10-14T00:00:00.000Z");
+});
+
+test("reportFromMessage rejects refusals, cut-off output, and bad JSON", () => {
+  const at = new Date();
+  assert.throws(() => reportFromMessage("x", "movie", work, at, message("{}", "refusal")), /declined/);
+  assert.throws(() => reportFromMessage("x", "movie", work, at, message("{}", "max_tokens")), /cut off/);
+  assert.throws(() => reportFromMessage("x", "movie", work, at, message("not json")), /not valid/);
+});
+
+test("estimateCost uses Haiku prices and halves batch requests", () => {
+  const usage = { input_tokens: 3000, output_tokens: 1500 };
+  const live = estimateCost({ id: "x", mode: "live", model: "claude-haiku-4-5", usage })!;
+  assert.ok(Math.abs(live - 0.0105) < 1e-9);
+  assert.ok(Math.abs(estimateCost({ id: "x", mode: "batch", model: "claude-haiku-4-5", usage })! - live / 2) < 1e-9);
+  assert.equal(estimateCost({ id: "x", mode: "live", model: "other-model", usage }), null);
+});

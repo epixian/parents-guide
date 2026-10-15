@@ -15,6 +15,7 @@ import { SCHEMA_VERSION, type CategoryRating, type Report, type WorkInfo } from 
 import type { WorkDetails } from "./catalog/types.js";
 import { config } from "./config.js";
 import { HttpError } from "./http.js";
+import { recordUsage } from "./usage.js";
 
 /** Bump when the prompt or the category list changes. Stored in each cached result. */
 export const PROMPT_VERSION = 5;
@@ -108,39 +109,35 @@ export function normalizeCategories(
 }
 
 let client: Anthropic | null = null;
-function getClient(): Anthropic {
+export function getClient(): Anthropic {
   if (!config.anthropicApiKey) throw new HttpError(503, "ANTHROPIC_API_KEY is not configured");
   client ??= new Anthropic({ apiKey: config.anthropicApiKey });
   return client;
 }
 
-export async function classify(id: string, kind: Report["kind"], work: WorkDetails, now: Date): Promise<Report> {
-  const anthropic = getClient();
-  let response;
-  try {
-    response = await anthropic.messages.parse({
-      model: config.model,
-      max_tokens: 8000,
-      system: SYSTEM_PROMPT,
-      messages: [
-        {
-          role: "user",
-          content: `Rate this work.\n\nCatalog metadata:\n${work.context.join("\n")}`,
-        },
-      ],
-      output_config: { format: zodOutputFormat(outputSchema) },
-    });
-  } catch (err) {
-    if (err instanceof Anthropic.RateLimitError) throw new HttpError(503, "AI service is busy. Try again soon.");
-    if (err instanceof Anthropic.APIError) throw new HttpError(502, `AI request failed (${err.status ?? "network"})`);
-    throw new HttpError(502, `AI output was not valid: ${(err as Error).message}`);
-  }
+const MAX_TOKENS = 8000;
 
-  if (response.stop_reason === "refusal") throw new HttpError(502, "The AI declined to rate this work.");
-  if (response.stop_reason === "max_tokens") throw new HttpError(502, "The AI response was cut off.");
-  const out = response.parsed_output;
-  if (!out) throw new HttpError(502, "The AI response could not be parsed.");
+function userMessage(work: WorkDetails): string {
+  return `Rate this work.\n\nCatalog metadata:\n${work.context.join("\n")}`;
+}
 
+/** Request parameters for one rating. The batch script sends the same request at batch prices. */
+export function buildRequest(work: WorkDetails): Anthropic.MessageCreateParamsNonStreaming {
+  const format = zodOutputFormat(outputSchema);
+  return {
+    model: config.model,
+    max_tokens: MAX_TOKENS,
+    system: SYSTEM_PROMPT,
+    messages: [{ role: "user", content: userMessage(work) }],
+    // Plain JSON schema (no parse helper), so the request can also go into a batch.
+    output_config: { format: { type: "json_schema", schema: format.schema } },
+  };
+}
+
+type Output = z.infer<typeof outputSchema>;
+
+/** Turn the AI's JSON output into a saved result. */
+function toReport(id: string, kind: Report["kind"], work: WorkDetails, now: Date, model: string, out: Output): Report {
   return {
     schemaVersion: SCHEMA_VERSION,
     id,
@@ -149,7 +146,7 @@ export async function classify(id: string, kind: Report["kind"], work: WorkDetai
     subtitle: work.subtitle,
     releaseDate: work.releaseDate,
     refreshedAt: now.toISOString(),
-    model: response.model,
+    model,
     promptVersion: PROMPT_VERSION,
     summary: out.summary,
     confidence: out.confidence,
@@ -159,4 +156,39 @@ export async function classify(id: string, kind: Report["kind"], work: WorkDetai
     themeTags: normalizeThemeTags(out.theme_tags).slice(0, 5),
     info: withPublisher(work.info, kind === "book" ? out.original_publisher.trim() : ""),
   };
+}
+
+/** Check the stop reason and the JSON of a finished message, then build the saved result. */
+export function reportFromMessage(
+  id: string,
+  kind: Report["kind"],
+  work: WorkDetails,
+  now: Date,
+  message: Anthropic.Message,
+): Report {
+  if (message.stop_reason === "refusal") throw new HttpError(502, "The AI declined to rate this work.");
+  if (message.stop_reason === "max_tokens") throw new HttpError(502, "The AI response was cut off.");
+  const text = message.content.find((b) => b.type === "text")?.text;
+  if (!text) throw new HttpError(502, "The AI response had no text.");
+  let out: Output;
+  try {
+    out = outputSchema.parse(JSON.parse(text));
+  } catch (err) {
+    throw new HttpError(502, `AI output was not valid: ${(err as Error).message.slice(0, 200)}`);
+  }
+  return toReport(id, kind, work, now, message.model, out);
+}
+
+export async function classify(id: string, kind: Report["kind"], work: WorkDetails, now: Date): Promise<Report> {
+  let message: Anthropic.Message;
+  try {
+    message = await getClient().messages.create(buildRequest(work));
+  } catch (err) {
+    if (err instanceof HttpError) throw err;
+    if (err instanceof Anthropic.RateLimitError) throw new HttpError(503, "AI service is busy. Try again soon.");
+    if (err instanceof Anthropic.APIError) throw new HttpError(502, `AI request failed (${err.status ?? "network"})`);
+    throw new HttpError(502, `AI request failed: ${(err as Error).message}`);
+  }
+  await recordUsage({ id, mode: "live", model: message.model, usage: message.usage });
+  return reportFromMessage(id, kind, work, now, message);
 }

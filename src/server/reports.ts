@@ -15,7 +15,8 @@ export function seasonReportId(tmdbId: string, seasonNumber: number): string {
   return `tmdb-tv-${tmdbId}-s${String(seasonNumber).padStart(2, "0")}`;
 }
 
-function parseId(id: string): { kind: Report["kind"]; load: (now: Date) => Promise<WorkDetails> } {
+/** Kind and catalog loader for a report id. Throws a 400 HttpError for an invalid id. */
+export function parseId(id: string): { kind: Report["kind"]; load: (now: Date) => Promise<WorkDetails> } {
   let m: RegExpExecArray | null;
   if ((m = /^tmdb-movie-(\d+)$/.exec(id))) {
     const tmdbId = m[1]!;

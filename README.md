@@ -62,6 +62,51 @@ npm start            # production server (serves the built client too)
 
 Configuration lives in `.env` (see `.env.example`). Change the category list in `src/shared/categories.ts`, and bump `PROMPT_VERSION` in `src/server/classify.ts` when you change it or the prompt.
 
+## AI usage and cost
+
+Every AI call writes one line to the server log, for example
+`AI usage tmdb-movie-603 (live): in=3412 out=1480 cost≈$0.0108`, and one JSON
+line to `<CACHE_DIR>/usage.jsonl`. To total the cost:
+
+```sh
+node -e 'let t=0;for(const l of require("fs").readFileSync(process.argv[1],"utf8").split("\n"))if(l)t+=JSON.parse(l).cost??0;console.log("$"+t.toFixed(2))' /path/to/cache/usage.jsonl
+```
+
+## Rating many titles at batch prices
+
+The Batch API costs half the normal price. Results take minutes to hours, so
+use it to fill the cache before launch, not for live requests.
+
+1. Write a file with one report id per line (`#` starts a comment):
+
+   ```
+   tmdb-movie-603
+   tmdb-tv-1399-s01
+   ol-OL27482W
+   ```
+
+2. Check what it will do (no AI calls, no cost):
+
+   ```sh
+   npm run batch -- titles.txt --dry-run      # production build
+   npm run batch:dev -- titles.txt --dry-run  # on a dev machine, no build needed
+   ```
+
+3. Run it without `--dry-run`. The script skips saved and unreleased titles,
+   sends one batch, waits for it, and saves each result to `CACHE_DIR`. If the
+   script stops, run `npm run batch -- --resume <batch-id>` with the id it printed.
+
+4. Restart the server, so the home page lists include the new titles.
+
+On the server, run it from the site's `current` directory, so it uses the
+site's `.env` and writes straight to the production cache. To run it on a dev
+machine instead, copy the results up without replacing anything the server has:
+
+```sh
+rsync -av --ignore-existing --exclude popularity.json --exclude usage.jsonl \
+  data/cache/ forge@your-droplet:/path/to/cache/
+```
+
 ## Deploying (DigitalOcean droplet + Laravel Forge)
 
 The cache must live outside the git checkout, so deploys never touch it.

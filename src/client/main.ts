@@ -1,5 +1,12 @@
 import "./style.css";
-import { CATEGORIES, SCORE_LABELS, SCORE_MAX, type CategoryId } from "../shared/categories.js";
+import {
+  CATEGORIES,
+  SCORE_LABELS,
+  SCORE_MAX,
+  TREATMENTS,
+  type CategoryId,
+  type TreatmentId,
+} from "../shared/categories.js";
 import type { CategoryRange, Report, SearchResult, SeriesResponse } from "../shared/types.js";
 import { api } from "./api.js";
 import { loadHidden, saveHidden, visibleCategories } from "./prefs.js";
@@ -21,6 +28,10 @@ const KIND_LABEL: Record<SearchResult["kind"], string> = { movie: "Movie", tv: "
 function renderPrefs(): void {
   prefsBody.innerHTML = `
     <p class="muted">Uncheck the topics you do not want to see.</p>
+    <p class="pref-actions">
+      <button type="button" data-all="show">Show all</button>
+      <button type="button" data-all="hide">Hide all</button>
+    </p>
     ${CATEGORIES.map(
       (c) => `
       <label class="pref">
@@ -39,6 +50,15 @@ prefsBody.addEventListener("change", (e) => {
   void route(); // Re-render the current view with the new filter.
 });
 
+prefsBody.addEventListener("click", (e) => {
+  const action = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-all]")?.dataset.all;
+  if (!action) return;
+  hidden = action === "hide" ? new Set(CATEGORIES.map((c) => c.id)) : new Set();
+  saveHidden(hidden);
+  renderPrefs();
+  void route();
+});
+
 // ---------- Rendering helpers ----------
 
 function scoreBar(score: number): string {
@@ -50,6 +70,15 @@ function rangeBar(range: CategoryRange): string {
   const left = Math.round((range.min / SCORE_MAX) * 100);
   const width = Math.max(4, Math.round(((range.max - range.min) / SCORE_MAX) * 100));
   return `<span class="bar range" data-level="${range.max}" role="img" aria-label="${range.min} to ${range.max} of ${SCORE_MAX}"><span style="left:${left}%;width:${width}%"></span></span>`;
+}
+
+const TREATMENT_BY_ID = new Map(TREATMENTS.map((t) => [t.id, t]));
+
+/** How the work presents the content. Nothing for "not present" or categories without a treatment. */
+function treatmentChip(id: TreatmentId | null | undefined): string {
+  const t = id && id !== "not_present" ? TREATMENT_BY_ID.get(id) : undefined;
+  if (!t) return "";
+  return `<span class="treatment" data-treatment="${t.id}" title="${esc(t.description)}">${esc(t.label)}</span>`;
 }
 
 function setLoading(message: string): void {
@@ -68,17 +97,23 @@ function reportCard(report: Report, stale?: boolean): string {
       return `
       <tr>
         <th scope="row">${esc(c.label)}</th>
-        <td class="score">${scoreBar(r.score)}<span class="score-label">${r.score} · ${esc(SCORE_LABELS[r.score])}</span></td>
+        <td class="score">${scoreBar(r.score)}<span class="score-label">${r.score} · ${esc(SCORE_LABELS[r.score])}</span>${treatmentChip(r.treatment)}</td>
         <td>${esc(r.notes)}</td>
       </tr>`;
     })
     .join("");
   const hiddenCount = CATEGORIES.length - visibleCategories(hidden).length;
+  const positives = report.positives ?? [];
   return `
     <section class="card">
       <p class="summary">${esc(report.summary)}</p>
       ${report.confidence === "low" ? `<p class="notice">The AI knows this work only a little. Details can be wrong.</p>` : ""}
       ${stale ? `<p class="notice">This result could not be refreshed just now. It may be out of date.</p>` : ""}
+      ${
+        positives.length
+          ? `<div class="positives"><h2>Positive elements</h2><ul>${positives.map((p) => `<li>${esc(p)}</li>`).join("")}</ul></div>`
+          : ""
+      }
       <table class="ratings">
         <thead><tr><th>Topic</th><th>Level</th><th>Details</th></tr></thead>
         <tbody>${rows || `<tr><td colspan="3" class="muted">All topics are hidden. Change "My concerns" to see them.</td></tr>`}</tbody>

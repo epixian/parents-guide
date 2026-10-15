@@ -136,6 +136,22 @@ button,
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.15);
 }
 
+.prefs[open] #prefs-body {
+  max-height: min(70vh, 560px);
+  overflow-y: auto;
+}
+
+.pref-actions {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+
+.pref-actions button {
+  padding: 4px 10px;
+  font-size: 0.85rem;
+}
+
 .pref {
   display: flex;
   gap: 8px;
@@ -303,6 +319,37 @@ main {
   display: block;
   font-size: 0.8rem;
   color: var(--muted);
+}
+
+/* Same neutral style for every treatment: whether "approving" or "critical"
+   is good depends on the parent, so color must not suggest a judgment. */
+.treatment {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 1px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  color: var(--text);
+  white-space: nowrap;
+  cursor: help;
+}
+
+.positives {
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.positives h2 {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+}
+
+.positives ul {
+  margin: 0;
+  padding-left: 1.2em;
 }
 
 .bar {

@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { Report } from "../shared/types.js";
+import { SCHEMA_VERSION, type Report } from "../shared/types.js";
 
 // One JSON file per work or TV season:
 //   <CACHE_DIR>/movie/603.json
@@ -33,7 +33,9 @@ export class FileReportCache implements ReportCache {
   async get(id: string): Promise<Report | null> {
     try {
       const text = await fs.readFile(this.resolve(id), "utf8");
-      return JSON.parse(text) as Report;
+      const report = JSON.parse(text) as Report;
+      // An older result shape counts as missing, so the title is rated again.
+      return report.schemaVersion === SCHEMA_VERSION ? report : null;
     } catch (err) {
       if ((err as NodeJS.ErrnoException).code === "ENOENT") return null;
       if (err instanceof SyntaxError) {

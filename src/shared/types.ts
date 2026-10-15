@@ -1,4 +1,7 @@
-import type { CategoryId } from "./categories.js";
+import type { CategoryId, TreatmentId } from "./categories.js";
+
+/** Bump when the Report shape changes. Cached files with another version are re-rated. */
+export const SCHEMA_VERSION = 2;
 
 export type MediaKind = "movie" | "tv" | "book";
 
@@ -15,12 +18,14 @@ export interface SearchResult {
 
 export interface CategoryRating {
   score: number;
+  /** How the work presents the content. Null for categories without a treatment. */
+  treatment: TreatmentId | null;
   notes: string;
 }
 
 /** One cached AI result. Stored as one JSON file per work (or per TV season). */
 export interface Report {
-  schemaVersion: 1;
+  schemaVersion: number;
   /** tmdb-movie-603, tmdb-tv-1399-s01, ol-OL82563W */
   id: string;
   kind: "movie" | "tv-season" | "book";
@@ -37,6 +42,8 @@ export interface Report {
   /** How well the AI knows this work: low means details may be unreliable. */
   confidence: "high" | "medium" | "low";
   categories: Record<CategoryId, CategoryRating>;
+  /** Positive elements (faith, courage, honesty, ...). Not scored. */
+  positives: string[];
 }
 
 export type ReportResponse =

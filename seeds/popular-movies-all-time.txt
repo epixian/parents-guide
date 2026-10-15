@@ -1,0 +1,2005 @@
+# 2,000 most-voted movies on TMDB, any release year up to 2026-10-15.
+# Source: TMDB /discover/movie, sort_by=vote_count.desc, include_adult=false. Generated 2026-10-15.
+# Overlaps seeds/popular-movies-2001-2026.txt; the batch script skips titles that are already saved.
+# Run: npm run batch -- seeds/popular-movies-all-time.txt --dry-run
+
+tmdb-movie-157336  # Interstellar (2014), 41491 votes
+tmdb-movie-27205  # Inception (2010), 40429 votes
+tmdb-movie-24428  # The Avengers (2012), 40032 votes
+tmdb-movie-155  # The Dark Knight (2008), 36970 votes
+tmdb-movie-19995  # Avatar (2009), 34845 votes
+tmdb-movie-293660  # Deadpool (2016), 33449 votes
+tmdb-movie-299536  # Avengers: Infinity War (2018), 33148 votes
+tmdb-movie-550  # Fight Club (1999), 33029 votes
+tmdb-movie-278  # The Shawshank Redemption (1994), 31580 votes
+tmdb-movie-680  # Pulp Fiction (1994), 31084 votes
+tmdb-movie-13  # Forrest Gump (1994), 30662 votes
+tmdb-movie-118340  # Guardians of the Galaxy (2014), 30471 votes
+tmdb-movie-671  # Harry Potter and the Philosopher's Stone (2001), 30411 votes
+tmdb-movie-299534  # Avengers: Endgame (2019), 29005 votes
+tmdb-movie-1726  # Iron Man (2008), 28986 votes
+tmdb-movie-603  # The Matrix (1999), 28959 votes
+tmdb-movie-68718  # Django Unchained (2012), 28770 votes
+tmdb-movie-120  # The Lord of the Rings: The Fellowship of the Ring (2001), 28588 votes
+tmdb-movie-475557  # Joker (2019), 28502 votes
+tmdb-movie-597  # Titanic (1997), 27901 votes
+tmdb-movie-122  # The Lord of the Rings: The Return of the King (2003), 27576 votes
+tmdb-movie-106646  # The Wolf of Wall Street (2013), 26721 votes
+tmdb-movie-11324  # Shutter Island (2010), 26598 votes
+tmdb-movie-99861  # Avengers: Age of Ultron (2015), 25171 votes
+tmdb-movie-49026  # The Dark Knight Rises (2012), 25119 votes
+tmdb-movie-16869  # Inglourious Basterds (2009), 24949 votes
+tmdb-movie-76341  # Mad Max: Fury Road (2015), 24768 votes
+tmdb-movie-121  # The Lord of the Rings: The Two Towers (2002), 24752 votes
+tmdb-movie-271110  # Captain America: Civil War (2016), 24703 votes
+tmdb-movie-672  # Harry Potter and the Chamber of Secrets (2002), 24216 votes
+tmdb-movie-284054  # Black Panther (2018), 24094 votes
+tmdb-movie-315635  # Spider-Man: Homecoming (2017), 24064 votes
+tmdb-movie-284052  # Doctor Strange (2016), 24055 votes
+tmdb-movie-150540  # Inside Out (2015), 24016 votes
+tmdb-movie-68721  # Iron Man 3 (2013), 24000 votes
+tmdb-movie-807  # Se7en (1995), 23980 votes
+tmdb-movie-70160  # The Hunger Games (2012), 23847 votes
+tmdb-movie-673  # Harry Potter and the Prisoner of Azkaban (2004), 23792 votes
+tmdb-movie-238  # The Godfather (1972), 23760 votes
+tmdb-movie-283995  # Guardians of the Galaxy Vol. 2 (2017), 23586 votes
+tmdb-movie-1771  # Captain America: The First Avenger (2011), 23378 votes
+tmdb-movie-272  # Batman Begins (2005), 23335 votes
+tmdb-movie-634649  # Spider-Man: No Way Home (2021), 23327 votes
+tmdb-movie-10138  # Iron Man 2 (2010), 23056 votes
+tmdb-movie-11  # Star Wars (1977), 23009 votes
+tmdb-movie-10195  # Thor (2011), 22926 votes
+tmdb-movie-22  # Pirates of the Caribbean: The Curse of the Black Pearl (2003), 22917 votes
+tmdb-movie-674  # Harry Potter and the Goblet of Fire (2005), 22764 votes
+tmdb-movie-284053  # Thor: Ragnarok (2017), 22616 votes
+tmdb-movie-105  # Back to the Future (1985), 22575 votes
+tmdb-movie-12445  # Harry Potter and the Deathly Hallows: Part 2 (2011), 22569 votes
+tmdb-movie-297761  # Suicide Squad (2016), 22509 votes
+tmdb-movie-14160  # Up (2009), 22265 votes
+tmdb-movie-135397  # Jurassic World (2015), 22008 votes
+tmdb-movie-286217  # The Martian (2015), 21956 votes
+tmdb-movie-98  # Gladiator (2000), 21662 votes
+tmdb-movie-557  # Spider-Man (2002), 21572 votes
+tmdb-movie-354912  # Coco (2017), 21544 votes
+tmdb-movie-496243  # Parasite (2019), 21483 votes
+tmdb-movie-245891  # John Wick (2014), 21470 votes
+tmdb-movie-102899  # Ant-Man (2015), 21359 votes
+tmdb-movie-675  # Harry Potter and the Order of the Phoenix (2007), 21342 votes
+tmdb-movie-767  # Harry Potter and the Half-Blood Prince (2009), 21304 votes
+tmdb-movie-297762  # Wonder Woman (2017), 21289 votes
+tmdb-movie-12  # Finding Nemo (2003), 21102 votes
+tmdb-movie-37165  # The Truman Show (1998), 21029 votes
+tmdb-movie-10681  # WALL·E (2008), 21022 votes
+tmdb-movie-140607  # Star Wars: The Force Awakens (2015), 21013 votes
+tmdb-movie-263115  # Logan (2017), 20950 votes
+tmdb-movie-12444  # Harry Potter and the Deathly Hallows: Part 1 (2010), 20909 votes
+tmdb-movie-346364  # It (2017), 20770 votes
+tmdb-movie-862  # Toy Story (1995), 20666 votes
+tmdb-movie-100402  # Captain America: The Winter Soldier (2014), 20579 votes
+tmdb-movie-210577  # Gone Girl (2014), 20535 votes
+tmdb-movie-585  # Monsters, Inc. (2001), 20386 votes
+tmdb-movie-8587  # The Lion King (1994), 20273 votes
+tmdb-movie-49051  # The Hobbit: An Unexpected Journey (2012), 20190 votes
+tmdb-movie-259316  # Fantastic Beasts and Where to Find Them (2016), 20077 votes
+tmdb-movie-329865  # Arrival (2016), 20017 votes
+tmdb-movie-497  # The Green Mile (1999), 19962 votes
+tmdb-movie-281957  # The Revenant (2015), 19825 votes
+tmdb-movie-383498  # Deadpool 2 (2018), 19784 votes
+tmdb-movie-24  # Kill Bill: Vol. 1 (2003), 19563 votes
+tmdb-movie-694  # The Shining (1980), 19520 votes
+tmdb-movie-419430  # Get Out (2017), 19480 votes
+tmdb-movie-209112  # Batman v Superman: Dawn of Justice (2016), 19452 votes
+tmdb-movie-808  # Shrek (2001), 19440 votes
+tmdb-movie-9806  # The Incredibles (2004), 19412 votes
+tmdb-movie-1930  # The Amazing Spider-Man (2012), 19233 votes
+tmdb-movie-2062  # Ratatouille (2007), 19072 votes
+tmdb-movie-129  # Spirited Away (2001), 19045 votes
+tmdb-movie-1891  # The Empire Strikes Back (1980), 18977 votes
+tmdb-movie-77338  # The Intouchables (2011), 18936 votes
+tmdb-movie-101299  # The Hunger Games: Catching Fire (2013), 18891 votes
+tmdb-movie-76338  # Thor: The Dark World (2013), 18838 votes
+tmdb-movie-381288  # Split (2017), 18729 votes
+tmdb-movie-274  # The Silence of the Lambs (1991), 18651 votes
+tmdb-movie-18785  # The Hangover (2009), 18639 votes
+tmdb-movie-269149  # Zootopia (2016), 18619 votes
+tmdb-movie-313369  # La La Land (2016), 18607 votes
+tmdb-movie-198663  # The Maze Runner (2014), 18559 votes
+tmdb-movie-205596  # The Imitation Game (2014), 18535 votes
+tmdb-movie-329  # Jurassic Park (1993), 18467 votes
+tmdb-movie-1124  # The Prestige (2006), 18280 votes
+tmdb-movie-207703  # Kingsman: The Secret Service (2015), 18269 votes
+tmdb-movie-424694  # Bohemian Rhapsody (2018), 18131 votes
+tmdb-movie-374720  # Dunkirk (2017), 18096 votes
+tmdb-movie-424  # Schindler's List (1993), 18037 votes
+tmdb-movie-324857  # Spider-Man: Into the Spider-Verse (2018), 18012 votes
+tmdb-movie-109445  # Frozen (2013), 17971 votes
+tmdb-movie-857  # Saving Private Ryan (1998), 17916 votes
+tmdb-movie-429617  # Spider-Man: Far From Home (2019), 17744 votes
+tmdb-movie-640  # Catch Me If You Can (2002), 17711 votes
+tmdb-movie-58  # Pirates of the Caribbean: Dead Man's Chest (2006), 17700 votes
+tmdb-movie-335983  # Venom (2018), 17691 votes
+tmdb-movie-333339  # Ready Player One (2018), 17477 votes
+tmdb-movie-240832  # Lucy (2014), 17469 votes
+tmdb-movie-6479  # I Am Legend (2007), 17432 votes
+tmdb-movie-1892  # Return of the Jedi (1983), 17425 votes
+tmdb-movie-339403  # Baby Driver (2017), 17307 votes
+tmdb-movie-299537  # Captain Marvel (2019), 17250 votes
+tmdb-movie-244786  # Whiplash (2014), 17234 votes
+tmdb-movie-75656  # Now You See Me (2013), 17229 votes
+tmdb-movie-72190  # World War Z (2013), 17166 votes
+tmdb-movie-131631  # The Hunger Games: Mockingjay - Part 1 (2014), 17095 votes
+tmdb-movie-558  # Spider-Man 2 (2004), 17043 votes
+tmdb-movie-177572  # Big Hero 6 (2014), 17003 votes
+tmdb-movie-348  # Alien (1979), 16973 votes
+tmdb-movie-77  # Memento (2000), 16897 votes
+tmdb-movie-330459  # Rogue One: A Star Wars Story (2016), 16857 votes
+tmdb-movie-38  # Eternal Sunshine of the Spotless Mind (2004), 16855 votes
+tmdb-movie-1422  # The Departed (2006), 16774 votes
+tmdb-movie-181808  # Star Wars: The Last Jedi (2017), 16774 votes
+tmdb-movie-49047  # Gravity (2013), 16770 votes
+tmdb-movie-127585  # X-Men: Days of Future Past (2014), 16773 votes
+tmdb-movie-49521  # Man of Steel (2013), 16698 votes
+tmdb-movie-101  # Léon: The Professional (1994), 16655 votes
+tmdb-movie-120467  # The Grand Budapest Hotel (2014), 16606 votes
+tmdb-movie-37724  # Skyfall (2012), 16492 votes
+tmdb-movie-20352  # Despicable Me (2010), 16475 votes
+tmdb-movie-118  # Charlie and the Chocolate Factory (2005), 16470 votes
+tmdb-movie-10193  # Toy Story 3 (2010), 16348 votes
+tmdb-movie-1893  # Star Wars: Episode I - The Phantom Menace (1999), 16318 votes
+tmdb-movie-321612  # Beauty and the Beast (2017), 16217 votes
+tmdb-movie-752  # V for Vendetta (2006), 16056 votes
+tmdb-movie-44214  # Black Swan (2010), 15971 votes
+tmdb-movie-285  # Pirates of the Caribbean: At World's End (2007), 15933 votes
+tmdb-movie-500  # Reservoir Dogs (1992), 15912 votes
+tmdb-movie-559  # Spider-Man 3 (2007), 15885 votes
+tmdb-movie-122917  # The Hobbit: The Battle of the Five Armies (2014), 15852 votes
+tmdb-movie-335984  # Blade Runner 2049 (2017), 15845 votes
+tmdb-movie-447332  # A Quiet Place (2018), 15826 votes
+tmdb-movie-152601  # Her (2013), 15731 votes
+tmdb-movie-438631  # Dune (2021), 15715 votes
+tmdb-movie-273248  # The Hateful Eight (2015), 15710 votes
+tmdb-movie-920  # Cars (2006), 15635 votes
+tmdb-movie-137113  # Edge of Tomorrow (2014), 15619 votes
+tmdb-movie-393  # Kill Bill: Vol. 2 (2004), 15549 votes
+tmdb-movie-78  # Blade Runner (1982), 15511 votes
+tmdb-movie-863  # Toy Story 2 (1999), 15472 votes
+tmdb-movie-324786  # Hacksaw Ridge (2016), 15409 votes
+tmdb-movie-1895  # Star Wars: Episode III - Revenge of the Sith (2005), 15407 votes
+tmdb-movie-466272  # Once Upon a Time... in Hollywood (2019), 15399 votes
+tmdb-movie-1865  # Pirates of the Caribbean: On Stranger Tides (2011), 15326 votes
+tmdb-movie-607  # Men in Black (1997), 15308 votes
+tmdb-movie-297802  # Aquaman (2018), 15276 votes
+tmdb-movie-218  # The Terminator (1984), 15277 votes
+tmdb-movie-1271  # 300 (2007), 15181 votes
+tmdb-movie-12155  # Alice in Wonderland (2010), 15125 votes
+tmdb-movie-10528  # Sherlock Holmes (2009), 15124 votes
+tmdb-movie-280  # Terminator 2: Judgment Day (1991), 15022 votes
+tmdb-movie-769  # GoodFellas (1990), 14877 votes
+tmdb-movie-102382  # The Amazing Spider-Man 2 (2014), 14840 votes
+tmdb-movie-353486  # Jumanji: Welcome to the Jungle (2017), 14839 votes
+tmdb-movie-10191  # How to Train Your Dragon (2010), 14818 votes
+tmdb-movie-1894  # Star Wars: Episode II - Attack of the Clones (2002), 14789 votes
+tmdb-movie-76600  # Avatar: The Way of Water (2022), 14767 votes
+tmdb-movie-8966  # Twilight (2008), 14757 votes
+tmdb-movie-324552  # John Wick: Chapter 2 (2017), 14722 votes
+tmdb-movie-425  # Ice Age (2002), 14719 votes
+tmdb-movie-264660  # Ex Machina (2015), 14691 votes
+tmdb-movie-57158  # The Hobbit: The Desolation of Smaug (2013), 14686 votes
+tmdb-movie-546554  # Knives Out (2019), 14631 votes
+tmdb-movie-363088  # Ant-Man and the Wasp (2018), 14597 votes
+tmdb-movie-274870  # Passengers (2016), 14596 votes
+tmdb-movie-62177  # Brave (2012), 14505 votes
+tmdb-movie-240  # The Godfather Part II (1974), 14465 votes
+tmdb-movie-489  # Good Will Hunting (1997), 14435 votes
+tmdb-movie-165  # Back to the Future Part II (1989), 14396 votes
+tmdb-movie-350  # The Devil Wears Prada (2006), 14328 votes
+tmdb-movie-637  # Life Is Beautiful (1997), 14312 votes
+tmdb-movie-185  # A Clockwork Orange (1971), 14215 votes
+tmdb-movie-246655  # X-Men: Apocalypse (2016), 14198 votes
+tmdb-movie-4922  # The Curious Case of Benjamin Button (2008), 14133 votes
+tmdb-movie-64690  # Drive (2011), 14122 votes
+tmdb-movie-162  # Edward Scissorhands (1990), 14110 votes
+tmdb-movie-87827  # Life of Pi (2012), 14104 votes
+tmdb-movie-85  # Raiders of the Lost Ark (1981), 14100 votes
+tmdb-movie-277834  # Moana (2016), 14094 votes
+tmdb-movie-141052  # Justice League (2017), 14017 votes
+tmdb-movie-260513  # Incredibles 2 (2018), 14015 votes
+tmdb-movie-530915  # 1917 (2019), 14008 votes
+tmdb-movie-102651  # Maleficent (2014), 13984 votes
+tmdb-movie-49538  # X-Men: First Class (2011), 13952 votes
+tmdb-movie-190859  # American Sniper (2014), 13945 votes
+tmdb-movie-194662  # Birdman or (The Unexpected Virtue of Ignorance) (2014), 13913 votes
+tmdb-movie-68726  # Pacific Rim (2013), 13910 votes
+tmdb-movie-6977  # No Country for Old Men (2007), 13913 votes
+tmdb-movie-103  # Taxi Driver (1976), 13891 votes
+tmdb-movie-809  # Shrek 2 (2004), 13870 votes
+tmdb-movie-141  # Donnie Darko (2001), 13844 votes
+tmdb-movie-157350  # Divergent (2014), 13798 votes
+tmdb-movie-70981  # Prometheus (2012), 13719 votes
+tmdb-movie-131634  # The Hunger Games: Mockingjay - Part 2 (2015), 13662 votes
+tmdb-movie-296096  # Me Before You (2016), 13659 votes
+tmdb-movie-37799  # The Social Network (2010), 13638 votes
+tmdb-movie-146233  # Prisoners (2013), 13629 votes
+tmdb-movie-19908  # Zombieland (2009), 13581 votes
+tmdb-movie-72105  # Ted (2012), 13556 votes
+tmdb-movie-111  # Scarface (1983), 13552 votes
+tmdb-movie-745  # The Sixth Sense (1999), 13454 votes
+tmdb-movie-14  # American Beauty (1999), 13451 votes
+tmdb-movie-82690  # Wreck-It Ralph (2012), 13391 votes
+tmdb-movie-490132  # Green Book (2018), 13368 votes
+tmdb-movie-228150  # Fury (2014), 13318 votes
+tmdb-movie-1724  # The Incredible Hulk (2008), 13247 votes
+tmdb-movie-64682  # The Great Gatsby (2013), 13243 votes
+tmdb-movie-138843  # The Conjuring (2013), 13181 votes
+tmdb-movie-61791  # Rise of the Planet of the Apes (2011), 13155 votes
+tmdb-movie-399055  # The Shape of Water (2017), 13139 votes
+tmdb-movie-166426  # Pirates of the Caribbean: Dead Men Tell No Tales (2017), 13141 votes
+tmdb-movie-14161  # 2012 (2009), 13098 votes
+tmdb-movie-2048  # I, Robot (2004), 13098 votes
+tmdb-movie-372058  # Your Name. (2016), 13097 votes
+tmdb-movie-9502  # Kung Fu Panda (2008), 13090 votes
+tmdb-movie-351286  # Jurassic World: Fallen Kingdom (2018), 13073 votes
+tmdb-movie-207  # Dead Poets Society (1989), 13055 votes
+tmdb-movie-62  # 2001: A Space Odyssey (1968), 13041 votes
+tmdb-movie-73  # American History X (1998), 13020 votes
+tmdb-movie-161  # Ocean's Eleven (2001), 13002 votes
+tmdb-movie-398818  # Call Me by Your Name (2017), 12993 votes
+tmdb-movie-11036  # The Notebook (2004), 12960 votes
+tmdb-movie-771  # Home Alone (1990), 12948 votes
+tmdb-movie-82693  # Silver Linings Playbook (2012), 12915 votes
+tmdb-movie-127380  # Finding Dory (2016), 12911 votes
+tmdb-movie-1359  # American Psycho (2000), 12857 votes
+tmdb-movie-38757  # Tangled (2010), 12776 votes
+tmdb-movie-562  # Die Hard (1988), 12740 votes
+tmdb-movie-194  # Amélie (2001), 12733 votes
+tmdb-movie-23483  # Kick-Ass (2010), 12709 votes
+tmdb-movie-872585  # Oppenheimer (2023), 12690 votes
+tmdb-movie-414906  # The Batman (2022), 12675 votes
+tmdb-movie-8358  # Cast Away (2000), 12643 votes
+tmdb-movie-115  # The Big Lebowski (1998), 12647 votes
+tmdb-movie-36657  # X-Men (2000), 12624 votes
+tmdb-movie-1858  # Transformers (2007), 12621 votes
+tmdb-movie-216015  # Fifty Shades of Grey (2015), 12587 votes
+tmdb-movie-119450  # Dawn of the Planet of the Apes (2014), 12569 votes
+tmdb-movie-49530  # In Time (2011), 12501 votes
+tmdb-movie-8681  # Taken (2008), 12489 votes
+tmdb-movie-332562  # A Star Is Born (2018), 12437 votes
+tmdb-movie-604  # The Matrix Reloaded (2003), 12418 votes
+tmdb-movie-601  # E.T. the Extra-Terrestrial (1982), 12330 votes
+tmdb-movie-812  # Aladdin (1992), 12320 votes
+tmdb-movie-93456  # Despicable Me 2 (2013), 12297 votes
+tmdb-movie-76203  # 12 Years a Slave (2013), 12284 votes
+tmdb-movie-18  # The Fifth Element (1997), 12246 votes
+tmdb-movie-458156  # John Wick: Chapter 3 - Parabellum (2019), 12172 votes
+tmdb-movie-242582  # Nightcrawler (2014), 12158 votes
+tmdb-movie-36557  # Casino Royale (2006), 12094 votes
+tmdb-movie-953  # Madagascar (2005), 12085 votes
+tmdb-movie-1949  # Zodiac (2007), 12005 votes
+tmdb-movie-578  # Jaws (1975), 11936 votes
+tmdb-movie-75612  # Oblivion (2013), 11912 votes
+tmdb-movie-196  # Back to the Future Part III (1990), 11917 votes
+tmdb-movie-13223  # Gran Torino (2008), 11899 votes
+tmdb-movie-291805  # Now You See Me 2 (2016), 11878 votes
+tmdb-movie-510  # One Flew Over the Cuckoo's Nest (1975), 11865 votes
+tmdb-movie-629  # The Usual Suspects (1995), 11844 votes
+tmdb-movie-600  # Full Metal Jacket (1987), 11841 votes
+tmdb-movie-411  # The Chronicles of Narnia: The Lion, the Witch and the Wardrobe (2005), 11841 votes
+tmdb-movie-51876  # Limitless (2011), 11831 votes
+tmdb-movie-1417  # Pan's Labyrinth (2006), 11817 votes
+tmdb-movie-508442  # Soul (2020), 11813 votes
+tmdb-movie-310  # Bruce Almighty (2003), 11807 votes
+tmdb-movie-222935  # The Fault in Our Stars (2014), 11744 votes
+tmdb-movie-338952  # Fantastic Beasts: The Crimes of Grindelwald (2018), 11734 votes
+tmdb-movie-361743  # Top Gun: Maverick (2022), 11714 votes
+tmdb-movie-497698  # Black Widow (2021), 11712 votes
+tmdb-movie-346698  # Barbie (2023), 11679 votes
+tmdb-movie-854  # The Mask (1994), 11673 votes
+tmdb-movie-12405  # Slumdog Millionaire (2008), 11664 votes
+tmdb-movie-577922  # Tenet (2020), 11634 votes
+tmdb-movie-8844  # Jumanji (1995), 11630 votes
+tmdb-movie-2080  # X-Men Origins: Wolverine (2009), 11623 votes
+tmdb-movie-45243  # The Hangover Part II (2011), 11612 votes
+tmdb-movie-652  # Troy (2004), 11606 votes
+tmdb-movie-62211  # Monsters University (2013), 11600 votes
+tmdb-movie-787  # Mr. & Mrs. Smith (2005), 11587 votes
+tmdb-movie-4935  # Howl's Moving Castle (2004), 11566 votes
+tmdb-movie-168259  # Furious 7 (2015), 11551 votes
+tmdb-movie-206647  # Spectre (2015), 11550 votes
+tmdb-movie-84892  # The Perks of Being a Wallflower (2012), 11530 votes
+tmdb-movie-197  # Braveheart (1995), 11522 votes
+tmdb-movie-580489  # Venom: Let There Be Carnage (2021), 11485 votes
+tmdb-movie-453  # A Beautiful Mind (2001), 11482 votes
+tmdb-movie-343668  # Kingsman: The Golden Circle (2017), 11446 votes
+tmdb-movie-89  # Indiana Jones and the Last Crusade (1989), 11437 votes
+tmdb-movie-82992  # Fast & Furious 6 (2013), 11416 votes
+tmdb-movie-293167  # Kong: Skull Island (2017), 11401 votes
+tmdb-movie-641  # Requiem for a Dream (2000), 11384 votes
+tmdb-movie-19913  # (500) Days of Summer (2009), 11380 votes
+tmdb-movie-211672  # Minions (2015), 11362 votes
+tmdb-movie-64688  # 21 Jump Street (2012), 11356 votes
+tmdb-movie-539  # Psycho (1960), 11336 votes
+tmdb-movie-266856  # The Theory of Everything (2014), 11321 votes
+tmdb-movie-294254  # Maze Runner: The Scorch Trials (2015), 11294 votes
+tmdb-movie-1593  # Night at the Museum (2006), 11279 votes
+tmdb-movie-679  # Aliens (1986), 11278 votes
+tmdb-movie-59967  # Looper (2012), 11272 votes
+tmdb-movie-359940  # Three Billboards Outside Ebbing, Missouri (2017), 11261 votes
+tmdb-movie-41154  # Men in Black 3 (2012), 11261 votes
+tmdb-movie-36658  # X2 (2003), 11259 votes
+tmdb-movie-9799  # The Fast and the Furious (2001), 11229 votes
+tmdb-movie-181812  # Star Wars: The Rise of Skywalker (2019), 11230 votes
+tmdb-movie-605  # The Matrix Revolutions (2003), 11222 votes
+tmdb-movie-791373  # Zack Snyder's Justice League (2021), 11214 votes
+tmdb-movie-58574  # Sherlock Holmes: A Game of Shadows (2011), 11214 votes
+tmdb-movie-502356  # The Super Mario Bros. Movie (2023), 11208 votes
+tmdb-movie-56292  # Mission: Impossible - Ghost Protocol (2011), 11079 votes
+tmdb-movie-301528  # Toy Story 4 (2019), 11073 votes
+tmdb-movie-495764  # Birds of Prey (and the Fantabulous Emancipation of One Harley Quinn) (2020), 11047 votes
+tmdb-movie-337339  # The Fate of the Furious (2017), 11041 votes
+tmdb-movie-608  # Men in Black II (2002), 10975 votes
+tmdb-movie-453395  # Doctor Strange in the Multiverse of Madness (2022), 10973 votes
+tmdb-movie-772  # Home Alone 2: Lost in New York (1992), 10968 votes
+tmdb-movie-420818  # The Lion King (2019), 10953 votes
+tmdb-movie-10020  # Beauty and the Beast (1991), 10952 votes
+tmdb-movie-1402  # The Pursuit of Happyness (2006), 10934 votes
+tmdb-movie-405774  # Bird Box (2018), 10890 votes
+tmdb-movie-399566  # Godzilla vs. Kong (2021), 10866 votes
+tmdb-movie-420817  # Aladdin (2019), 10855 votes
+tmdb-movie-566525  # Shang-Chi and the Legend of the Ten Rings (2021), 10830 votes
+tmdb-movie-602  # Independence Day (1996), 10810 votes
+tmdb-movie-13475  # Star Trek (2009), 10786 votes
+tmdb-movie-392044  # Murder on the Orient Express (2017), 10782 votes
+tmdb-movie-515001  # Jojo Rabbit (2019), 10768 votes
+tmdb-movie-110415  # Snowpiercer (2013), 10757 votes
+tmdb-movie-381284  # Hidden Figures (2016), 10750 votes
+tmdb-movie-627  # Trainspotting (1996), 10746 votes
+tmdb-movie-17654  # District 9 (2009), 10735 votes
+tmdb-movie-36668  # X-Men: The Last Stand (2006), 10734 votes
+tmdb-movie-9479  # The Nightmare Before Christmas (1993), 10728 votes
+tmdb-movie-10674  # Mulan (1998), 10731 votes
+tmdb-movie-82702  # How to Train Your Dragon 2 (2014), 10729 votes
+tmdb-movie-283366  # Miss Peregrine's Home for Peculiar Children (2016), 10663 votes
+tmdb-movie-70  # Million Dollar Baby (2004), 10658 votes
+tmdb-movie-262500  # Insurgent (2015), 10635 votes
+tmdb-movie-76170  # The Wolverine (2013), 10630 votes
+tmdb-movie-454626  # Sonic the Hedgehog (2020), 10622 votes
+tmdb-movie-950  # Ice Age: The Meltdown (2006), 10600 votes
+tmdb-movie-8960  # Hancock (2008), 10554 votes
+tmdb-movie-423  # The Pianist (2002), 10530 votes
+tmdb-movie-330457  # Frozen II (2019), 10512 votes
+tmdb-movie-287947  # Shazam! (2019), 10507 votes
+tmdb-movie-3933  # Corpse Bride (2005), 10499 votes
+tmdb-movie-564  # The Mummy (1999), 10485 votes
+tmdb-movie-389  # 12 Angry Men (1957), 10477 votes
+tmdb-movie-2501  # The Bourne Identity (2002), 10467 votes
+tmdb-movie-399579  # Alita: Battle Angel (2019), 10459 votes
+tmdb-movie-87  # Indiana Jones and the Temple of Doom (1984), 10447 votes
+tmdb-movie-568124  # Encanto (2021), 10434 votes
+tmdb-movie-176  # Saw (2004), 10408 votes
+tmdb-movie-5915  # Into the Wild (2007), 10401 votes
+tmdb-movie-591  # The Da Vinci Code (2006), 10385 votes
+tmdb-movie-337404  # Cruella (2021), 10381 votes
+tmdb-movie-107  # Snatch (2000), 10374 votes
+tmdb-movie-954  # Mission: Impossible (1996), 10361 votes
+tmdb-movie-13183  # Watchmen (2009), 10330 votes
+tmdb-movie-670  # Oldboy (2003), 10300 votes
+tmdb-movie-156022  # The Equalizer (2014), 10285 votes
+tmdb-movie-316029  # The Greatest Showman (2017), 10283 votes
+tmdb-movie-9738  # Fantastic Four (2005), 10269 votes
+tmdb-movie-550988  # Free Guy (2021), 10271 votes
+tmdb-movie-9741  # Unbreakable (2000), 10217 votes
+tmdb-movie-318846  # The Big Short (2015), 10164 votes
+tmdb-movie-124905  # Godzilla (2014), 10071 votes
+tmdb-movie-620  # Ghostbusters (1984), 10067 votes
+tmdb-movie-810  # Shrek the Third (2007), 10056 votes
+tmdb-movie-429  # The Good, the Bad and the Ugly (1966), 10035 votes
+tmdb-movie-281338  # War for the Planet of the Apes (2017), 10030 votes
+tmdb-movie-177677  # Mission: Impossible - Rogue Nation (2015), 10015 votes
+tmdb-movie-180  # Minority Report (2002), 10015 votes
+tmdb-movie-744  # Top Gun (1986), 9994 votes
+tmdb-movie-436969  # The Suicide Squad (2021), 9982 votes
+tmdb-movie-273481  # Sicario (2015), 9970 votes
+tmdb-movie-9487  # A Bug's Life (1998), 9966 votes
+tmdb-movie-18239  # The Twilight Saga: New Moon (2009), 9963 votes
+tmdb-movie-54138  # Star Trek Into Darkness (2013), 9925 votes
+tmdb-movie-474350  # It Chapter Two (2019), 9911 votes
+tmdb-movie-264644  # Room (2015), 9894 votes
+tmdb-movie-68724  # Elysium (2013), 9880 votes
+tmdb-movie-646380  # Don't Look Up (2021), 9781 votes
+tmdb-movie-126889  # Alien: Covenant (2017), 9748 votes
+tmdb-movie-10625  # Mean Girls (2004), 9733 votes
+tmdb-movie-138832  # We're the Millers (2013), 9727 votes
+tmdb-movie-747  # Shaun of the Dead (2004), 9714 votes
+tmdb-movie-300668  # Annihilation (2018), 9706 votes
+tmdb-movie-512200  # Jumanji: The Next Level (2019), 9660 votes
+tmdb-movie-39254  # Real Steel (2011), 9636 votes
+tmdb-movie-533535  # Deadpool & Wolverine (2024), 9633 votes
+tmdb-movie-74  # War of the Worlds (2005), 9625 votes
+tmdb-movie-664413  # 365 Days (2020), 9609 votes
+tmdb-movie-106  # Predator (1987), 9587 votes
+tmdb-movie-50646  # Crazy, Stupid, Love. (2011), 9581 votes
+tmdb-movie-45269  # The King's Speech (2010), 9583 votes
+tmdb-movie-348350  # Solo: A Star Wars Story (2018), 9576 votes
+tmdb-movie-122906  # About Time (2013), 9578 votes
+tmdb-movie-14836  # Coraline (2009), 9563 votes
+tmdb-movie-50620  # The Twilight Saga: Breaking Dawn - Part 2 (2012), 9538 votes
+tmdb-movie-330  # The Lost World: Jurassic Park (1997), 9528 votes
+tmdb-movie-109439  # The Hangover Part III (2013), 9491 votes
+tmdb-movie-45612  # Source Code (2011), 9488 votes
+tmdb-movie-524434  # Eternals (2021), 9484 votes
+tmdb-movie-259693  # The Conjuring 2 (2016), 9483 votes
+tmdb-movie-275  # Fargo (1996), 9478 votes
+tmdb-movie-63  # Twelve Monkeys (1995), 9467 votes
+tmdb-movie-8373  # Transformers: Revenge of the Fallen (2009), 9461 votes
+tmdb-movie-353081  # Mission: Impossible - Fallout (2018), 9459 votes
+tmdb-movie-50619  # The Twilight Saga: Breaking Dawn - Part 1 (2011), 9460 votes
+tmdb-movie-28  # Apocalypse Now (1979), 9459 votes
+tmdb-movie-24021  # The Twilight Saga: Eclipse (2010), 9434 votes
+tmdb-movie-76492  # Hotel Transylvania (2012), 9417 votes
+tmdb-movie-569094  # Spider-Man: Across the Spider-Verse (2023), 9396 votes
+tmdb-movie-359724  # Ford v Ferrari (2019), 9378 votes
+tmdb-movie-128  # Princess Mononoke (1997), 9374 votes
+tmdb-movie-47971  # xXx: Return of Xander Cage (2017), 9354 votes
+tmdb-movie-50014  # The Help (2011), 9346 votes
+tmdb-movie-152532  # Dallas Buyers Club (2013), 9326 votes
+tmdb-movie-450465  # Glass (2019), 9321 votes
+tmdb-movie-217  # Indiana Jones and the Kingdom of the Crystal Skull (2008), 9306 votes
+tmdb-movie-464052  # Wonder Woman 1984 (2020), 9305 votes
+tmdb-movie-315162  # Puss in Boots: The Last Wish (2022), 9298 votes
+tmdb-movie-137  # Groundhog Day (1993), 9262 votes
+tmdb-movie-254128  # San Andreas (2015), 9254 votes
+tmdb-movie-68734  # Argo (2012), 9252 votes
+tmdb-movie-114  # Pretty Woman (1990), 9245 votes
+tmdb-movie-87101  # Terminator Genisys (2015), 9236 votes
+tmdb-movie-391713  # Lady Bird (2017), 9223 votes
+tmdb-movie-38356  # Transformers: Dark of the Moon (2011), 9218 votes
+tmdb-movie-4951  # 10 Things I Hate About You (1999), 9205 votes
+tmdb-movie-435  # The Day After Tomorrow (2004), 9192 votes
+tmdb-movie-508943  # Luca (2021), 9169 votes
+tmdb-movie-8392  # My Neighbor Totoro (1988), 9163 votes
+tmdb-movie-51497  # Fast Five (2011), 9143 votes
+tmdb-movie-187  # Sin City (2005), 9140 votes
+tmdb-movie-8355  # Ice Age: Dawn of the Dinosaurs (2009), 9125 votes
+tmdb-movie-158015  # The Purge (2013), 9056 votes
+tmdb-movie-402900  # Ocean's Eight (2018), 9047 votes
+tmdb-movie-616037  # Thor: Love and Thunder (2022), 9043 votes
+tmdb-movie-594  # The Terminal (2004), 9033 votes
+tmdb-movie-314365  # Spotlight (2015), 9027 votes
+tmdb-movie-4348  # Pride & Prejudice (2005), 9009 votes
+tmdb-movie-290250  # The Nice Guys (2016), 9009 votes
+tmdb-movie-333371  # 10 Cloverfield Lane (2016), 8999 votes
+tmdb-movie-91314  # Transformers: Age of Extinction (2014), 8995 votes
+tmdb-movie-493922  # Hereditary (2018), 8990 votes
+tmdb-movie-1366  # Rocky (1976), 8981 votes
+tmdb-movie-170  # 28 Days Later (2002), 8971 votes
+tmdb-movie-447365  # Guardians of the Galaxy Vol. 3 (2023), 8951 votes
+tmdb-movie-22538  # Scott Pilgrim vs. the World (2010), 8944 votes
+tmdb-movie-9552  # The Exorcist (1973), 8934 votes
+tmdb-movie-38700  # Bad Boys for Life (2020), 8929 votes
+tmdb-movie-95  # Armageddon (1998), 8894 votes
+tmdb-movie-22970  # The Cabin in the Woods (2012), 8887 votes
+tmdb-movie-268  # Batman (1989), 8867 votes
+tmdb-movie-396535  # Train to Busan (2016), 8837 votes
+tmdb-movie-10764  # Quantum of Solace (2008), 8817 votes
+tmdb-movie-615457  # Nobody (2021), 8805 votes
+tmdb-movie-315837  # Ghost in the Shell (2017), 8794 votes
+tmdb-movie-466282  # To All the Boys I've Loved Before (2018), 8793 votes
+tmdb-movie-187017  # 22 Jump Street (2014), 8789 votes
+tmdb-movie-254  # King Kong (2005), 8787 votes
+tmdb-movie-949  # Heat (1995), 8785 votes
+tmdb-movie-137106  # The Lego Movie (2014), 8783 votes
+tmdb-movie-2108  # The Breakfast Club (1985), 8778 votes
+tmdb-movie-35  # The Simpsons Movie (2007), 8770 votes
+tmdb-movie-49013  # Cars 2 (2011), 8766 votes
+tmdb-movie-4011  # Beetlejuice (1988), 8750 votes
+tmdb-movie-693134  # Dune: Part Two (2024), 8736 votes
+tmdb-movie-2105  # American Pie (1999), 8732 votes
+tmdb-movie-198184  # Chappie (2015), 8722 votes
+tmdb-movie-328111  # The Secret Life of Pets (2016), 8695 votes
+tmdb-movie-278927  # The Jungle Book (2016), 8679 votes
+tmdb-movie-4638  # Hot Fuzz (2007), 8677 votes
+tmdb-movie-2503  # The Bourne Ultimatum (2007), 8670 votes
+tmdb-movie-339846  # Baywatch (2017), 8654 votes
+tmdb-movie-1979  # Fantastic Four: Rise of the Silver Surfer (2007), 8623 votes
+tmdb-movie-561  # Constantine (2005), 8624 votes
+tmdb-movie-335797  # Sing (2016), 8619 votes
+tmdb-movie-336843  # Maze Runner: The Death Cure (2018), 8614 votes
+tmdb-movie-1954  # The Butterfly Effect (2004), 8612 votes
+tmdb-movie-10144  # The Little Mermaid (1989), 8610 votes
+tmdb-movie-1372  # Blood Diamond (2006), 8608 votes
+tmdb-movie-537915  # After (2019), 8581 votes
+tmdb-movie-338970  # Tomb Raider (2018), 8564 votes
+tmdb-movie-50544  # Friends with Benefits (2011), 8559 votes
+tmdb-movie-116745  # The Secret Life of Walter Mitty (2013), 8534 votes
+tmdb-movie-545611  # Everything Everywhere All at Once (2022), 8528 votes
+tmdb-movie-340666  # Nocturnal Animals (2016), 8525 votes
+tmdb-movie-27578  # The Expendables (2010), 8518 votes
+tmdb-movie-598  # City of God (2002), 8520 votes
+tmdb-movie-530385  # Midsommar (2019), 8516 votes
+tmdb-movie-8871  # How the Grinch Stole Christmas (2000), 8500 votes
+tmdb-movie-2502  # The Bourne Supremacy (2004), 8476 votes
+tmdb-movie-256591  # Focus (2015), 8463 votes
+tmdb-movie-337167  # Fifty Shades Freed (2018), 8450 votes
+tmdb-movie-8363  # Superbad (2007), 8444 votes
+tmdb-movie-584  # 2 Fast 2 Furious (2003), 8439 votes
+tmdb-movie-406997  # Wonder (2017), 8436 votes
+tmdb-movie-345940  # The Meg (2018), 8434 votes
+tmdb-movie-603692  # John Wick: Chapter 4 (2023), 8414 votes
+tmdb-movie-58595  # Snow White and the Huntsman (2012), 8393 votes
+tmdb-movie-153  # Lost in Translation (2003), 8369 votes
+tmdb-movie-458723  # Us (2019), 8354 votes
+tmdb-movie-1091  # The Thing (1982), 8348 votes
+tmdb-movie-44115  # 127 Hours (2010), 8344 votes
+tmdb-movie-404368  # Ralph Breaks the Internet (2018), 8328 votes
+tmdb-movie-57800  # Ice Age: Continental Drift (2012), 8321 votes
+tmdb-movie-4232  # Scream (1996), 8317 votes
+tmdb-movie-487558  # BlacKkKlansman (2018), 8313 votes
+tmdb-movie-121856  # Assassin's Creed (2016), 8287 votes
+tmdb-movie-687163  # Project Hail Mary (2026), 8303 votes
+tmdb-movie-339964  # Valerian and the City of a Thousand Planets (2017), 8263 votes
+tmdb-movie-4247  # Scary Movie (2000), 8235 votes
+tmdb-movie-257344  # Pixels (2015), 8232 votes
+tmdb-movie-214756  # Ted 2 (2015), 8217 votes
+tmdb-movie-20526  # TRON: Legacy (2010), 8213 votes
+tmdb-movie-300669  # Don't Breathe (2016), 8200 votes
+tmdb-movie-49444  # Kung Fu Panda 2 (2011), 8203 votes
+tmdb-movie-9693  # Children of Men (2006), 8194 votes
+tmdb-movie-163  # Ocean's Twelve (2004), 8190 votes
+tmdb-movie-7191  # Cloverfield (2008), 8178 votes
+tmdb-movie-10192  # Shrek Forever After (2010), 8175 votes
+tmdb-movie-312221  # Creed (2015), 8172 votes
+tmdb-movie-395992  # Life (2017), 8163 votes
+tmdb-movie-408  # Snow White and the Seven Dwarfs (1938), 8163 votes
+tmdb-movie-11970  # Hercules (1997), 8154 votes
+tmdb-movie-773  # Little Miss Sunshine (2006), 8135 votes
+tmdb-movie-331  # Jurassic Park III (2001), 8112 votes
+tmdb-movie-96721  # Rush (2013), 8098 votes
+tmdb-movie-619264  # The Platform (2019), 8073 votes
+tmdb-movie-13804  # Fast & Furious (2009), 8059 votes
+tmdb-movie-766507  # Prey (2022), 8054 votes
+tmdb-movie-341174  # Fifty Shades Darker (2017), 8028 votes
+tmdb-movie-718930  # Bullet Train (2022), 8028 votes
+tmdb-movie-65  # 8 Mile (2002), 8025 votes
+tmdb-movie-587  # Big Fish (2003), 7988 votes
+tmdb-movie-32657  # Percy Jackson & the Olympians: The Lightning Thief (2010), 7982 votes
+tmdb-movie-384018  # Fast & Furious Presents: Hobbs & Shaw (2019), 7978 votes
+tmdb-movie-1824  # 50 First Dates (2004), 7970 votes
+tmdb-movie-1734  # The Mummy Returns (2001), 7964 votes
+tmdb-movie-168672  # American Hustle (2013), 7946 votes
+tmdb-movie-310131  # The Witch (2016), 7946 votes
+tmdb-movie-363676  # Sully (2016), 7943 votes
+tmdb-movie-9615  # The Fast and the Furious: Tokyo Drift (2006), 7933 votes
+tmdb-movie-59436  # Midnight in Paris (2011), 7932 votes
+tmdb-movie-75780  # Jack Reacher (2012), 7922 votes
+tmdb-movie-956  # Mission: Impossible III (2006), 7918 votes
+tmdb-movie-44912  # Green Lantern (2011), 7907 votes
+tmdb-movie-385128  # F9 (2021), 7903 votes
+tmdb-movie-955  # Mission: Impossible II (2000), 7886 votes
+tmdb-movie-223702  # Sausage Party (2016), 7884 votes
+tmdb-movie-14574  # The Boy in the Striped Pyjamas (2008), 7880 votes
+tmdb-movie-7326  # Juno (2007), 7865 votes
+tmdb-movie-44826  # Hugo (2011), 7866 votes
+tmdb-movie-621  # Grease (1978), 7860 votes
+tmdb-movie-65754  # The Girl with the Dragon Tattoo (2011), 7858 votes
+tmdb-movie-505642  # Black Panther: Wakanda Forever (2022), 7858 votes
+tmdb-movie-282035  # The Mummy (2017), 7841 votes
+tmdb-movie-616  # The Last Samurai (2003), 7840 votes
+tmdb-movie-18240  # The Proposal (2009), 7841 votes
+tmdb-movie-8909  # Wanted (2008), 7832 votes
+tmdb-movie-324852  # Despicable Me 3 (2017), 7832 votes
+tmdb-movie-9339  # Click (2006), 7808 votes
+tmdb-movie-7345  # There Will Be Blood (2007), 7787 votes
+tmdb-movie-398978  # The Irishman (2019), 7782 votes
+tmdb-movie-62213  # Dark Shadows (2012), 7775 votes
+tmdb-movie-427641  # Rampage (2018), 7767 votes
+tmdb-movie-142  # Brokeback Mountain (2005), 7769 votes
+tmdb-movie-322  # Mystic River (2003), 7765 votes
+tmdb-movie-49519  # The Croods (2013), 7749 votes
+tmdb-movie-38055  # Megamind (2010), 7741 votes
+tmdb-movie-109424  # Captain Phillips (2013), 7737 votes
+tmdb-movie-83542  # Cloud Atlas (2012), 7728 votes
+tmdb-movie-376867  # Moonlight (2016), 7723 votes
+tmdb-movie-520763  # A Quiet Place Part II (2021), 7701 votes
+tmdb-movie-49018  # Insidious (2011), 7682 votes
+tmdb-movie-1487  # Hellboy (2004), 7664 votes
+tmdb-movie-302946  # The Accountant (2016), 7657 votes
+tmdb-movie-2649  # The Game (1997), 7654 votes
+tmdb-movie-10527  # Madagascar: Escape 2 Africa (2008), 7642 votes
+tmdb-movie-2668  # Sleepy Hollow (1999), 7641 votes
+tmdb-movie-10201  # Yes Man (2008), 7626 votes
+tmdb-movie-508  # Love Actually (2003), 7615 votes
+tmdb-movie-295693  # The Boss Baby (2017), 7602 votes
+tmdb-movie-492188  # Marriage Story (2019), 7595 votes
+tmdb-movie-37735  # Easy A (2010), 7589 votes
+tmdb-movie-13448  # Angels & Demons (2009), 7558 votes
+tmdb-movie-447404  # Pokémon Detective Pikachu (2019), 7553 votes
+tmdb-movie-296  # Terminator 3: Rise of the Machines (2003), 7554 votes
+tmdb-movie-257211  # The Intern (2015), 7548 votes
+tmdb-movie-158852  # Tomorrowland (2015), 7542 votes
+tmdb-movie-68735  # Warcraft (2016), 7538 votes
+tmdb-movie-37135  # Tarzan (1999), 7537 votes
+tmdb-movie-454983  # The Kissing Booth (2018), 7527 votes
+tmdb-movie-150689  # Cinderella (2015), 7528 votes
+tmdb-movie-18360  # Night at the Museum: Battle of the Smithsonian (2009), 7499 votes
+tmdb-movie-11688  # The Emperor's New Groove (2000), 7501 votes
+tmdb-movie-6957  # The 40 Year-Old Virgin (2005), 7490 votes
+tmdb-movie-1933  # The Others (2001), 7481 votes
+tmdb-movie-419704  # Ad Astra (2019), 7480 votes
+tmdb-movie-527774  # Raya and the Last Dragon (2021), 7478 votes
+tmdb-movie-3131  # Gangs of New York (2002), 7470 votes
+tmdb-movie-296098  # Bridge of Spies (2015), 7468 votes
+tmdb-movie-370172  # No Time to Die (2021), 7463 votes
+tmdb-movie-100  # Lock, Stock and Two Smoking Barrels (1998), 7456 votes
+tmdb-movie-195589  # Neighbors (2014), 7449 votes
+tmdb-movie-11321  # Seven Pounds (2008), 7427 votes
+tmdb-movie-567  # Rear Window (1954), 7422 votes
+tmdb-movie-206487  # Predestination (2014), 7410 votes
+tmdb-movie-380  # Rain Man (1988), 7396 votes
+tmdb-movie-345  # Eyes Wide Shut (1999), 7387 votes
+tmdb-movie-44896  # Rango (2011), 7370 votes
+tmdb-movie-9543  # Prince of Persia: The Sands of Time (2010), 7370 votes
+tmdb-movie-46195  # Rio (2011), 7373 votes
+tmdb-movie-76163  # The Expendables 2 (2012), 7367 votes
+tmdb-movie-28178  # Hachi: A Dog's Tale (2009), 7368 votes
+tmdb-movie-320288  # Dark Phoenix (2019), 7359 votes
+tmdb-movie-1018  # Mulholland Drive (2001), 7353 votes
+tmdb-movie-439079  # The Nun (2018), 7353 votes
+tmdb-movie-98566  # Teenage Mutant Ninja Turtles (2014), 7350 votes
+tmdb-movie-364  # Batman Returns (1992), 7343 votes
+tmdb-movie-39514  # RED (2010), 7341 votes
+tmdb-movie-37686  # Super 8 (2011), 7337 votes
+tmdb-movie-507086  # Jurassic World Dominion (2022), 7332 votes
+tmdb-movie-166428  # How to Train Your Dragon: The Hidden World (2019), 7322 votes
+tmdb-movie-81188  # Rise of the Guardians (2012), 7321 votes
+tmdb-movie-436270  # Black Adam (2022), 7315 votes
+tmdb-movie-11224  # Cinderella (1950), 7312 votes
+tmdb-movie-82675  # Taken 2 (2012), 7309 votes
+tmdb-movie-188927  # Star Trek Beyond (2016), 7306 votes
+tmdb-movie-534  # Terminator Salvation (2009), 7301 votes
+tmdb-movie-381283  # mother! (2017), 7295 votes
+tmdb-movie-11544  # Lilo & Stitch (2002), 7289 votes
+tmdb-movie-76757  # Jupiter Ascending (2015), 7276 votes
+tmdb-movie-7446  # Tropic Thunder (2008), 7274 votes
+tmdb-movie-661374  # Glass Onion: A Knives Out Mystery (2022), 7267 votes
+tmdb-movie-60304  # Hansel & Gretel: Witch Hunters (2013), 7258 votes
+tmdb-movie-117263  # Olympus Has Fallen (2013), 7251 votes
+tmdb-movie-1576  # Resident Evil (2002), 7247 votes
+tmdb-movie-293863  # The Age of Adaline (2015), 7237 votes
+tmdb-movie-676  # Pearl Harbor (2001), 7228 votes
+tmdb-movie-335787  # Uncharted (2022), 7219 votes
+tmdb-movie-782  # Gattaca (1997), 7209 votes
+tmdb-movie-270303  # It Follows (2015), 7204 votes
+tmdb-movie-927  # Gremlins (1984), 7203 votes
+tmdb-movie-9737  # Bad Boys (1995), 7197 votes
+tmdb-movie-11631  # Mamma Mia! (2008), 7190 votes
+tmdb-movie-337401  # Mulan (2020), 7182 votes
+tmdb-movie-53182  # 300: Rise of an Empire (2014), 7168 votes
+tmdb-movie-184  # Jackie Brown (1997), 7168 votes
+tmdb-movie-1368  # First Blood (1982), 7167 votes
+tmdb-movie-254320  # The Lobster (2015), 7140 votes
+tmdb-movie-262504  # Allegiant (2016), 7138 votes
+tmdb-movie-298  # Ocean's Thirteen (2007), 7137 votes
+tmdb-movie-242  # The Godfather Part III (1990), 7121 votes
+tmdb-movie-328387  # Nerve (2016), 7114 votes
+tmdb-movie-2059  # National Treasure (2004), 7115 votes
+tmdb-movie-1637  # Speed (1994), 7115 votes
+tmdb-movie-1813  # The Devil's Advocate (1997), 7111 votes
+tmdb-movie-203801  # The Man from U.N.C.L.E. (2015), 7103 votes
+tmdb-movie-334543  # Lion (2016), 7099 votes
+tmdb-movie-460465  # Mortal Kombat (2021), 7091 votes
+tmdb-movie-57214  # Project X (2012), 7090 votes
+tmdb-movie-5255  # The Polar Express (2004), 7078 votes
+tmdb-movie-109414  # This Is the End (2013), 7066 votes
+tmdb-movie-1022789  # Inside Out 2 (2024), 7058 votes
+tmdb-movie-331482  # Little Women (2019), 7045 votes
+tmdb-movie-22881  # The Blind Side (2009), 7043 votes
+tmdb-movie-114150  # Pitch Perfect (2012), 7030 votes
+tmdb-movie-36647  # Blade (1998), 7028 votes
+tmdb-movie-51540  # Horrible Bosses (2011), 7013 votes
+tmdb-movie-334533  # Captain Fantastic (2016), 7009 votes
+tmdb-movie-82700  # After Earth (2013), 7009 votes
+tmdb-movie-9532  # Final Destination (2000), 7000 votes
+tmdb-movie-8467  # Dumb and Dumber (1994), 6996 votes
+tmdb-movie-522627  # The Gentlemen (2020), 6971 votes
+tmdb-movie-2454  # The Chronicles of Narnia: Prince Caspian (2008), 6965 votes
+tmdb-movie-373571  # Godzilla: King of the Monsters (2019), 6956 votes
+tmdb-movie-20504  # The Book of Eli (2010), 6947 votes
+tmdb-movie-43074  # Ghostbusters (2016), 6937 votes
+tmdb-movie-38365  # Grown Ups (2010), 6935 votes
+tmdb-movie-68728  # Oz the Great and Powerful (2013), 6935 votes
+tmdb-movie-509  # Notting Hill (1999), 6933 votes
+tmdb-movie-565  # The Ring (2002), 6928 votes
+tmdb-movie-335988  # Transformers: The Last Knight (2017), 6925 votes
+tmdb-movie-644  # A.I. Artificial Intelligence (2001), 6925 votes
+tmdb-movie-241259  # Alice Through the Looking Glass (2016), 6917 votes
+tmdb-movie-2034  # Training Day (2001), 6919 votes
+tmdb-movie-47964  # A Good Day to Die Hard (2013), 6902 votes
+tmdb-movie-7131  # Van Helsing (2004), 6900 votes
+tmdb-movie-1572  # Die Hard: With a Vengeance (1995), 6891 votes
+tmdb-movie-18823  # Clash of the Titans (2010), 6888 votes
+tmdb-movie-80278  # The Impossible (2012), 6887 votes
+tmdb-movie-424783  # Bumblebee (2018), 6883 votes
+tmdb-movie-497582  # Enola Holmes (2020), 6881 votes
+tmdb-movie-12477  # Grave of the Fireflies (1988), 6877 votes
+tmdb-movie-390043  # The Hitman's Bodyguard (2017), 6865 votes
+tmdb-movie-10555  # Shark Tale (2004), 6864 votes
+tmdb-movie-238636  # The Purge: Anarchy (2014), 6844 votes
+tmdb-movie-788  # Mrs. Doubtfire (1993), 6838 votes
+tmdb-movie-545609  # Extraction (2020), 6835 votes
+tmdb-movie-277  # Underworld (2003), 6835 votes
+tmdb-movie-207932  # Inferno (2016), 6825 votes
+tmdb-movie-341013  # Atomic Blonde (2017), 6821 votes
+tmdb-movie-140300  # Kung Fu Panda 3 (2016), 6820 votes
+tmdb-movie-9325  # The Jungle Book (1967), 6804 votes
+tmdb-movie-12230  # One Hundred and One Dalmatians (1961), 6801 votes
+tmdb-movie-524  # Casino (1995), 6800 votes
+tmdb-movie-235  # Stand by Me (1986), 6796 votes
+tmdb-movie-624860  # The Matrix Resurrections (2021), 6791 votes
+tmdb-movie-86834  # Noah (2014), 6782 votes
+tmdb-movie-59859  # Kick-Ass 2 (2013), 6767 votes
+tmdb-movie-80321  # Madagascar 3: Europe's Most Wanted (2012), 6766 votes
+tmdb-movie-39538  # Contagion (2011), 6766 votes
+tmdb-movie-593643  # The Menu (2022), 6763 votes
+tmdb-movie-423108  # The Conjuring: The Devil Made Me Do It (2021), 6757 votes
+tmdb-movie-38575  # The Karate Kid (2010), 6753 votes
+tmdb-movie-755  # From Dusk Till Dawn (1996), 6751 votes
+tmdb-movie-861  # Total Recall (1990), 6750 votes
+tmdb-movie-440021  # Happy Death Day (2017), 6739 votes
+tmdb-movie-1579  # Apocalypto (2006), 6737 votes
+tmdb-movie-508439  # Onward (2020), 6734 votes
+tmdb-movie-1184918  # The Wild Robot (2024), 6726 votes
+tmdb-movie-1995  # Lara Croft: Tomb Raider (2001), 6713 votes
+tmdb-movie-88  # Dirty Dancing (1987), 6711 votes
+tmdb-movie-1250  # Ghost Rider (2007), 6706 votes
+tmdb-movie-250546  # Annabelle (2014), 6692 votes
+tmdb-movie-13053  # Bolt (2008), 6687 votes
+tmdb-movie-512195  # Red Notice (2021), 6683 votes
+tmdb-movie-76493  # The Dictator (2012), 6678 votes
+tmdb-movie-22794  # Cloudy with a Chance of Meatballs (2009), 6677 votes
+tmdb-movie-628  # Interview with the Vampire (1994), 6666 votes
+tmdb-movie-762  # Monty Python and the Holy Grail (1975), 6661 votes
+tmdb-movie-49017  # Dracula Untold (2014), 6660 votes
+tmdb-movie-258489  # The Legend of Tarzan (2016), 6653 votes
+tmdb-movie-855  # Black Hawk Down (2001), 6650 votes
+tmdb-movie-47933  # Independence Day: Resurgence (2016), 6649 votes
+tmdb-movie-87502  # Flight (2012), 6648 votes
+tmdb-movie-8077  # Alien³ (1992), 6648 votes
+tmdb-movie-181886  # Enemy (2014), 6643 votes
+tmdb-movie-1573  # Die Hard 2 (1990), 6641 votes
+tmdb-movie-260514  # Cars 3 (2017), 6637 votes
+tmdb-movie-420809  # Maleficent: Mistress of Evil (2019), 6634 votes
+tmdb-movie-3049  # Ace Ventura: Pet Detective (1994), 6634 votes
+tmdb-movie-388  # Inside Man (2006), 6625 votes
+tmdb-movie-334541  # Manchester by the Sea (2016), 6611 votes
+tmdb-movie-333484  # The Magnificent Seven (2016), 6606 votes
+tmdb-movie-1597  # Meet the Parents (2000), 6606 votes
+tmdb-movie-933260  # The Substance (2024), 6607 votes
+tmdb-movie-200727  # Love, Rosie (2014), 6600 votes
+tmdb-movie-2675  # Signs (2002), 6601 votes
+tmdb-movie-406990  # What Happened to Monday (2017), 6598 votes
+tmdb-movie-242224  # The Babadook (2014), 6599 votes
+tmdb-movie-2300  # Space Jam (1996), 6599 votes
+tmdb-movie-166424  # Fantastic Four (2015), 6581 votes
+tmdb-movie-238713  # Spy (2015), 6572 votes
+tmdb-movie-17431  # Moon (2009), 6569 votes
+tmdb-movie-385687  # Fast X (2023), 6564 votes
+tmdb-movie-1538  # Collateral (2004), 6564 votes
+tmdb-movie-1571  # Live Free or Die Hard (2007), 6560 votes
+tmdb-movie-426  # Vertigo (1958), 6554 votes
+tmdb-movie-445571  # Game Night (2018), 6546 votes
+tmdb-movie-302699  # Central Intelligence (2016), 6530 votes
+tmdb-movie-13885  # Sweeney Todd: The Demon Barber of Fleet Street (2007), 6528 votes
+tmdb-movie-83666  # Moonrise Kingdom (2012), 6524 votes
+tmdb-movie-82654  # Warm Bodies (2013), 6519 votes
+tmdb-movie-39513  # Paul (2011), 6517 votes
+tmdb-movie-401981  # Red Sparrow (2018), 6514 votes
+tmdb-movie-570670  # The Invisible Man (2020), 6509 votes
+tmdb-movie-1927  # Hulk (2003), 6505 votes
+tmdb-movie-338967  # Zombieland: Double Tap (2019), 6494 votes
+tmdb-movie-8247  # Jumper (2008), 6478 votes
+tmdb-movie-80274  # Ender's Game (2013), 6464 votes
+tmdb-movie-1624  # Liar Liar (1997), 6461 votes
+tmdb-movie-9340  # The Goonies (1985), 6452 votes
+tmdb-movie-1584  # The School of Rock (2003), 6427 votes
+tmdb-movie-12092  # Alice in Wonderland (1951), 6425 votes
+tmdb-movie-228967  # The Interview (2014), 6419 votes
+tmdb-movie-948  # Halloween (1978), 6419 votes
+tmdb-movie-12162  # The Hurt Locker (2008), 6417 votes
+tmdb-movie-10386  # The Iron Giant (1999), 6418 votes
+tmdb-movie-4553  # The Machinist (2004), 6416 votes
+tmdb-movie-324668  # Jason Bourne (2016), 6412 votes
+tmdb-movie-8488  # Hitch (2005), 6409 votes
+tmdb-movie-935  # Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb (1964), 6407 votes
+tmdb-movie-31011  # Mr. Nobody (2009), 6401 votes
+tmdb-movie-10895  # Pinocchio (1940), 6393 votes
+tmdb-movie-856  # Who Framed Roger Rabbit (1988), 6392 votes
+tmdb-movie-10315  # Fantastic Mr. Fox (2009), 6381 votes
+tmdb-movie-117  # The Untouchables (1987), 6376 votes
+tmdb-movie-181533  # Night at the Museum: Secret of the Tomb (2014), 6367 votes
+tmdb-movie-449176  # Love, Simon (2018), 6357 votes
+tmdb-movie-637649  # Wrath of Man (2021), 6355 votes
+tmdb-movie-451048  # Jungle Cruise (2021), 6347 votes
+tmdb-movie-389015  # I, Tonya (2017), 6341 votes
+tmdb-movie-49529  # John Carter (2012), 6328 votes
+tmdb-movie-630  # The Wizard of Oz (1939), 6326 votes
+tmdb-movie-10198  # The Princess and the Frog (2009), 6326 votes
+tmdb-movie-260346  # Taken 3 (2014), 6318 votes
+tmdb-movie-49040  # The Bourne Legacy (2012), 6314 votes
+tmdb-movie-57201  # The Lone Ranger (2013), 6302 votes
+tmdb-movie-4982  # American Gangster (2007), 6299 votes
+tmdb-movie-159824  # Hotel Transylvania 2 (2015), 6288 votes
+tmdb-movie-82507  # Sinister (2012), 6284 votes
+tmdb-movie-289  # Casablanca (1943), 6281 votes
+tmdb-movie-15  # Citizen Kane (1941), 6283 votes
+tmdb-movie-50546  # Just Go with It (2011), 6275 votes
+tmdb-movie-311  # Once Upon a Time in America (1984), 6269 votes
+tmdb-movie-251  # Ghost (1990), 6248 votes
+tmdb-movie-9654  # The Italian Job (2003), 6247 votes
+tmdb-movie-496  # Borat: Cultural Learnings of America for Make Benefit Glorious Nation of Kazakhstan (2006), 6228 votes
+tmdb-movie-345887  # The Equalizer 2 (2018), 6223 votes
+tmdb-movie-274857  # King Arthur: Legend of the Sword (2017), 6223 votes
+tmdb-movie-10530  # Pocahontas (1995), 6225 votes
+tmdb-movie-44833  # Battleship (2012), 6213 votes
+tmdb-movie-346685  # The Girl on the Train (2016), 6201 votes
+tmdb-movie-105864  # The Good Dinosaur (2015), 6193 votes
+tmdb-movie-299687  # The 5th Wave (2016), 6189 votes
+tmdb-movie-754  # Face/Off (1997), 6174 votes
+tmdb-movie-640146  # Ant-Man and the Wasp: Quantumania (2023), 6167 votes
+tmdb-movie-8961  # Bad Boys II (2003), 6162 votes
+tmdb-movie-568  # Apollo 13 (1995), 6161 votes
+tmdb-movie-3170  # Bambi (1942), 6155 votes
+tmdb-movie-756999  # The Black Phone (2022), 6153 votes
+tmdb-movie-5876  # The Mist (2007), 6137 votes
+tmdb-movie-396422  # Annabelle: Creation (2017), 6128 votes
+tmdb-movie-27576  # Salt (2010), 6119 votes
+tmdb-movie-1339713  # Obsession (2026), 6120 votes
+tmdb-movie-400106  # Bright (2017), 6118 votes
+tmdb-movie-107985  # The World's End (2013), 6114 votes
+tmdb-movie-1635  # The Island (2005), 6115 votes
+tmdb-movie-400928  # Gifted (2017), 6101 votes
+tmdb-movie-215  # Saw II (2005), 6096 votes
+tmdb-movie-75  # Mars Attacks! (1996), 6093 votes
+tmdb-movie-375262  # The Favourite (2018), 6085 votes
+tmdb-movie-508947  # Turning Red (2022), 6080 votes
+tmdb-movie-4108  # The Transporter (2002), 6060 votes
+tmdb-movie-60308  # Moneyball (2011), 6056 votes
+tmdb-movie-2567  # The Aviator (2004), 6054 votes
+tmdb-movie-64635  # Total Recall (2012), 6048 votes
+tmdb-movie-10140  # The Chronicles of Narnia: The Voyage of the Dawn Treader (2010), 6048 votes
+tmdb-movie-675353  # Sonic the Hedgehog 2 (2022), 6045 votes
+tmdb-movie-97020  # RoboCop (2014), 6037 votes
+tmdb-movie-13811  # Knowing (2009), 6038 votes
+tmdb-movie-306819  # The Danish Girl (2015), 6028 votes
+tmdb-movie-8321  # In Bruges (2008), 6027 votes
+tmdb-movie-41733  # Due Date (2010), 6012 votes
+tmdb-movie-5548  # RoboCop (1987), 6013 votes
+tmdb-movie-17578  # The Adventures of Tintin (2011), 6012 votes
+tmdb-movie-395834  # Wind River (2017), 6007 votes
+tmdb-movie-527641  # Five Feet Apart (2019), 6003 votes
+tmdb-movie-377  # A Nightmare on Elm Street (1984), 6001 votes
+tmdb-movie-297  # Meet Joe Black (1998), 5999 votes
+tmdb-movie-157353  # Transcendence (2014), 5986 votes
+tmdb-movie-76726  # Chronicle (2012), 5974 votes
+tmdb-movie-2109  # Rush Hour (1998), 5971 votes
+tmdb-movie-307081  # Southpaw (2015), 5966 votes
+tmdb-movie-44264  # True Grit (2010), 5966 votes
+tmdb-movie-6114  # Bram Stoker's Dracula (1992), 5967 votes
+tmdb-movie-480530  # Creed II (2018), 5958 votes
+tmdb-movie-9509  # Man on Fire (2004), 5954 votes
+tmdb-movie-567609  # Ready or Not (2019), 5944 votes
+tmdb-movie-1562  # 28 Weeks Later (2007), 5926 votes
+tmdb-movie-225574  # Non-Stop (2014), 5911 votes
+tmdb-movie-290859  # Terminator: Dark Fate (2019), 5913 votes
+tmdb-movie-559969  # El Camino: A Breaking Bad Movie (2019), 5911 votes
+tmdb-movie-72559  # G.I. Joe: Retaliation (2013), 5906 votes
+tmdb-movie-879  # Hook (1991), 5903 votes
+tmdb-movie-22803  # Law Abiding Citizen (2009), 5898 votes
+tmdb-movie-37710  # The Tourist (2010), 5891 votes
+tmdb-movie-23168  # The Town (2010), 5892 votes
+tmdb-movie-10009  # Brother Bear (2003), 5888 votes
+tmdb-movie-10693  # Peter Pan (1953), 5863 votes
+tmdb-movie-4523  # Enchanted (2007), 5852 votes
+tmdb-movie-503919  # The Lighthouse (2019), 5839 votes
+tmdb-movie-369972  # First Man (2018), 5841 votes
+tmdb-movie-1991  # Death Proof (2007), 5842 votes
+tmdb-movie-792307  # Poor Things (2023), 5830 votes
+tmdb-movie-21208  # Orphan (2009), 5815 votes
+tmdb-movie-8078  # Alien Resurrection (1997), 5813 votes
+tmdb-movie-1581  # The Holiday (2006), 5796 votes
+tmdb-movie-2118  # L.A. Confidential (1997), 5790 votes
+tmdb-movie-11253  # Hellboy II: The Golden Army (2008), 5787 votes
+tmdb-movie-414  # Batman Forever (1995), 5783 votes
+tmdb-movie-107846  # Escape Plan (2013), 5782 votes
+tmdb-movie-49049  # Dredd (2012), 5767 votes
+tmdb-movie-10340  # Lady and the Tramp (1955), 5767 votes
+tmdb-movie-563  # Starship Troopers (1997), 5760 votes
+tmdb-movie-43347  # Love & Other Drugs (2010), 5754 votes
+tmdb-movie-308266  # War Dogs (2016), 5749 votes
+tmdb-movie-9444  # Anastasia (1997), 5721 votes
+tmdb-movie-353491  # The Dark Tower (2017), 5716 votes
+tmdb-movie-82695  # Les Misérables (2012), 5716 votes
+tmdb-movie-6637  # National Treasure: Book of Secrets (2007), 5714 votes
+tmdb-movie-2667  # The Blair Witch Project (1999), 5712 votes
+tmdb-movie-311324  # The Great Wall (2016), 5704 votes
+tmdb-movie-10096  # 13 Going on 30 (2004), 5702 votes
+tmdb-movie-7485  # Shooter (2007), 5678 votes
+tmdb-movie-399404  # Darkest Hour (2017), 5673 votes
+tmdb-movie-85350  # Boyhood (2014), 5673 votes
+tmdb-movie-634  # Bridget Jones's Diary (2001), 5664 votes
+tmdb-movie-49849  # Cowboys & Aliens (2011), 5653 votes
+tmdb-movie-473033  # Uncut Gems (2019), 5635 votes
+tmdb-movie-9480  # Daredevil (2003), 5634 votes
+tmdb-movie-345920  # Collateral Beauty (2016), 5628 votes
+tmdb-movie-4547  # Panic Room (2002), 5620 votes
+tmdb-movie-23827  # Paranormal Activity (2009), 5617 votes
+tmdb-movie-9377  # Ferris Bueller's Day Off (1986), 5616 votes
+tmdb-movie-9836  # Happy Feet (2006), 5614 votes
+tmdb-movie-316727  # The Purge: Election Year (2016), 5615 votes
+tmdb-movie-453405  # Gemini Man (2019), 5610 votes
+tmdb-movie-399174  # Isle of Dogs (2018), 5609 votes
+tmdb-movie-324849  # The Lego Batman Movie (2017), 5606 votes
+tmdb-movie-254470  # Pitch Perfect 2 (2015), 5605 votes
+tmdb-movie-1830  # Lord of War (2005), 5608 votes
+tmdb-movie-2770  # American Pie 2 (2001), 5609 votes
+tmdb-movie-10882  # Sleeping Beauty (1959), 5603 votes
+tmdb-movie-1061474  # Superman (2025), 5593 votes
+tmdb-movie-415  # Batman & Robin (1997), 5589 votes
+tmdb-movie-320  # Insomnia (2002), 5588 votes
+tmdb-movie-524047  # Greenland (2020), 5582 votes
+tmdb-movie-976573  # Elemental (2023), 5580 votes
+tmdb-movie-310307  # The Founder (2016), 5575 votes
+tmdb-movie-16996  # 17 Again (2009), 5561 votes
+tmdb-movie-479455  # Men in Black: International (2019), 5556 votes
+tmdb-movie-7443  # Chicken Run (2000), 5556 votes
+tmdb-movie-544  # There's Something About Mary (1998), 5549 votes
+tmdb-movie-268896  # Pacific Rim: Uprising (2018), 5537 votes
+tmdb-movie-1491  # The Illusionist (2006), 5534 votes
+tmdb-movie-343611  # Jack Reacher: Never Go Back (2016), 5528 votes
+tmdb-movie-7551  # Déjà Vu (2006), 5521 votes
+tmdb-movie-1265  # Bridge to Terabithia (2007), 5522 votes
+tmdb-movie-504172  # The Mule (2018), 5512 votes
+tmdb-movie-613504  # After We Collided (2020), 5508 votes
+tmdb-movie-10545  # The Hunchback of Notre Dame (1996), 5505 votes
+tmdb-movie-138103  # The Expendables 3 (2014), 5486 votes
+tmdb-movie-76285  # Percy Jackson: Sea of Monsters (2013), 5481 votes
+tmdb-movie-454  # Romeo + Juliet (1996), 5479 votes
+tmdb-movie-10112  # The Aristocats (1970), 5480 votes
+tmdb-movie-447200  # Skyscraper (2018), 5474 votes
+tmdb-movie-667538  # Transformers: Rise of the Beasts (2023), 5471 votes
+tmdb-movie-1700  # Misery (1990), 5471 votes
+tmdb-movie-5559  # Bee Movie (2007), 5460 votes
+tmdb-movie-332567  # The Shallows (2016), 5453 votes
+tmdb-movie-36586  # Blade II (2002), 5446 votes
+tmdb-movie-4944  # Burn After Reading (2008), 5443 votes
+tmdb-movie-575264  # Mission: Impossible - Dead Reckoning Part One (2023), 5438 votes
+tmdb-movie-4248  # Scary Movie 2 (2001), 5437 votes
+tmdb-movie-431  # Cube (1998), 5430 votes
+tmdb-movie-9802  # The Rock (1996), 5425 votes
+tmdb-movie-11774  # Lemony Snicket's A Series of Unfortunate Events (2004), 5420 votes
+tmdb-movie-27022  # The Sorcerer's Apprentice (2010), 5417 votes
+tmdb-movie-11360  # Dumbo (1941), 5409 votes
+tmdb-movie-109428  # Evil Dead (2013), 5410 votes
+tmdb-movie-9880  # The Princess Diaries (2001), 5401 votes
+tmdb-movie-969681  # Spider-Man: Brand New Day (2026), 5465 votes
+tmdb-movie-201085  # Crimson Peak (2015), 5384 votes
+tmdb-movie-81005  # Jack the Giant Slayer (2013), 5382 votes
+tmdb-movie-253412  # Everest (2015), 5382 votes
+tmdb-movie-615  # The Passion of the Christ (2004), 5381 votes
+tmdb-movie-338762  # Bloodshot (2020), 5377 votes
+tmdb-movie-9740  # Hannibal (2001), 5376 votes
+tmdb-movie-425909  # Ghostbusters: Afterlife (2021), 5376 votes
+tmdb-movie-274855  # Geostorm (2017), 5370 votes
+tmdb-movie-428078  # Mortal Engines (2018), 5363 votes
+tmdb-movie-97367  # The Place Beyond the Pines (2013), 5356 votes
+tmdb-movie-509967  # 6 Underground (2019), 5346 votes
+tmdb-movie-639933  # The Northman (2022), 5335 votes
+tmdb-movie-2493  # The Princess Bride (1987), 5337 votes
+tmdb-movie-792  # Platoon (1986), 5336 votes
+tmdb-movie-1233413  # Sinners (2025), 5341 votes
+tmdb-movie-693  # Meet the Fockers (2004), 5333 votes
+tmdb-movie-298312  # The Visit (2015), 5331 votes
+tmdb-movie-88751  # Journey to the Center of the Earth (2008), 5331 votes
+tmdb-movie-298618  # The Flash (2023), 5317 votes
+tmdb-movie-500664  # Upgrade (2018), 5313 votes
+tmdb-movie-346910  # The Predator (2018), 5307 votes
+tmdb-movie-813  # Airplane! (1980), 5302 votes
+tmdb-movie-1495  # Kingdom of Heaven (2005), 5302 votes
+tmdb-movie-338953  # Fantastic Beasts: The Secrets of Dumbledore (2022), 5297 votes
+tmdb-movie-10865  # Atlantis: The Lost Empire (2001), 5291 votes
+tmdb-movie-476669  # The King's Man (2021), 5282 votes
+tmdb-movie-23629  # Sucker Punch (2011), 5273 votes
+tmdb-movie-7299  # Equilibrium (2002), 5268 votes
+tmdb-movie-786892  # Furiosa: A Mad Max Saga (2024), 5262 votes
+tmdb-movie-941  # Lethal Weapon (1987), 5259 votes
+tmdb-movie-117251  # White House Down (2013), 5254 votes
+tmdb-movie-267860  # London Has Fallen (2016), 5252 votes
+tmdb-movie-762504  # Nope (2022), 5254 votes
+tmdb-movie-286565  # Paper Towns (2015), 5247 votes
+tmdb-movie-9428  # The Royal Tenenbaums (2001), 5239 votes
+tmdb-movie-686  # Contact (1997), 5235 votes
+tmdb-movie-2907  # The Addams Family (1991), 5228 votes
+tmdb-movie-507089  # Five Nights at Freddy's (2023), 5227 votes
+tmdb-movie-1878  # Fear and Loathing in Las Vegas (1998), 5217 votes
+tmdb-movie-696806  # The Adam Project (2022), 5208 votes
+tmdb-movie-1427  # Perfume: The Story of a Murderer (2006), 5208 votes
+tmdb-movie-522681  # Escape Room (2019), 5205 votes
+tmdb-movie-9426  # The Fly (1986), 5202 votes
+tmdb-movie-424139  # Halloween (2018), 5195 votes
+tmdb-movie-8065  # 21 (2008), 5188 votes
+tmdb-movie-395  # AVP: Alien vs. Predator (2004), 5185 votes
+tmdb-movie-583083  # The Kissing Booth 2 (2020), 5184 votes
+tmdb-movie-59440  # Warrior (2011), 5184 votes
+tmdb-movie-20662  # Robin Hood (2010), 5179 votes
+tmdb-movie-337170  # American Made (2017), 5178 votes
+tmdb-movie-411088  # The Invisible Guest (2017), 5169 votes
+tmdb-movie-46529  # I Am Number Four (2011), 5157 votes
+tmdb-movie-15512  # Monsters vs Aliens (2009), 5157 votes
+tmdb-movie-33  # Unforgiven (1992), 5156 votes
+tmdb-movie-34544  # The A-Team (2010), 5154 votes
+tmdb-movie-9659  # Mad Max (1979), 5148 votes
+tmdb-movie-583  # Life of Brian (1979), 5143 votes
+tmdb-movie-290595  # The Huntsman: Winter's War (2016), 5142 votes
+tmdb-movie-588  # Silent Hill (2006), 5140 votes
+tmdb-movie-9398  # Zoolander (2001), 5135 votes
+tmdb-movie-433  # Mary Poppins (1964), 5134 votes
+tmdb-movie-38050  # The Adjustment Bureau (2011), 5123 votes
+tmdb-movie-3021  # 1408 (2007), 5120 votes
+tmdb-movie-214  # Saw III (2006), 5118 votes
+tmdb-movie-504608  # Rocketman (2019), 5107 votes
+tmdb-movie-7980  # The Lovely Bones (2009), 5106 votes
+tmdb-movie-1585  # It's a Wonderful Life (1946), 5106 votes
+tmdb-movie-501170  # Doctor Sleep (2019), 5100 votes
+tmdb-movie-41630  # No Strings Attached (2011), 5098 votes
+tmdb-movie-9928  # Robots (2005), 5092 votes
+tmdb-movie-335  # Once Upon a Time in the West (1968), 5086 votes
+tmdb-movie-8839  # Casper (1995), 5082 votes
+tmdb-movie-631843  # Old (2021), 5081 votes
+tmdb-movie-296524  # Deepwater Horizon (2016), 5079 votes
+tmdb-movie-9358  # Final Destination 2 (2003), 5073 votes
+tmdb-movie-52449  # Bad Teacher (2011), 5070 votes
+tmdb-movie-9679  # Gone in Sixty Seconds (2000), 5072 votes
+tmdb-movie-37834  # Knight and Day (2010), 5070 votes
+tmdb-movie-97630  # Zero Dark Thirty (2012), 5067 votes
+tmdb-movie-149  # Akira (1988), 5066 votes
+tmdb-movie-536554  # M3GAN (2022), 5058 votes
+tmdb-movie-7451  # xXx (2002), 5057 votes
+tmdb-movie-8329  # [REC] (2007), 5056 votes
+tmdb-movie-14869  # G.I. Joe: The Rise of Cobra (2009), 5053 votes
+tmdb-movie-446354  # The Post (2017), 5052 votes
+tmdb-movie-9023  # Spirit: Stallion of the Cimarron (2002), 5056 votes
+tmdb-movie-338766  # Hell or High Water (2016), 5040 votes
+tmdb-movie-526896  # Morbius (2022), 5035 votes
+tmdb-movie-2978  # Ghostbusters II (1989), 5038 votes
+tmdb-movie-103663  # The Hunt (2012), 5031 votes
+tmdb-movie-9366  # Donnie Brasco (1997), 5021 votes
+tmdb-movie-17979  # A Christmas Carol (2009), 5018 votes
+tmdb-movie-11216  # Cinema Paradiso (1988), 5013 votes
+tmdb-movie-7518  # Over the Hedge (2006), 5016 votes
+tmdb-movie-12429  # Ponyo (2008), 5012 votes
+tmdb-movie-1374  # Rocky IV (1985), 5011 votes
+tmdb-movie-5503  # The Fugitive (1993), 5011 votes
+tmdb-movie-278154  # Ice Age: Collision Course (2016), 5008 votes
+tmdb-movie-1367  # Rocky II (1979), 5006 votes
+tmdb-movie-2787  # Pitch Black (2000), 5000 votes
+tmdb-movie-492  # Being John Malkovich (1999), 5001 votes
+tmdb-movie-493529  # Dungeons & Dragons: Honor Among Thieves (2023), 5001 votes
+tmdb-movie-11322  # Public Enemies (2009), 5002 votes
+tmdb-movie-547016  # The Old Guard (2020), 4998 votes
+tmdb-movie-1577  # Resident Evil: Apocalypse (2004), 4994 votes
+tmdb-movie-10830  # Matilda (1996), 4992 votes
+tmdb-movie-49046  # All Quiet on the Western Front (2022), 4994 votes
+tmdb-movie-985939  # Fall (2022), 4980 votes
+tmdb-movie-376570  # Hush (2016), 4979 votes
+tmdb-movie-1735  # The Mummy: Tomb of the Dragon Emperor (2008), 4975 votes
+tmdb-movie-147441  # Exodus: Gods and Kings (2014), 4971 votes
+tmdb-movie-824  # Moulin Rouge! (2001), 4972 votes
+tmdb-movie-945961  # Alien: Romulus (2024), 4971 votes
+tmdb-movie-9603  # Clueless (1995), 4964 votes
+tmdb-movie-152584  # Blue Is the Warmest Color (2013), 4963 votes
+tmdb-movie-279  # Amadeus (1984), 4964 votes
+tmdb-movie-2268  # The Golden Compass (2007), 4957 votes
+tmdb-movie-785084  # The Whale (2022), 4951 votes
+tmdb-movie-71552  # American Reunion (2012), 4952 votes
+tmdb-movie-134374  # Pain & Gain (2013), 4946 votes
+tmdb-movie-4233  # Scream 2 (1997), 4947 votes
+tmdb-movie-514999  # Murder Mystery (2019), 4942 votes
+tmdb-movie-438695  # Sing 2 (2021), 4936 votes
+tmdb-movie-397243  # The Autopsy of Jane Doe (2016), 4935 votes
+tmdb-movie-1578  # Raging Bull (1980), 4932 votes
+tmdb-movie-9637  # Scooby-Doo (2002), 4922 votes
+tmdb-movie-9602  # Coming to America (1988), 4919 votes
+tmdb-movie-391  # A Fistful of Dollars (1964), 4916 votes
+tmdb-movie-369885  # Allied (2016), 4913 votes
+tmdb-movie-76  # Before Sunrise (1995), 4911 votes
+tmdb-movie-193756  # Lone Survivor (2013), 4908 votes
+tmdb-movie-1885  # The Karate Kid (1984), 4908 votes
+tmdb-movie-823464  # Godzilla x Kong: The New Empire (2024), 4905 votes
+tmdb-movie-1701  # Con Air (1997), 4905 votes
+tmdb-movie-9533  # Red Dragon (2002), 4901 votes
+tmdb-movie-14306  # Marley & Me (2008), 4895 votes
+tmdb-movie-1903  # Vanilla Sky (2001), 4896 votes
+tmdb-movie-45317  # The Fighter (2010), 4883 votes
+tmdb-movie-840  # Close Encounters of the Third Kind (1977), 4879 votes
+tmdb-movie-8916  # Antz (1998), 4873 votes
+tmdb-movie-11423  # Memories of Murder (2003), 4872 votes
+tmdb-movie-4347  # Atonement (2007), 4869 votes
+tmdb-movie-508965  # Klaus (2019), 4865 votes
+tmdb-movie-10947  # High School Musical (2006), 4864 votes
+tmdb-movie-133805  # Carrie (2013), 4864 votes
+tmdb-movie-9522  # Wedding Crashers (2005), 4861 votes
+tmdb-movie-581  # Dances with Wolves (1990), 4860 votes
+tmdb-movie-136797  # Need for Speed (2014), 4854 votes
+tmdb-movie-1907  # The Beach (2000), 4855 votes
+tmdb-movie-6477  # Alvin and the Chipmunks (2007), 4855 votes
+tmdb-movie-109418  # Grown Ups 2 (2013), 4846 votes
+tmdb-movie-10515  # Castle in the Sky (1986), 4836 votes
+tmdb-movie-400155  # Hotel Transylvania 3: Summer Vacation (2018), 4819 votes
+tmdb-movie-34851  # Predators (2010), 4818 votes
+tmdb-movie-5175  # Rush Hour 2 (2001), 4822 votes
+tmdb-movie-302401  # Snowden (2016), 4810 votes
+tmdb-movie-911430  # F1 (2025), 4817 votes
+tmdb-movie-91586  # Insidious: Chapter 2 (2013), 4807 votes
+tmdb-movie-558449  # Gladiator II (2024), 4806 votes
+tmdb-movie-55721  # Bridesmaids (2011), 4801 votes
+tmdb-movie-12153  # White Chicks (2004), 4801 votes
+tmdb-movie-134  # O Brother, Where Art Thou? (2000), 4799 votes
+tmdb-movie-8699  # Anchorman: The Legend of Ron Burgundy (2004), 4790 votes
+tmdb-movie-10137  # Stuart Little (1999), 4789 votes
+tmdb-movie-417859  # Puss in Boots (2011), 4790 votes
+tmdb-movie-9800  # Philadelphia (1993), 4787 votes
+tmdb-movie-399035  # The Commuter (2018), 4785 votes
+tmdb-movie-7737  # Resident Evil: Extinction (2007), 4785 votes
+tmdb-movie-90  # Beverly Hills Cop (1984), 4784 votes
+tmdb-movie-9732  # The Lion King II: Simba's Pride (1998), 4780 votes
+tmdb-movie-16859  # Kiki's Delivery Service (1989), 4779 votes
+tmdb-movie-639  # When Harry Met Sally... (1989), 4778 votes
+tmdb-movie-9286  # Final Destination 3 (2006), 4773 votes
+tmdb-movie-63311  # The Skin I Live In (2011), 4772 votes
+tmdb-movie-36955  # True Lies (1994), 4770 votes
+tmdb-movie-764  # The Evil Dead (1983), 4768 votes
+tmdb-movie-11886  # Robin Hood (1973), 4769 votes
+tmdb-movie-8835  # Legally Blonde (2001), 4764 votes
+tmdb-movie-6947  # The Village (2004), 4762 votes
+tmdb-movie-9016  # Treasure Planet (2002), 4761 votes
+tmdb-movie-924  # Dawn of the Dead (2004), 4758 votes
+tmdb-movie-305470  # Power Rangers (2017), 4754 votes
+tmdb-movie-406  # La Haine (1995), 4744 votes
+tmdb-movie-9273  # Ace Ventura: When Nature Calls (1995), 4742 votes
+tmdb-movie-27581  # The Other Guys (2010), 4739 votes
+tmdb-movie-1452  # Superman Returns (2006), 4734 votes
+tmdb-movie-378064  # A Silent Voice: The Movie (2016), 4730 votes
+tmdb-movie-635302  # Demon Slayer -Kimetsu no Yaiba- The Movie: Mugen Train (2020), 4724 votes
+tmdb-movie-37136  # The Naked Gun: From the Files of Police Squad! (1988), 4724 votes
+tmdb-movie-10719  # Elf (2003), 4725 votes
+tmdb-movie-227156  # The Giver (2014), 4722 votes
+tmdb-movie-484247  # A Simple Favor (2018), 4719 votes
+tmdb-movie-123553  # The Mortal Instruments: City of Bones (2013), 4717 votes
+tmdb-movie-4133  # Blow (2001), 4716 votes
+tmdb-movie-325133  # Neighbors 2: Sorority Rising (2016), 4712 votes
+tmdb-movie-381341  # Perfect Strangers (2016), 4709 votes
+tmdb-movie-9495  # The Crow (1994), 4710 votes
+tmdb-movie-525  # The Blues Brothers (1980), 4709 votes
+tmdb-movie-138697  # Don Jon (2013), 4699 votes
+tmdb-movie-4256  # Scary Movie 3 (2003), 4697 votes
+tmdb-movie-291870  # Dirty Grandpa (2016), 4691 votes
+tmdb-movie-2698  # Evan Almighty (2007), 4689 votes
+tmdb-movie-9820  # The Parent Trap (1998), 4683 votes
+tmdb-movie-1371  # Rocky III (1982), 4682 votes
+tmdb-movie-2789  # The Chronicles of Riddick (2004), 4672 votes
+tmdb-movie-213  # North by Northwest (1959), 4674 votes
+tmdb-movie-339988  # The Circle (2017), 4670 votes
+tmdb-movie-4327  # Charlie's Angels (2000), 4666 votes
+tmdb-movie-186  # Lucky Number Slevin (2006), 4665 votes
+tmdb-movie-387426  # Okja (2017), 4663 votes
+tmdb-movie-938  # For a Few Dollars More (1965), 4653 votes
+tmdb-movie-136400  # 2 Guns (2013), 4649 votes
+tmdb-movie-1996  # Lara Croft: Tomb Raider - The Cradle of Life (2003), 4651 votes
+tmdb-movie-9919  # How to Lose a Guy in 10 Days (2003), 4648 votes
+tmdb-movie-72545  # Journey 2: The Mysterious Island (2012), 4648 votes
+tmdb-movie-51828  # One Day (2011), 4645 votes
+tmdb-movie-929590  # Civil War (2024), 4645 votes
+tmdb-movie-19404  # Dilwale Dulhania Le Jayenge (1995), 4633 votes
+tmdb-movie-3580  # Changeling (2008), 4634 votes
+tmdb-movie-590223  # Love and Monsters (2020), 4631 votes
+tmdb-movie-57165  # Wrath of the Titans (2012), 4633 votes
+tmdb-movie-9392  # The Descent (2005), 4627 votes
+tmdb-movie-2270  # Stardust (2007), 4619 votes
+tmdb-movie-399057  # The Killing of a Sacred Deer (2017), 4617 votes
+tmdb-movie-270946  # Penguins of Madagascar (2014), 4613 votes
+tmdb-movie-537996  # The Ballad of Buster Scruggs (2018), 4610 votes
+tmdb-movie-866398  # The Beekeeper (2024), 4610 votes
+tmdb-movie-637920  # Miracle in Cell No. 7 (2019), 4608 votes
+tmdb-movie-571  # The Birds (1963), 4605 votes
+tmdb-movie-203833  # The Book Thief (2013), 4601 votes
+tmdb-movie-116741  # The Internship (2013), 4598 votes
+tmdb-movie-912649  # Venom: The Last Dance (2024), 4599 votes
+tmdb-movie-164  # Breakfast at Tiffany's (1961), 4595 votes
+tmdb-movie-329996  # Dumbo (2019), 4593 votes
+tmdb-movie-787699  # Wonka (2023), 4593 votes
+tmdb-movie-2832  # Identity (2003), 4591 votes
+tmdb-movie-205587  # The Judge (2014), 4589 votes
+tmdb-movie-869  # Planet of the Apes (2001), 4581 votes
+tmdb-movie-3981  # What Women Want (2000), 4572 votes
+tmdb-movie-402  # Basic Instinct (1992), 4574 votes
+tmdb-movie-503736  # Army of the Dead (2021), 4571 votes
+tmdb-movie-936075  # Michael (2026), 4565 votes
+tmdb-movie-87421  # Riddick (2013), 4558 votes
+tmdb-movie-188161  # A Million Ways to Die in the West (2014), 4551 votes
+tmdb-movie-8698  # The League of Extraordinary Gentlemen (2003), 4547 votes
+tmdb-movie-360920  # The Grinch (2018), 4545 votes
+tmdb-movie-34584  # The NeverEnding Story (1984), 4540 votes
+tmdb-movie-805  # Rosemary's Baby (1968), 4540 votes
+tmdb-movie-290098  # The Handmaiden (2016), 4537 votes
+tmdb-movie-205775  # In the Heart of the Sea (2015), 4536 votes
+tmdb-movie-132232  # Mama (2013), 4533 votes
+tmdb-movie-8273  # American Wedding (2003), 4532 votes
+tmdb-movie-834  # Underworld: Evolution (2006), 4527 votes
+tmdb-movie-272693  # The DUFF (2015), 4522 votes
+tmdb-movie-1369  # Rambo: First Blood Part II (1985), 4516 votes
+tmdb-movie-725201  # The Gray Man (2022), 4514 votes
+tmdb-movie-227159  # Horrible Bosses 2 (2014), 4513 votes
+tmdb-movie-2024  # The Patriot (2000), 4514 votes
+tmdb-movie-710  # GoldenEye (1995), 4512 votes
+tmdb-movie-9297  # Monster House (2006), 4512 votes
+tmdb-movie-770  # Gone with the Wind (1939), 4512 votes
+tmdb-movie-653346  # Kingdom of the Planet of the Apes (2024), 4514 votes
+tmdb-movie-588228  # The Tomorrow War (2021), 4505 votes
+tmdb-movie-116  # Match Point (2005), 4504 votes
+tmdb-movie-7340  # Carrie (1976), 4506 votes
+tmdb-movie-356305  # Why Him? (2016), 4500 votes
+tmdb-movie-83533  # Avatar: Fire and Ash (2025), 4507 votes
+tmdb-movie-613  # Downfall (2004), 4499 votes
+tmdb-movie-36648  # Blade: Trinity (2004), 4492 votes
+tmdb-movie-52520  # Underworld: Awakening (2012), 4490 votes
+tmdb-movie-224141  # Into the Woods (2014), 4488 votes
+tmdb-movie-71679  # Resident Evil: Retribution (2012), 4488 votes
+tmdb-movie-6145  # Fracture (2007), 4487 votes
+tmdb-movie-9342  # The Mask of Zorro (1998), 4476 votes
+tmdb-movie-1272  # Sunshine (2007), 4477 votes
+tmdb-movie-321697  # Steve Jobs (2015), 4475 votes
+tmdb-movie-205584  # Gods of Egypt (2016), 4473 votes
+tmdb-movie-227306  # Unbroken (2014), 4470 votes
+tmdb-movie-20766  # The Road (2009), 4471 votes
+tmdb-movie-184315  # Hercules (2014), 4466 votes
+tmdb-movie-9798  # Enemy of the State (1998), 4467 votes
+tmdb-movie-1924  # Superman (1978), 4459 votes
+tmdb-movie-22954  # Invictus (2009), 4458 votes
+tmdb-movie-146216  # RED 2 (2013), 4458 votes
+tmdb-movie-9837  # The Prince of Egypt (1998), 4456 votes
+tmdb-movie-4964  # Knocked Up (2007), 4456 votes
+tmdb-movie-86838  # Seven Psychopaths (2012), 4454 votes
+tmdb-movie-19994  # Jennifer's Body (2009), 4448 votes
+tmdb-movie-829  # Chinatown (1974), 4446 votes
+tmdb-movie-7555  # Rambo (2008), 4443 votes
+tmdb-movie-276907  # Legend (2015), 4439 votes
+tmdb-movie-2123  # Me, Myself & Irene (2000), 4433 votes
+tmdb-movie-11778  # The Deer Hunter (1978), 4423 votes
+tmdb-movie-335977  # Indiana Jones and the Dial of Destiny (2023), 4424 votes
+tmdb-movie-49524  # R.I.P.D. (2013), 4420 votes
+tmdb-movie-1948  # Crank (2006), 4418 votes
+tmdb-movie-1587  # What's Eating Gilbert Grape (1993), 4415 votes
+tmdb-movie-346  # Seven Samurai (1954), 4410 votes
+tmdb-movie-489999  # Searching (2018), 4405 votes
+tmdb-movie-7453  # The Hitchhiker's Guide to the Galaxy (2005), 4404 votes
+tmdb-movie-505026  # Death on the Nile (2022), 4403 votes
+tmdb-movie-466420  # Killers of the Flower Moon (2023), 4398 votes
+tmdb-movie-35791  # Resident Evil: Afterlife (2010), 4397 votes
+tmdb-movie-515195  # Yesterday (2019), 4392 votes
+tmdb-movie-10330  # Freaky Friday (2003), 4394 votes
+tmdb-movie-1054867  # One Battle After Another (2025), 4393 votes
+tmdb-movie-116149  # Paddington (2014), 4388 votes
+tmdb-movie-929  # Godzilla (1998), 4384 votes
+tmdb-movie-10196  # The Last Airbender (2010), 4383 votes
+tmdb-movie-1817  # Phone Booth (2003), 4381 votes
+tmdb-movie-1493  # Miss Congeniality (2000), 4377 votes
+tmdb-movie-249164  # If I Stay (2014), 4373 votes
+tmdb-movie-522938  # Rambo: Last Blood (2019), 4369 votes
+tmdb-movie-274479  # Joy (2015), 4367 votes
+tmdb-movie-703  # Annie Hall (1977), 4368 votes
+tmdb-movie-881  # A Few Good Men (1992), 4365 votes
+tmdb-movie-10189  # Pineapple Express (2008), 4359 votes
+tmdb-movie-22971  # Dear John (2010), 4358 votes
+tmdb-movie-4771  # Gone Baby Gone (2007), 4357 votes
+tmdb-movie-10229  # A Walk to Remember (2002), 4357 votes
+tmdb-movie-82682  # Gangster Squad (2013), 4350 votes
+tmdb-movie-376660  # The Edge of Seventeen (2016), 4347 votes
+tmdb-movie-72570  # The Vow (2012), 4347 votes
+tmdb-movie-8810  # Mad Max 2 (1981), 4346 votes
+tmdb-movie-376659  # Bad Moms (2016), 4345 votes
+tmdb-movie-8920  # Garfield (2004), 4343 votes
+tmdb-movie-1213  # The Talented Mr. Ripley (1999), 4340 votes
+tmdb-movie-228161  # Home (2015), 4339 votes
+tmdb-movie-41446  # Scream 4 (2011), 4336 votes
+tmdb-movie-277216  # Straight Outta Compton (2015), 4329 votes
+tmdb-movie-48138  # Unknown (2011), 4321 votes
+tmdb-movie-882598  # Smile (2022), 4321 votes
+tmdb-movie-442249  # The First Purge (2018), 4320 votes
+tmdb-movie-340837  # A Cure for Wellness (2017), 4319 votes
+tmdb-movie-3558  # Girl, Interrupted (1999), 4314 votes
+tmdb-movie-582  # The Lives of Others (2006), 4312 votes
+tmdb-movie-379686  # Space Jam: A New Legacy (2021), 4311 votes
+tmdb-movie-9739  # Demolition Man (1993), 4305 votes
+tmdb-movie-37094  # Falling Down (1993), 4300 votes
+tmdb-movie-950396  # The Gorge (2025), 4300 votes
+tmdb-movie-225886  # Sex Tape (2014), 4297 votes
+tmdb-movie-10483  # Death Race (2008), 4296 votes
+tmdb-movie-136795  # The Heat (2013), 4294 votes
+tmdb-movie-569547  # Black Mirror: Bandersnatch (2018), 4291 votes
+tmdb-movie-189  # Sin City: A Dame to Kill For (2014), 4291 votes
+tmdb-movie-40807  # 50/50 (2011), 4290 votes
+tmdb-movie-460019  # Truth or Dare (2018), 4286 votes
+tmdb-movie-9982  # Chicken Little (2005), 4286 votes
+tmdb-movie-14756  # Ip Man (2008), 4283 votes
+tmdb-movie-64686  # 47 Ronin (2013), 4282 votes
+tmdb-movie-2898  # As Good as It Gets (1997), 4282 votes
+tmdb-movie-75174  # The Grey (2012), 4277 votes
+tmdb-movie-9804  # Waterworld (1995), 4269 votes
+tmdb-movie-345911  # Lights Out (2016), 4270 votes
+tmdb-movie-55779  # Final Destination 5 (2011), 4267 votes
+tmdb-movie-663  # Saw IV (2007), 4261 votes
+tmdb-movie-7350  # The Bucket List (2007), 4257 votes
+tmdb-movie-9313  # The Man in the Iron Mask (1998), 4255 votes
+tmdb-movie-529203  # The Croods: A New Age (2020), 4253 votes
+tmdb-movie-16871  # Drag Me to Hell (2009), 4251 votes
+tmdb-movie-10501  # The Road to El Dorado (2000), 4246 votes
+tmdb-movie-400535  # Sicario: Day of the Soldado (2018), 4247 votes
+tmdb-movie-8271  # Disturbia (2007), 4245 votes
+tmdb-movie-81  # Warriors of the Wind (1984), 4239 votes
+tmdb-movie-2253  # Valkyrie (2008), 4239 votes
+tmdb-movie-522402  # Finch (2021), 4235 votes
+tmdb-movie-670292  # The Creator (2023), 4232 votes
+tmdb-movie-301337  # Downsizing (2017), 4229 votes
+tmdb-movie-4148  # Revolutionary Road (2008), 4227 votes
+tmdb-movie-3082  # Modern Times (1936), 4227 votes
+tmdb-movie-5176  # 3:10 to Yuma (2007), 4222 votes
+tmdb-movie-71676  # Ghost Rider: Spirit of Vengeance (2011), 4220 votes
+tmdb-movie-1164  # Babel (2006), 4220 votes
+tmdb-movie-10591  # The Girl Next Door (2004), 4217 votes
+tmdb-movie-853  # Enemy at the Gates (2001), 4218 votes
+tmdb-movie-1592  # Primal Fear (1996), 4213 votes
+tmdb-movie-11619  # Flushed Away (2006), 4213 votes
+tmdb-movie-4234  # Scream 3 (2000), 4211 votes
+tmdb-movie-1010581  # My Fault (2023), 4210 votes
+tmdb-movie-2280  # Big (1988), 4212 votes
+tmdb-movie-438148  # Minions: The Rise of Gru (2022), 4209 votes
+tmdb-movie-646  # Dr. No (1962), 4206 votes
+tmdb-movie-351460  # Death Note (2017), 4205 votes
+tmdb-movie-10661  # You Don't Mess with the Zohan (2008), 4201 votes
+tmdb-movie-426426  # Roma (2018), 4199 votes
+tmdb-movie-71  # Billy Elliot (2000), 4198 votes
+tmdb-movie-334  # Magnolia (1999), 4191 votes
+tmdb-movie-9078  # The Sword in the Stone (1963), 4191 votes
+tmdb-movie-760104  # X (2022), 4187 votes
+tmdb-movie-1089  # Point Break (1991), 4180 votes
+tmdb-movie-986056  # Thunderbolts* (2025), 4177 votes
+tmdb-movie-72976  # Lincoln (2012), 4173 votes
+tmdb-movie-22947  # Up in the Air (2009), 4173 votes
+tmdb-movie-12163  # The Wrestler (2008), 4163 votes
+tmdb-movie-752623  # The Lost City (2022), 4159 votes
+tmdb-movie-153518  # The Angry Birds Movie (2016), 4158 votes
+tmdb-movie-4147  # Road to Perdition (2002), 4156 votes
+tmdb-movie-615656  # Meg 2: The Trench (2023), 4153 votes
+tmdb-movie-396371  # Molly's Game (2017), 4151 votes
+tmdb-movie-72710  # The Host (2013), 4148 votes
+tmdb-movie-5038  # Vicky Cristina Barcelona (2008), 4147 votes
+tmdb-movie-871  # Planet of the Apes (1968), 4142 votes
+tmdb-movie-10184  # He's Just Not That Into You (2009), 4138 votes
+tmdb-movie-8645  # The Happening (2008), 4132 votes
+tmdb-movie-9475  # Scent of a Woman (1992), 4132 votes
+tmdb-movie-1368337  # The Odyssey (2026), 4130 votes
+tmdb-movie-658  # Goldfinger (1964), 4123 votes
+tmdb-movie-4538  # The Darjeeling Limited (2007), 4122 votes
+tmdb-movie-746036  # The Fall Guy (2024), 4119 votes
+tmdb-movie-9335  # Transporter 2 (2005), 4118 votes
+tmdb-movie-252  # Willy Wonka & the Chocolate Factory (1971), 4114 votes
+tmdb-movie-246741  # What We Do in the Shadows (2014), 4111 votes
+tmdb-movie-270487  # Hail, Caesar! (2016), 4107 votes
+tmdb-movie-122081  # Spring Breakers (2013), 4107 votes
+tmdb-movie-41513  # The Smurfs (2011), 4106 votes
+tmdb-movie-1690  # Hostel (2006), 4107 votes
+tmdb-movie-1078605  # Weapons (2025), 4107 votes
+tmdb-movie-296099  # Vacation (2015), 4098 votes
+tmdb-movie-257445  # Goosebumps (2015), 4099 votes
+tmdb-movie-9323  # Ghost in the Shell (1995), 4099 votes
+tmdb-movie-2277  # Bicentennial Man (1999), 4099 votes
+tmdb-movie-884605  # No Hard Feelings (2023), 4097 votes
+tmdb-movie-300671  # 13 Hours: The Secret Soldiers of Benghazi (2016), 4093 votes
+tmdb-movie-198277  # Begin Again (2014), 4088 votes
+tmdb-movie-1955  # The Elephant Man (1980), 4088 votes
+tmdb-movie-12437  # Underworld: Rise of the Lycans (2009), 4084 votes
+tmdb-movie-298250  # Jigsaw (2017), 4082 votes
+tmdb-movie-19912  # The Final Destination (2009), 4079 votes
+tmdb-movie-455207  # Crazy Rich Asians (2018), 4078 votes
+tmdb-movie-576845  # Last Night in Soho (2021), 4075 votes
+tmdb-movie-94329  # The Raid (2012), 4074 votes
+tmdb-movie-819  # Sleepers (1996), 4076 votes
+tmdb-movie-696506  # Mickey 17 (2025), 4075 votes
+tmdb-movie-646385  # Scream (2022), 4057 votes
+tmdb-movie-614934  # Elvis (2022), 4058 votes
+tmdb-movie-713704  # Evil Dead Rise (2023), 4058 votes
+tmdb-movie-258480  # Carol (2015), 4055 votes
+tmdb-movie-59961  # Safe House (2012), 4055 votes
+tmdb-movie-1586  # Secret Window (2004), 4054 votes
+tmdb-movie-7445  # Brothers (2009), 4054 votes
+tmdb-movie-1598  # Cape Fear (1991), 4054 votes
+tmdb-movie-169  # Predator 2 (1990), 4053 votes
+tmdb-movie-12244  # 9 (2009), 4052 votes
+tmdb-movie-343674  # Gerald's Game (2017), 4051 votes
+tmdb-movie-426063  # Nosferatu (2024), 4054 votes
+tmdb-movie-1640  # Crash (2005), 4048 votes
+tmdb-movie-617653  # The Last Duel (2021), 4047 votes
+tmdb-movie-321258  # The Boy (2016), 4044 votes
+tmdb-movie-44048  # Unstoppable (2010), 4045 votes
+tmdb-movie-301365  # The Neon Demon (2016), 4042 votes
+tmdb-movie-11665  # Get Smart (2008), 4041 votes
+tmdb-movie-346672  # Underworld: Blood Wars (2016), 4038 votes
+tmdb-movie-1541  # Thelma & Louise (1991), 4037 votes
+tmdb-movie-1008042  # Talk to Me (2023), 4035 votes
+tmdb-movie-9481  # The Bone Collector (1999), 4032 votes
+tmdb-movie-16320  # Serenity (2005), 4030 votes
+tmdb-movie-481848  # The Call of the Wild (2020), 4027 votes
+tmdb-movie-419479  # The Babysitter (2017), 4024 votes
+tmdb-movie-36669  # Die Another Day (2002), 4026 votes
+tmdb-movie-664  # Twister (1996), 4024 votes
+tmdb-movie-239  # Some Like It Hot (1959), 4025 votes
+tmdb-movie-423204  # Angel Has Fallen (2019), 4016 votes
+tmdb-movie-256274  # As Above, So Below (2014), 4015 votes
+tmdb-movie-73723  # The Lorax (2012), 4013 votes
+tmdb-movie-30497  # The Texas Chain Saw Massacre (1974), 4006 votes
+tmdb-movie-446021  # Bad Times at the El Royale (2018), 4003 votes
+tmdb-movie-2164  # Stargate (1994), 4003 votes
+tmdb-movie-617126  # The Fantastic 4: First Steps (2025), 4001 votes
+tmdb-movie-1992  # Planet Terror (2007), 3995 votes
+tmdb-movie-793  # Blue Velvet (1986), 3993 votes
+tmdb-movie-204082  # Homefront (2013), 3991 votes
+tmdb-movie-9472  # DodgeBall: A True Underdog Story (2004), 3990 votes
+tmdb-movie-399170  # Logan Lucky (2017), 3985 votes
+tmdb-movie-3176  # Battle Royale (2000), 3985 votes
+tmdb-movie-9762  # Step Up (2006), 3984 votes
+tmdb-movie-615777  # Babylon (2022), 3981 votes
+tmdb-movie-718789  # Lightyear (2022), 3978 votes
+tmdb-movie-274854  # The Last Witch Hunter (2015), 3976 votes
+tmdb-movie-97370  # Under the Skin (2014), 3978 votes
+tmdb-movie-926393  # The Equalizer 3 (2023), 3971 votes
+tmdb-movie-448119  # Dolittle (2020), 3969 votes
+tmdb-movie-580175  # Another Round (2020), 3969 votes
+tmdb-movie-62215  # Melancholia (2011), 3965 votes
+tmdb-movie-816  # Austin Powers: International Man of Mystery (1997), 3961 votes
+tmdb-movie-9486  # Johnny English (2003), 3955 votes
+tmdb-movie-313297  # Kubo and the Two Strings (2016), 3955 votes
+tmdb-movie-1246  # Rocky Balboa (2006), 3955 votes
+tmdb-movie-80  # Before Sunset (2004), 3955 votes
+tmdb-movie-521029  # Annabelle Comes Home (2019), 3950 votes
+tmdb-movie-241  # Natural Born Killers (1994), 3949 votes
+tmdb-movie-1062722  # Frankenstein (2025), 3949 votes
+tmdb-movie-347031  # Swiss Army Man (2016), 3942 votes
+tmdb-movie-11917  # Saw V (2008), 3942 votes
+tmdb-movie-587792  # Palm Springs (2020), 3940 votes
+tmdb-movie-82520  # Return (2011), 3930 votes
+tmdb-movie-13649  # High School Musical 2 (2007), 3929 votes
+tmdb-movie-8965  # Atlantis: Milo's Return (2003), 3927 votes
+tmdb-movie-232672  # Blended (2014), 3924 votes
+tmdb-movie-136799  # Trolls (2016), 3921 votes
+tmdb-movie-9390  # Jerry Maguire (1996), 3920 votes
+tmdb-movie-59  # A History of Violence (2005), 3917 votes
+tmdb-movie-152760  # The Monuments Men (2014), 3912 votes
+tmdb-movie-265195  # Wild Tales (2014), 3909 votes
+tmdb-movie-10200  # The Day the Earth Stood Still (2008), 3905 votes
+tmdb-movie-942  # Lethal Weapon 2 (1989), 3905 votes
+tmdb-movie-308531  # Teenage Mutant Ninja Turtles: Out of the Shadows (2016), 3902 votes
+tmdb-movie-77877  # The Lucky One (2012), 3895 votes
+tmdb-movie-400617  # Phantom Thread (2017), 3893 votes
+tmdb-movie-5174  # Rush Hour 3 (2007), 3895 votes
+tmdb-movie-582014  # Promising Young Woman (2020), 3886 votes
+tmdb-movie-172385  # Rio 2 (2014), 3879 votes
+tmdb-movie-44943  # Battle: Los Angeles (2011), 3873 votes
+tmdb-movie-2252  # Eastern Promises (2007), 3875 votes
+tmdb-movie-20943  # The Ugly Truth (2009), 3870 votes
+tmdb-movie-7512  # Idiocracy (2006), 3866 votes
+tmdb-movie-371638  # The Disaster Artist (2017), 3861 votes
+tmdb-movie-68  # Brazil (1985), 3860 votes
+tmdb-movie-2899  # Asterix & Obelix: Mission Cleopatra (2002), 3855 votes
+tmdb-movie-514847  # The Hunt (2020), 3850 votes
+tmdb-movie-11621  # Porco Rosso (1992), 3850 votes
+tmdb-movie-1234821  # Jurassic World Rebirth (2025), 3847 votes
+tmdb-movie-340102  # The New Mutants (2020), 3847 votes
+tmdb-movie-37247  # The Graduate (1967), 3844 votes
+tmdb-movie-2288  # Closer (2004), 3842 votes
+tmdb-movie-914  # The Great Dictator (1940), 3837 votes
+tmdb-movie-817  # Austin Powers: The Spy Who Shagged Me (1999), 3835 votes
+tmdb-movie-406759  # Moonfall (2022), 3833 votes
+tmdb-movie-866  # Finding Neverland (2004), 3831 votes
+tmdb-movie-456740  # Hellboy (2019), 3828 votes
+tmdb-movie-193610  # The Other Woman (2014), 3826 votes
+tmdb-movie-594767  # Shazam! Fury of the Gods (2023), 3824 votes
+tmdb-movie-10054  # Spy Kids (2001), 3824 votes
+tmdb-movie-23169  # Remember Me (2010), 3821 votes
+tmdb-movie-9870  # Forgetting Sarah Marshall (2008), 3818 votes
+tmdb-movie-77016  # End of Watch (2012), 3818 votes
+tmdb-movie-13387  # Transporter 3 (2008), 3817 votes
+tmdb-movie-1226863  # The Super Mario Galaxy Movie (2026), 3821 votes
+tmdb-movie-9291  # The Longest Yard (2005), 3814 votes
+tmdb-movie-77950  # Turbo (2013), 3814 votes
+tmdb-movie-1621  # Trading Places (1983), 3813 votes
+tmdb-movie-937278  # A Man Called Otto (2022), 3811 votes
+tmdb-movie-499932  # The Devil All the Time (2020), 3804 votes
+tmdb-movie-50348  # The Lincoln Lawyer (2011), 3806 votes
+tmdb-movie-600354  # The Father (2020), 3803 votes
+tmdb-movie-212778  # Chef (2014), 3802 votes
+tmdb-movie-1620  # Hitman (2007), 3797 votes
+tmdb-movie-50456  # Hanna (2011), 3797 votes
+tmdb-movie-1669  # The Hunt for Red October (1990), 3796 votes
+tmdb-movie-462  # Erin Brockovich (2000), 3794 votes
+tmdb-movie-280092  # Insidious: Chapter 3 (2015), 3795 votes
+tmdb-movie-65086  # The Woman in Black (2012), 3788 votes
+tmdb-movie-9489  # You've Got Mail (1998), 3788 votes
+tmdb-movie-57212  # War Horse (2011), 3788 votes
+tmdb-movie-1242898  # Predator: Badlands (2025), 3786 votes
+tmdb-movie-278924  # Mechanic: Resurrection (2016), 3781 votes
+tmdb-movie-417678  # Everything, Everything (2017), 3779 votes
+tmdb-movie-258216  # Nymphomaniac: Vol. I (2013), 3779 votes
+tmdb-movie-15121  # The Sound of Music (1965), 3769 votes
+tmdb-movie-4257  # Scary Movie 4 (2006), 3767 votes
+tmdb-movie-512196  # Happy Death Day 2U (2019), 3763 votes
+tmdb-movie-160588  # Blue Jasmine (2013), 3752 votes
+tmdb-movie-27582  # The Mechanic (2011), 3746 votes
+tmdb-movie-11674  # 101 Dalmatians (1996), 3744 votes
+tmdb-movie-9362  # Tremors (1990), 3745 votes
+tmdb-movie-146  # Crouching Tiger, Hidden Dragon (2000), 3747 votes
+tmdb-movie-796  # Cruel Intentions (1999), 3740 votes
+tmdb-movie-6795  # Zathura: A Space Adventure (2005), 3740 votes
+tmdb-movie-1083381  # Backrooms (2026), 3737 votes
+tmdb-movie-4995  # Boogie Nights (1997), 3734 votes
+tmdb-movie-267935  # The BFG (2016), 3727 votes
+tmdb-movie-62214  # Frankenweenie (2012), 3726 votes
+tmdb-movie-1443  # The Virgin Suicides (2000), 3726 votes
+tmdb-movie-695721  # The Hunger Games: The Ballad of Songbirds & Snakes (2023), 3718 votes
+tmdb-movie-384521  # The Cloverfield Paradox (2018), 3717 votes
+tmdb-movie-8367  # Robin Hood: Prince of Thieves (1991), 3718 votes
+tmdb-movie-7735  # The Wave (2008), 3716 votes
+tmdb-movie-314  # Catwoman (2004), 3716 votes
+tmdb-movie-766  # Army of Darkness (1992), 3713 votes
+tmdb-movie-1011985  # Kung Fu Panda 4 (2024), 3714 votes
+tmdb-movie-8487  # Wild Wild West (1999), 3711 votes
+tmdb-movie-429197  # Vice (2018), 3710 votes
+tmdb-movie-8619  # Master and Commander: The Far Side of the World (2003), 3708 votes
+tmdb-movie-504949  # The King (2019), 3706 votes
+tmdb-movie-572802  # Aquaman and the Lost Kingdom (2023), 3705 votes
+tmdb-movie-261023  # Black Mass (2015), 3702 votes
+tmdb-movie-59962  # This Means War (2012), 3698 votes
+tmdb-movie-58233  # Johnny English Reborn (2011), 3697 votes
+tmdb-movie-765  # Evil Dead II (1987), 3692 votes
+tmdb-movie-974576  # Conclave (2024), 3695 votes
+tmdb-movie-8337  # They Live (1988), 3692 votes
+tmdb-movie-609681  # The Marvels (2023), 3688 votes
+tmdb-movie-443791  # Underwater (2020), 3687 votes
+tmdb-movie-9032  # Big Daddy (1999), 3686 votes
+tmdb-movie-458576  # Monster Hunter (2020), 3682 votes
+tmdb-movie-87093  # Big Eyes (2014), 3682 votes
+tmdb-movie-23631  # Machete (2010), 3678 votes
+tmdb-movie-1103  # Escape from New York (1981), 3679 votes
+tmdb-movie-399361  # Triple Frontier (2019), 3677 votes
+tmdb-movie-258230  # A Monster Calls (2016), 3675 votes
+tmdb-movie-906126  # Society of the Snow (2023), 3672 votes
+tmdb-movie-72331  # Abraham Lincoln: Vampire Hunter (2012), 3669 votes
+tmdb-movie-220289  # Coherence (2014), 3666 votes
+tmdb-movie-1275779  # Disclosure Day (2026), 3671 votes
+tmdb-movie-3594  # The Number 23 (2007), 3658 votes
+tmdb-movie-295964  # Burnt (2015), 3656 votes
+tmdb-movie-11887  # High School Musical 3: Senior Year (2008), 3654 votes
+tmdb-movie-531309  # Brightburn (2019), 3652 votes
+tmdb-movie-458423  # Mamma Mia! Here We Go Again (2018), 3649 votes
+tmdb-movie-46705  # Blue Valentine (2010), 3648 votes
+tmdb-movie-872  # Singin' in the Rain (1952), 3645 votes
+tmdb-movie-12222  # Horton Hears a Who! (2008), 3642 votes
+tmdb-movie-449563  # Isn't It Romantic (2019), 3639 votes
+tmdb-movie-173897  # Resident Evil: The Final Chapter (2016), 3640 votes
+tmdb-movie-457799  # Extremely Wicked, Shockingly Evil and Vile (2019), 3637 votes
+tmdb-movie-74643  # The Artist (2011), 3637 votes
+tmdb-movie-22804  # Saw VI (2009), 3632 votes
+tmdb-movie-2756  # The Abyss (1989), 3631 votes
+tmdb-movie-401104  # To the Bone (2017), 3627 votes
+tmdb-movie-1966  # Alexander (2004), 3627 votes
+tmdb-movie-947  # Lawrence of Arabia (1962), 3625 votes
+tmdb-movie-6075  # Carlito's Way (1993), 3622 votes
+tmdb-movie-1370  # Rambo III (1988), 3621 votes
+tmdb-movie-762441  # A Quiet Place: Day One (2024), 3621 votes
+tmdb-movie-913290  # Barbarian (2022), 3620 votes
+tmdb-movie-433808  # The Ritual (2017), 3617 votes
+tmdb-movie-328425  # The Gift (2015), 3615 votes
+tmdb-movie-381289  # A Dog's Purpose (2017), 3616 votes
+tmdb-movie-980489  # Gran Turismo (2023), 3612 votes
+tmdb-movie-263472  # Knock Knock (2015), 3606 votes
+tmdb-movie-10948  # The Fox and the Hound (1981), 3608 votes
+tmdb-movie-277685  # Unfriended (2014), 3604 votes
+tmdb-movie-397837  # Before I Fall (2017), 3599 votes
+tmdb-movie-1375  # Rocky V (1990), 3599 votes
+tmdb-movie-674324  # The Banshees of Inisherin (2022), 3598 votes
+tmdb-movie-9506  # Anger Management (2003), 3596 votes
+tmdb-movie-109451  # Cloudy with a Chance of Meatballs 2 (2013), 3595 votes
+tmdb-movie-392  # Chocolat (2000), 3593 votes
+tmdb-movie-244267  # I Origins (2014), 3588 votes
+tmdb-movie-899082  # Harry Potter 20th Anniversary: Return to Hogwarts (2022), 3585 votes
+tmdb-movie-40805  # The Green Hornet (2011), 3585 votes
+tmdb-movie-109431  # Identity Thief (2013), 3584 votes
+tmdb-movie-957  # Spaceballs (1987), 3585 votes
+tmdb-movie-714  # Tomorrow Never Dies (1997), 3584 votes
+tmdb-movie-419478  # Midnight Sun (2018), 3580 votes
+tmdb-movie-140823  # Saving Mr. Banks (2013), 3580 votes
+tmdb-movie-455980  # Tag (2018), 3579 votes
+tmdb-movie-841  # Dune (1984), 3576 votes
+tmdb-movie-9361  # The Last of the Mohicans (1992), 3572 votes
+tmdb-movie-818  # Austin Powers in Goldmember (2002), 3570 votes
+tmdb-movie-19959  # Surrogates (2009), 3566 votes
+tmdb-movie-262391  # Serial (Bad) Weddings (2014), 3563 votes
+tmdb-movie-1542  # Office Space (1999), 3561 votes
+tmdb-movie-6023  # P.S. I Love You (2007), 3559 votes
+tmdb-movie-2005  # Sister Act (1992), 3551 votes
+tmdb-movie-1084242  # Zootopia 2 (2025), 3556 votes
+tmdb-movie-644495  # House of Gucci (2021), 3548 votes
+tmdb-movie-39451  # Little Fockers (2010), 3547 votes
+tmdb-movie-12133  # Step Brothers (2008), 3546 votes
+tmdb-movie-76025  # Shame (2011), 3544 votes
+tmdb-movie-10312  # Patch Adams (1998), 3543 votes
+tmdb-movie-9476  # A Knight's Tale (2001), 3543 votes
+tmdb-movie-449443  # Den of Thieves (2018), 3542 votes
+tmdb-movie-400650  # Mary Poppins Returns (2018), 3541 votes
+tmdb-movie-968  # Dog Day Afternoon (1975), 3541 votes
+tmdb-movie-1064213  # Anora (2024), 3539 votes
+tmdb-movie-274167  # Daddy's Home (2015), 3535 votes
+tmdb-movie-100042  # Dumb and Dumber To (2014), 3531 votes
+tmdb-movie-2486  # Eragon (2006), 3531 votes
+tmdb-movie-6978  # Big Trouble in Little China (1986), 3529 votes
+tmdb-movie-6557  # 27 Dresses (2008), 3527 votes
+tmdb-movie-501929  # The Mitchells vs. the Machines (2021), 3527 votes
+tmdb-movie-157433  # Pet Sematary (2019), 3526 votes
+tmdb-movie-822119  # Captain America: Brave New World (2025), 3523 votes
+tmdb-movie-915935  # Anatomy of a Fall (2023), 3522 votes
+tmdb-movie-8413  # Event Horizon (1997), 3521 votes
+tmdb-movie-18487  # The Taking of Pelham 1 2 3 (2009), 3519 votes
+tmdb-movie-470  # 21 Grams (2003), 3521 votes
+tmdb-movie-353616  # Pitch Perfect 3 (2017), 3517 votes
+tmdb-movie-597208  # Nightmare Alley (2021), 3515 votes
+tmdb-movie-149870  # The Wind Rises (2013), 3514 votes
+tmdb-movie-10585  # Child's Play (1988), 3515 votes
+tmdb-movie-46738  # Incendies (2010), 3512 votes
+tmdb-movie-393519  # Raw (2017), 3511 votes
+tmdb-movie-8656  # Deep Impact (1998), 3510 votes
+tmdb-movie-9792  # The Hills Have Eyes (2006), 3507 votes
+tmdb-movie-573435  # Bad Boys: Ride or Die (2024), 3505 votes
+tmdb-movie-9614  # Happy Gilmore (1996), 3507 votes
+tmdb-movie-939243  # Sonic the Hedgehog 3 (2024), 3501 votes
+tmdb-movie-940721  # Godzilla Minus One (2023), 3505 votes
+tmdb-movie-3034  # Young Frankenstein (1974), 3501 votes
+tmdb-movie-8055  # The Reader (2008), 3501 votes
+tmdb-movie-4488  # Friday the 13th (1980), 3501 votes
+tmdb-movie-622  # The Ninth Gate (1999), 3502 votes
+tmdb-movie-516486  # Greyhound (2020), 3501 votes
+tmdb-movie-15969  # The Return of Jafar (1994), 3497 votes
+tmdb-movie-581734  # Nomadland (2021), 3497 votes
+tmdb-movie-511987  # Crawl (2019), 3495 votes
+tmdb-movie-657  # From Russia with Love (1963), 3493 votes
+tmdb-movie-555604  # Guillermo del Toro's Pinocchio (2022), 3490 votes
+tmdb-movie-609  # Poltergeist (1982), 3486 votes
+tmdb-movie-11130  # The Princess Diaries 2: Royal Engagement (2004), 3483 votes
+tmdb-movie-9334  # The Scorpion King (2002), 3482 votes
+tmdb-movie-10066  # House of Wax (2005), 3483 votes
+tmdb-movie-490  # The Seventh Seal (1957), 3483 votes
+tmdb-movie-1904  # Memoirs of a Geisha (2005), 3481 votes
+tmdb-movie-462919  # Sierra Burgess Is a Loser (2018), 3478 votes
+tmdb-movie-556984  # The Trial of the Chicago 7 (2020), 3477 votes
+tmdb-movie-180863  # T2 Trainspotting (2017), 3476 votes
+tmdb-movie-285783  # The Walk (2015), 3473 votes
+tmdb-movie-76649  # Pompeii (2014), 3470 votes
+tmdb-movie-12113  # Body of Lies (2008), 3468 votes
+tmdb-movie-440  # Aliens vs Predator: Requiem (2007), 3467 votes
+tmdb-movie-726209  # Leave the World Behind (2023), 3466 votes
+tmdb-movie-9772  # Air Force One (1997), 3463 votes
+tmdb-movie-9354  # Honey, I Shrunk the Kids (1989), 3462 votes
+tmdb-movie-8741  # The Thin Red Line (1998), 3459 votes
+tmdb-movie-13809  # RocknRolla (2008), 3458 votes
+tmdb-movie-979  # Irreversible (2002), 3459 votes
+tmdb-movie-8922  # Jeepers Creepers (2001), 3455 votes
+tmdb-movie-11247  # A Cinderella Story (2004), 3454 votes
+tmdb-movie-82633  # Lawless (2012), 3445 votes
+tmdb-movie-43949  # Flipped (2010), 3444 votes
+tmdb-movie-68722  # The Master (2012), 3443 votes
+tmdb-movie-8967  # The Tree of Life (2011), 3441 votes
+tmdb-movie-3597  # I Know What You Did Last Summer (1997), 3440 votes
+tmdb-movie-412117  # The Secret Life of Pets 2 (2019), 3439 votes
+tmdb-movie-2758  # Addams Family Values (1993), 3438 votes
+tmdb-movie-447277  # The Little Mermaid (2023), 3435 votes
+tmdb-movie-10439  # Hocus Pocus (1993), 3433 votes
+tmdb-movie-68730  # Silence (2016), 3431 votes
+tmdb-movie-109421  # Side Effects (2013), 3423 votes
+tmdb-movie-35690  # The Last Song (2010), 3422 votes
+tmdb-movie-192  # The Name of the Rose (1986), 3423 votes
+tmdb-movie-7214  # Coach Carter (2005), 3420 votes
+tmdb-movie-1738  # Next (2007), 3420 votes
+tmdb-movie-756  # Fantasia (1940), 3417 votes
+tmdb-movie-41439  # Saw 3D (2010), 3416 votes
+tmdb-movie-9029  # What Happens in Vegas (2008), 3415 votes
+tmdb-movie-882569  # Guy Ritchie's The Covenant (2023), 3413 votes
+tmdb-movie-843  # In the Mood for Love (2000), 3410 votes
+tmdb-movie-519182  # Despicable Me 4 (2024), 3408 votes
+tmdb-movie-259694  # How to Be Single (2016), 3407 votes
+tmdb-movie-975  # Paths of Glory (1957), 3406 votes
+tmdb-movie-9355  # Mad Max Beyond Thunderdome (1985), 3403 votes
+tmdb-movie-3050  # Doctor Dolittle (1998), 3402 votes
+tmdb-movie-378236  # The Emoji Movie (2017), 3401 votes
+tmdb-movie-36643  # The World Is Not Enough (1999), 3401 votes
+tmdb-movie-238615  # Self/less (2015), 3397 votes
+tmdb-movie-10494  # Perfect Blue (1998), 3396 votes
+tmdb-movie-943  # Lethal Weapon 3 (1992), 3396 votes
+tmdb-movie-2666  # Dark City (1998), 3395 votes
+tmdb-movie-249070  # Hitman: Agent 47 (2015), 3389 votes
+tmdb-movie-9655  # She's the Man (2006), 3391 votes
+tmdb-movie-818647  # Through My Window (2022), 3389 votes
+tmdb-movie-9714  # Home Alone 3 (1997), 3388 votes
+tmdb-movie-9471  # Charlie's Angels: Full Throttle (2003), 3386 votes
+tmdb-movie-917496  # Beetlejuice Beetlejuice (2024), 3385 votes
+tmdb-movie-119283  # Parker (2013), 3383 votes
+tmdb-movie-13310  # Let the Right One In (2008), 3384 votes
+tmdb-movie-228205  # The Longest Ride (2015), 3380 votes
+tmdb-movie-49730  # Red Riding Hood (2011), 3373 votes
+tmdb-movie-9470  # Kung Fu Hustle (2004), 3373 votes
+tmdb-movie-619  # The Bodyguard (1992), 3374 votes
+tmdb-movie-179144  # The Great Beauty (2013), 3370 votes
+tmdb-movie-635744  # Jarhead: Law of Return (2019), 3368 votes
+tmdb-movie-284293  # Still Alice (2014), 3369 votes
+tmdb-movie-934433  # Scream VI (2023), 3367 votes
+tmdb-movie-543540  # The Perfect Date (2019), 3362 votes
+tmdb-movie-60935  # The Thing (2011), 3361 votes
+tmdb-movie-10022  # The Pacifier (2005), 3358 votes
+tmdb-movie-950387  # A Minecraft Movie (2025), 3359 votes
+tmdb-movie-15472  # The Girl with the Dragon Tattoo (2009), 3350 votes
+tmdb-movie-38408  # Life As We Know It (2010), 3346 votes
+tmdb-movie-415842  # American Assassin (2017), 3341 votes
+tmdb-movie-46838  # Tucker and Dale vs. Evil (2010), 3341 votes
+tmdb-movie-167073  # Brooklyn (2015), 3333 votes
+tmdb-movie-62764  # Mirror Mirror (2012), 3333 votes
+tmdb-movie-10999  # Commando (1985), 3327 votes
+tmdb-movie-1970  # The Grudge (2004), 3327 votes
+tmdb-movie-491418  # Instant Family (2018), 3326 votes
+tmdb-movie-11836  # The SpongeBob SquarePants Movie (2004), 3324 votes
+tmdb-movie-1241982  # Moana 2 (2024), 3319 votes
+tmdb-movie-3175  # Barry Lyndon (1975), 3318 votes
+tmdb-movie-157547  # Oculus (2014), 3313 votes
+tmdb-movie-10734  # Escape from Alcatraz (1979), 3314 votes
+tmdb-movie-7220  # The Punisher (2004), 3311 votes
+tmdb-movie-758323  # The Pope's Exorcist (2023), 3310 votes
+tmdb-movie-406563  # Insidious: The Last Key (2018), 3310 votes
+tmdb-movie-205  # Hotel Rwanda (2004), 3308 votes
+tmdb-movie-25  # Jarhead (2005), 3305 votes
+tmdb-movie-51739  # Arrietty (2010), 3303 votes
+tmdb-movie-565770  # Blue Beetle (2023), 3299 votes
+tmdb-movie-665  # Ben-Hur (1959), 3298 votes
+tmdb-movie-15092  # Crank: High Voltage (2009), 3298 votes
+tmdb-movie-1934  # Shakespeare in Love (1998), 3298 votes
+tmdb-movie-753342  # Napoleon (2023), 3298 votes
+tmdb-movie-11283  # Nanny McPhee (2005), 3296 votes
+tmdb-movie-421  # The Life Aquatic with Steve Zissou (2004), 3297 votes
+tmdb-movie-525661  # Bombshell (2019), 3292 votes
+tmdb-movie-61979  # Three Steps Above Heaven (2010), 3291 votes
+tmdb-movie-567748  # The Guilty (2021), 3289 votes
+tmdb-movie-59108  # Tower Heist (2011), 3288 votes
+tmdb-movie-503314  # Dragon Ball Super: Broly (2018), 3287 votes
+tmdb-movie-359410  # Road House (2024), 3286 votes
+tmdb-movie-11906  # Suspiria (1977), 3285 votes
+tmdb-movie-249397  # Nymphomaniac: Vol. II (2013), 3283 votes
+tmdb-movie-8068  # Desperado (1995), 3282 votes
+tmdb-movie-9889  # Shallow Hal (2001), 3279 votes
+tmdb-movie-803796  # KPop Demon Hunters (2025), 3279 votes
+tmdb-movie-429351  # 12 Strong (2018), 3276 votes
+tmdb-movie-402431  # Wicked (2024), 3275 votes
+tmdb-movie-36685  # The Rocky Horror Picture Show (1975), 3273 votes
+tmdb-movie-429200  # Good Time (2017), 3269 votes
+tmdb-movie-438799  # Overlord (2018), 3267 votes
+tmdb-movie-1255  # The Host (2006), 3267 votes
+tmdb-movie-7840  # 10,000 BC (2008), 3266 votes
+tmdb-movie-13027  # Eagle Eye (2008), 3263 votes
+tmdb-movie-1267  # Meet the Robinsons (2007), 3265 votes
+tmdb-movie-58224  # Mr. Popper's Penguins (2011), 3259 votes
+tmdb-movie-786  # Almost Famous (2000), 3258 votes
+tmdb-movie-1072790  # Anyone but You (2023), 3256 votes
+tmdb-movie-10521  # Bride Wars (2009), 3254 votes
+tmdb-movie-1381  # The Fountain (2006), 3250 votes
+tmdb-movie-551332  # The Two Popes (2019), 3245 votes
+tmdb-movie-72113  # Carnage (2011), 3241 votes
+tmdb-movie-1268  # Mr. Bean's Holiday (2007), 3240 votes
+tmdb-movie-575265  # Mission: Impossible - The Final Reckoning (2025), 3240 votes
+tmdb-movie-631842  # Knock at the Cabin (2023), 3238 votes
+tmdb-movie-6537  # The Orphanage (2007), 3237 votes
+tmdb-movie-375588  # Robin Hood (2018), 3234 votes
+tmdb-movie-9327  # The Nutty Professor (1996), 3234 votes
+tmdb-movie-71859  # We Need to Talk About Kevin (2011), 3232 votes
+tmdb-movie-69  # Walk the Line (2005), 3232 votes
+tmdb-movie-19  # Metropolis (1927), 3231 votes
+tmdb-movie-9598  # Babe (1995), 3230 votes
+tmdb-movie-11430  # The Lion King 1½ (2004), 3228 votes
+tmdb-movie-978  # Seven Years in Tibet (1997), 3229 votes
+tmdb-movie-43539  # The Next Three Days (2010), 3229 votes
+tmdb-movie-458897  # Charlie's Angels (2019), 3223 votes
+tmdb-movie-96936  # The Bling Ring (2013), 3223 votes
+tmdb-movie-32856  # Valentine's Day (2010), 3222 votes
+tmdb-movie-394117  # The Florida Project (2017), 3216 votes
+tmdb-movie-1368166  # The Housemaid (2025), 3219 votes
+tmdb-movie-44040  # Devil (2010), 3216 votes
+tmdb-movie-303858  # Money Monster (2016), 3213 votes
+tmdb-movie-319  # True Romance (1993), 3208 votes
+tmdb-movie-23398  # Alvin and the Chipmunks: The Squeakquel (2009), 3205 votes
+tmdb-movie-533  # Wallace & Gromit: The Curse of the Were-Rabbit (2005), 3204 votes
+tmdb-movie-718821  # Twisters (2024), 3206 votes
+tmdb-movie-137094  # Jack Ryan: Shadow Recruit (2014), 3202 votes
+tmdb-movie-829280  # Enola Holmes 2 (2022), 3200 votes
+tmdb-movie-4513  # 30 Days of Night (2007), 3200 votes
+tmdb-movie-845781  # Red One (2024), 3197 votes
+tmdb-movie-112205  # The Family (2013), 3195 votes
+tmdb-movie-49797  # I Saw the Devil (2010), 3192 votes
+tmdb-movie-1278  # The Dreamers (2003), 3189 votes
+tmdb-movie-4258  # Scary Movie 5 (2013), 3188 votes
+tmdb-movie-1656  # The Legend of Zorro (2005), 3186 votes
+tmdb-movie-2310  # Beowulf (2007), 3184 votes
+tmdb-movie-1087192  # How to Train Your Dragon (2025), 3181 votes
+tmdb-movie-398173  # The House That Jack Built (2018), 3178 votes
+tmdb-movie-314095  # The Lost City of Z (2017), 3177 votes
+tmdb-movie-364689  # Ferdinand (2017), 3177 votes
+tmdb-movie-103731  # Mud (2013), 3175 votes
+tmdb-movie-65057  # The Descendants (2011), 3174 votes
+tmdb-movie-574475  # Final Destination Bloodlines (2025), 3174 votes
+tmdb-movie-152742  # The Best Offer (2013), 3171 votes
+tmdb-movie-26466  # Triangle (2009), 3172 votes
+tmdb-movie-26388  # Buried (2010), 3167 votes
+tmdb-movie-930564  # Saltburn (2023), 3166 votes
+tmdb-movie-605116  # Project Power (2020), 3167 votes
+tmdb-movie-35056  # Date Night (2010), 3162 votes
+tmdb-movie-8643  # The Exorcism of Emily Rose (2005), 3160 votes
+tmdb-movie-9539  # Martyrs (2008), 3161 votes
+tmdb-movie-77930  # Magic Mike (2012), 3158 votes
+tmdb-movie-540901  # Hustlers (2019), 3155 votes
+tmdb-movie-158011  # The Call (2013), 3153 votes
+tmdb-movie-398181  # You Were Never Really Here (2017), 3149 votes
+tmdb-movie-5236  # Kiss Kiss Bang Bang (2005), 3147 votes
+tmdb-movie-9902  # Wrong Turn (2003), 3144 votes
+tmdb-movie-95610  # Bridget Jones's Baby (2016), 3140 votes
+tmdb-movie-27573  # The Bounty Hunter (2010), 3138 votes
+tmdb-movie-9593  # Last Action Hero (1993), 3137 votes
+tmdb-movie-9277  # The Sting (1973), 3138 votes
+tmdb-movie-9374  # Death Becomes Her (1992), 3132 votes
+tmdb-movie-542178  # The French Dispatch of the Liberty, Kansas Evening Sun (2021), 3129 votes
+tmdb-movie-1645  # A Time to Kill (1996), 3128 votes
+tmdb-movie-484641  # Anna (2019), 3125 votes
+tmdb-movie-9336  # Police Academy (1984), 3126 votes
+tmdb-movie-9352  # EuroTrip (2004), 3125 votes
+tmdb-movie-801  # Good Morning, Vietnam (1987), 3125 votes
+tmdb-movie-169917  # A Walk Among the Tombstones (2014), 3121 votes
+tmdb-movie-585083  # Hotel Transylvania: Transformania (2022), 3119 votes
+tmdb-movie-353070  # Going in Style (2017), 3116 votes
+tmdb-movie-5966  # Along Came Polly (2004), 3115 votes
+tmdb-movie-612  # Munich (2005), 3115 votes
+tmdb-movie-9992  # Arthur and the Invisibles (2006), 3112 votes
+tmdb-movie-1580  # Rope (1948), 3112 votes
+tmdb-movie-619730  # Don't Worry Darling (2022), 3110 votes
+tmdb-movie-768  # From Hell (2001), 3109 votes
+tmdb-movie-889737  # Joker: Folie à Deux (2024), 3106 votes
+tmdb-movie-823219  # Flow (2024), 3105 votes
+tmdb-movie-10637  # Remember the Titans (2000), 3107 votes
+tmdb-movie-420634  # Terrifier (2018), 3101 votes
+tmdb-movie-944  # Lethal Weapon 4 (1998), 3099 votes
+tmdb-movie-712  # Four Weddings and a Funeral (1994), 3100 votes
+tmdb-movie-9801  # Bridget Jones: The Edge of Reason (2004), 3098 votes
+tmdb-movie-601666  # I Care a Lot (2021), 3097 votes
+tmdb-movie-157386  # The Spectacular Now (2013), 3096 votes
+tmdb-movie-59965  # Abduction (2011), 3096 votes
+tmdb-movie-697843  # Extraction 2 (2023), 3095 votes
+tmdb-movie-610150  # Dragon Ball Super: Super Hero (2022), 3095 votes
+tmdb-movie-2044  # The Lake House (2006), 3093 votes
+tmdb-movie-132363  # The Butler (2013), 3089 votes
+tmdb-movie-76640  # The Last Stand (2013), 3089 votes
+tmdb-movie-9705  # Swordfish (2001), 3089 votes
+tmdb-movie-7484  # Open Season (2006), 3091 votes
+tmdb-movie-9315  # Flightplan (2005), 3086 votes
+tmdb-movie-382591  # Two Is a Family (2016), 3083 votes
+tmdb-movie-638  # Lost Highway (1997), 3082 votes
+tmdb-movie-342470  # All the Bright Places (2020), 3080 votes
+tmdb-movie-13363  # The Man from Earth (2007), 3078 votes
+tmdb-movie-1032823  # Trap (2024), 3077 votes
+tmdb-movie-49520  # The Change-Up (2011), 3077 votes
+tmdb-movie-600583  # The Power of the Dog (2021), 3074 votes
+tmdb-movie-37056  # Letters to Juliet (2010), 3072 votes
+tmdb-movie-531428  # Portrait of a Lady on Fire (2019), 3070 votes
+tmdb-movie-531219  # Roald Dahl's The Witches (2020), 3069 votes
+tmdb-movie-241554  # Run All Night (2015), 3069 votes
+tmdb-movie-497828  # Triangle of Sadness (2022), 3068 votes
+tmdb-movie-313922  # Green Room (2016), 3067 votes
+tmdb-movie-10202  # Bedtime Stories (2008), 3068 votes
+tmdb-movie-4442  # The Brothers Grimm (2005), 3068 votes
+tmdb-movie-210479  # Locke (2014), 3064 votes
+tmdb-movie-379149  # The Foreigner (2017), 3063 votes
+tmdb-movie-1100988  # 28 Years Later (2025), 3062 votes
+tmdb-movie-431693  # Spies in Disguise (2019), 3060 votes
+tmdb-movie-9473  # South Park: Bigger, Longer & Uncut (1999), 3058 votes
+tmdb-movie-193893  # Let's Be Cops (2014), 3057 votes
+tmdb-movie-9279  # Jingle All the Way (1996), 3058 votes
+tmdb-movie-8009  # Highlander (1986), 3056 votes
+tmdb-movie-599  # Sunset Boulevard (1950), 3057 votes
+tmdb-movie-309809  # The Little Prince (2015), 3053 votes
+tmdb-movie-1607  # A Bronx Tale (1993), 3051 votes
+tmdb-movie-800158  # The Killer (2023), 3045 votes
+tmdb-movie-261392  # American Ultra (2015), 3044 votes
+tmdb-movie-74465  # We Bought a Zoo (2011), 3043 votes
+tmdb-movie-541671  # Ballerina (2025), 3044 votes
+tmdb-movie-400160  # The SpongeBob Movie: Sponge on the Run (2020), 3041 votes
+tmdb-movie-9373  # The Texas Chainsaw Massacre (2003), 3040 votes
+tmdb-movie-568091  # Fractured (2019), 3036 votes
+tmdb-movie-9003  # Hellraiser (1987), 3032 votes
+tmdb-movie-228326  # The Book of Life (2014), 3032 votes
+tmdb-movie-55  # Amores Perros (2000), 3033 votes
+tmdb-movie-49517  # Tinker Tailor Soldier Spy (2011), 3032 votes
+tmdb-movie-116711  # Epic (2013), 3029 votes
+tmdb-movie-4977  # Paprika (2006), 3027 votes
+tmdb-movie-1887  # Marie Antoinette (2006), 3028 votes
+tmdb-movie-9477  # King Arthur (2004), 3025 votes
+tmdb-movie-86829  # Inside Llewyn Davis (2013), 3024 votes
+tmdb-movie-11007  # Cheaper by the Dozen (2003), 3022 votes
+tmdb-movie-928  # Gremlins 2: The New Batch (1990), 3021 votes
+tmdb-movie-610253  # Halloween Kills (2021), 3016 votes
+tmdb-movie-11024  # Scooby-Doo 2: Monsters Unleashed (2004), 3013 votes
+tmdb-movie-546121  # Run (2020), 3008 votes
+tmdb-movie-420814  # Christopher Robin (2018), 3009 votes
+tmdb-movie-865  # The Running Man (1987), 3008 votes
+tmdb-movie-840326  # Sisu (2022), 3006 votes
+tmdb-movie-700391  # 65 (2023), 3005 votes
+tmdb-movie-677179  # Creed III (2023), 3005 votes
+tmdb-movie-1574  # Chicago (2002), 3005 votes
+tmdb-movie-227719  # Project Almanac (2015), 3002 votes
+tmdb-movie-23437  # A Nightmare on Elm Street (2010), 3003 votes
+tmdb-movie-740985  # Borat Subsequent Moviefilm: Delivery of Prodigious Bribe to American Regime for Make Benefit Once Glorious Nation of Kazakhstan (2020), 3001 votes
+tmdb-movie-257091  # Get Hard (2015), 2997 votes
+tmdb-movie-1832  # Dogma (1999), 2998 votes
+tmdb-movie-109491  # Beautiful Creatures (2013), 2989 votes
+tmdb-movie-459992  # Long Shot (2019), 2987 votes
+tmdb-movie-452507  # 1922 (2017), 2989 votes
+tmdb-movie-451915  # Beautiful Boy (2018), 2988 votes
+tmdb-movie-25376  # The Secret in Their Eyes (2009), 2988 votes
+tmdb-movie-445651  # The Darkest Minds (2018), 2985 votes
+tmdb-movie-11005  # Awakenings (1990), 2985 votes
+tmdb-movie-8874  # My Best Friend's Wedding (1997), 2985 votes
+tmdb-movie-945729  # A Haunting in Venice (2023), 2982 votes
+tmdb-movie-602269  # The Little Things (2021), 2979 votes
+tmdb-movie-306947  # The Invitation (2016), 2981 votes
+tmdb-movie-22894  # Legion (2010), 2980 votes
+tmdb-movie-595  # To Kill a Mockingbird (1962), 2980 votes
+tmdb-movie-502033  # Sound of Metal (2020), 2978 votes
+tmdb-movie-62835  # Colombiana (2011), 2974 votes
+tmdb-movie-8054  # The Imaginarium of Doctor Parnassus (2009), 2971 votes
+tmdb-movie-4476  # Legends of the Fall (1994), 2971 votes
+tmdb-movie-812583  # Wake Up Dead Man: A Knives Out Mystery (2025), 2971 votes
+tmdb-movie-8204  # The Spiderwick Chronicles (2008), 2969 votes
+tmdb-movie-505948  # I Am Mother (2019), 2968 votes
+tmdb-movie-521  # Dial M for Murder (1954), 2968 votes
+tmdb-movie-5925  # The Great Escape (1963), 2966 votes
+tmdb-movie-1005331  # Carry-On (2024), 2961 votes
+tmdb-movie-535581  # The Dead Don't Die (2019), 2960 votes
+tmdb-movie-762975  # Purple Hearts (2022), 2961 votes
+tmdb-movie-614917  # King Richard (2021), 2960 votes
+tmdb-movie-13207  # Friday the 13th (2009), 2960 votes
+tmdb-movie-6466  # Freddy vs. Jason (2003), 2959 votes
+tmdb-movie-1138194  # Heretic (2024), 2957 votes
+tmdb-movie-763215  # Damsel (2024), 2955 votes
+tmdb-movie-417384  # Scary Stories to Tell in the Dark (2019), 2954 votes
+tmdb-movie-9387  # Conan the Barbarian (1982), 2954 votes
+tmdb-movie-9383  # Hollow Man (2000), 2954 votes
+tmdb-movie-705861  # Hustle (2022), 2949 votes
+tmdb-movie-505600  # Booksmart (2019), 2945 votes
+tmdb-movie-388399  # Patriots Day (2016), 2942 votes
+tmdb-movie-482373  # Don't Breathe 2 (2021), 2942 votes
+tmdb-movie-17609  # Antichrist (2009), 2943 votes
+tmdb-movie-96  # Beverly Hills Cop II (1987), 2934 votes
+tmdb-movie-346648  # Paddington 2 (2017), 2932 votes
+tmdb-movie-109443  # Anchorman 2: The Legend Continues (2013), 2927 votes
+tmdb-movie-951  # Kindergarten Cop (1990), 2927 votes
+tmdb-movie-5123  # August Rush (2007), 2923 votes
+tmdb-movie-1226578  # Longlegs (2024), 2926 votes
+tmdb-movie-9360  # Anaconda (1997), 2921 votes
+tmdb-movie-403119  # 47 Meters Down (2017), 2920 votes

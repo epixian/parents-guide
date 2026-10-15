@@ -469,6 +469,7 @@ async function showSearch(q: string): Promise<string> {
       });
   };
 
+  pageTitle = `Results for "${q}"`;
   return `
     <h1>Results for "${esc(q)}"</h1>
     <div id="search-results" aria-busy="true">${searchResultsHtml(ratedRows, [], true)}</div>`;
@@ -480,10 +481,12 @@ async function showReport(id: string): Promise<string> {
   const seriesMatch = /^tmdb-tv-(\d+)-s\d+$/.exec(id);
   const back = seriesMatch ? `<p><a href="#/tv/${seriesMatch[1]}">← All seasons</a></p>` : "";
   if (res.status === "unreleased") {
+    pageTitle = res.title;
     return `${back}<h1>${esc(res.title)}</h1>
       <p class="status">Not yet released${res.releaseDate ? ` (expected ${esc(res.releaseDate)})` : ""}. Ratings are available after release.</p>`;
   }
   const r = res.report;
+  pageTitle = withYears(r.kind === "tv-season" && r.subtitle ? `${r.title} — ${r.subtitle}` : r.title, r.info);
   pageMeta = `Rated ${new Date(r.refreshedAt).toLocaleDateString()} by ${r.model} · confidence: ${r.confidence}`;
   return `${back}
     ${titleHeader(r.title, r.kind === "tv-season" ? r.subtitle : null, r.info, compositesHtml((id) => r.categories[id]?.score))}
@@ -511,6 +514,7 @@ function seriesThemes(s: SeriesResponse): string[] {
 async function showSeries(tmdbId: string): Promise<string> {
   setLoading("Loading series…");
   const s: SeriesResponse = await api.series(tmdbId);
+  pageTitle = withYears(s.title, s.info);
   const agg = s.aggregate;
   const aggRows = sectionRows((c) => {
     const range = agg.categories[c.id];
@@ -743,6 +747,7 @@ async function showBrowse(query: string): Promise<string> {
   // Show the topics the user has not hidden, and any topic the URL filters on.
   const topics = CATEGORIES.filter((c) => !hidden.has(c.id) || params.has(`max.${c.id}`) || params.has(`hide.${c.id}`));
   const limits = topicFilterCount(params);
+  pageTitle = "Browse";
 
   return `
     <h1>Browse rated titles</h1>
@@ -881,9 +886,19 @@ let afterRender: (() => void) | null = null;
 let pageMeta = "";
 const pageMetaEl = document.querySelector<HTMLElement>("#page-meta")!;
 
+/** Name of the current page, added to the site name in the browser tab. Views set it. */
+let pageTitle = "";
+const SITE_TITLE = document.title;
+
+/** "Back to the Future (1985)": the title with its years, when known. */
+function withYears(title: string, info: WorkInfo | undefined): string {
+  return info?.years ? `${title} (${info.years})` : title;
+}
+
 async function route(): Promise<void> {
   const seq = ++navSeq;
   pageMeta = "";
+  pageTitle = "";
   afterRender = null;
   const hash = location.hash.replace(/^#/, "") || "/";
   let html: string;
@@ -906,6 +921,7 @@ async function route(): Promise<void> {
   after?.();
   pageMetaEl.textContent = pageMeta;
   pageMetaEl.hidden = !pageMeta;
+  document.title = pageTitle ? `${SITE_TITLE} - ${pageTitle}` : SITE_TITLE;
 }
 
 searchForm.addEventListener("submit", (e) => {

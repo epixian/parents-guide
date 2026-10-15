@@ -7,7 +7,7 @@
     <meta name="description" content="AI summaries of parental concerns for movies, TV shows, and books." />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <!--
-      Fredoka 600, cut down to the logo's letters (PAIRENTS'GUIDE), about 2 KB.
+      Fredoka 600, cut down to the letters of the logo (PARENTS' GUIDE), about 2 KB.
       It is served from this site, so the page does not wait for Google Fonts.
     -->
     <link rel="preload" href="/fonts/fredoka-600-logo.woff2" as="font" type="font/woff2" crossorigin />
@@ -25,25 +25,26 @@
     <header class="site-header">
       <a href="#/" class="brand" aria-label="Parents' Guide home">
         <!--
-          Logo: PAIRENTS' over GUIDE, sharing one "AI" arrow. The A sits on the
-          I so the two letters form an arrow that points up, tilted 14 degrees
-          to the left around the arrow's middle (32, 21).
+          Logo: PARENTS' over GUIDE. The A of PARENTS' sits on the I of GUIDE,
+          so the two letters form an "AI" arrow that points up, tilted 14
+          degrees to the left around the arrow's middle (32, 21).
           Small letters are 20px with baselines at y=20 and y=39.5. The A's
           baseline is on the top row's baseline. The I's baseline (y=41.65)
           is a little below the bottom row's baseline, so the I hangs below
           GUIDE. The I is stretched 18% upward from its baseline, leaving a
           small gap under the A's crossbar.
           The P and the R are kerned to the A's slanted sides.
+          The letters are in reading order, and the line breaks are inside the
+          tags, so the text in the page is "PARENTS' GUIDE". Accessibility
+          checkers compare that text with the link's aria-label.
         -->
         <svg class="logo" viewBox="0 -1.5 114 45" role="img" aria-hidden="true">
-          <text class="logo-small" x="21.1" y="20" text-anchor="end">P</text>
-          <text class="logo-small" x="30.45" y="39.5" text-anchor="end">GU</text>
-          <g class="logo-ai" transform="rotate(-14 32 21)">
-            <text x="32" y="20.5" text-anchor="middle">A</text>
-            <text x="32" y="41.65" text-anchor="middle" transform="matrix(1 0 0 1.18 0 -7.497)">I</text>
-          </g>
-          <text class="logo-small" x="43.4" y="20">RENTS'</text>
-          <text class="logo-small" x="40.55" y="39.5">DE</text>
+          <text class="logo-small" x="21.1" y="20" text-anchor="end">P</text
+          ><g class="logo-ai" transform="rotate(-14 32 21)"><text x="32" y="20.5" text-anchor="middle">A</text></g
+          ><text class="logo-small" x="43.4" y="20">RENTS'</text>
+          <text class="logo-small" x="30.45" y="39.5" text-anchor="end">GU</text
+          ><g class="logo-ai" transform="rotate(-14 32 21)"><text x="32" y="41.65" text-anchor="middle" transform="matrix(1 0 0 1.18 0 -7.497)">I</text></g
+          ><text class="logo-small" x="40.55" y="39.5">DE</text>
         </svg>
       </a>
       <form id="search-form" class="search" role="search">

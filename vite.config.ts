@@ -7,6 +7,14 @@ export default defineConfig(({ mode }) => {
 
   return {
     root: "src/client",
+    plugins: [
+      {
+        // The comments in index.html are notes for developers. Keep them out of the built page.
+        name: "strip-html-comments",
+        apply: "build",
+        transformIndexHtml: (html) => html.replace(/<!--[\s\S]*?-->/g, ""),
+      },
+    ],
     build: {
       outDir: "../../dist/client",
       emptyOutDir: true,

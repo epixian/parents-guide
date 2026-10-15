@@ -27,7 +27,7 @@ import { config } from "./config.js";
 import { parseId } from "./reports.js";
 import { estimateCost, recordUsage } from "./usage.js";
 
-const POLL_MS = 60_000;
+const POLL_MS = 15_000;
 /** Catalog requests at a time, to stay well under TMDB and Open Library limits. */
 const CATALOG_CONCURRENCY = 4;
 
@@ -109,13 +109,16 @@ async function loadWork(ids: string[], now: Date, fresh: boolean): Promise<Map<s
 }
 
 async function waitForBatch(client: Anthropic, batchId: string): Promise<void> {
+  let last = "";
   for (;;) {
     const batch = await client.messages.batches.retrieve(batchId);
     const c = batch.request_counts;
-    console.log(
-      `${new Date().toLocaleTimeString()} ${batch.processing_status}: ` +
-        `${c.processing} processing, ${c.succeeded} succeeded, ${c.errored} errored, ${c.expired} expired`,
-    );
+    const status =
+      `${batch.processing_status}: ` +
+      `${c.processing} processing, ${c.succeeded} succeeded, ${c.errored} errored, ${c.expired} expired`;
+    // Poll often, but print only when something changed.
+    if (status !== last) console.log(`${new Date().toLocaleTimeString()} ${status}`);
+    last = status;
     if (batch.processing_status === "ended") return;
     await new Promise((r) => setTimeout(r, POLL_MS));
   }

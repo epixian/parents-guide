@@ -733,6 +733,7 @@ async function updateBrowse(form: HTMLFormElement): Promise<void> {
     const res = await api.browse(params.toString());
     if (seq !== browseSeq) return;
     results.innerHTML = browseResultsHtml(res);
+    watchMore();
     document.querySelector("#browse-tags")!.innerHTML = tagChips(res, new Set(params.getAll("tag")));
   } catch (err) {
     if (seq === browseSeq) results.innerHTML = errorHtml(err);
@@ -742,9 +743,30 @@ async function updateBrowse(form: HTMLFormElement): Promise<void> {
 }
 
 /** Add the next page of results below the current ones. */
+// Infinite scroll: load the next page when the "Show more" button comes near
+// the viewport. The button stays as a fallback for keyboards and old browsers.
+const moreObserver =
+  "IntersectionObserver" in window
+    ? new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) if (e.isIntersecting) void showMoreBrowse(e.target as HTMLButtonElement);
+        },
+        { rootMargin: "600px 0px" },
+      )
+    : null;
+
+/** Watch the current "Show more" button, if any. Observing again also re-checks a button already in view. */
+function watchMore(): void {
+  if (!moreObserver) return;
+  moreObserver.disconnect();
+  const button = app.querySelector<HTMLButtonElement>("#browse-results button[data-more]");
+  if (button) moreObserver.observe(button);
+}
+
 async function showMoreBrowse(button: HTMLButtonElement): Promise<void> {
   const form = document.querySelector<HTMLFormElement>("#browse-form");
-  if (!form) return;
+  // Already loading, or the page has changed since.
+  if (!form || button.disabled || !button.isConnected) return;
   const params = browseParams(form);
   params.set("offset", button.dataset.more!);
   button.disabled = true;
@@ -755,6 +777,8 @@ async function showMoreBrowse(button: HTMLButtonElement): Promise<void> {
     if (shown < res.total) {
       button.dataset.more = String(shown);
       button.disabled = false;
+      // A tall screen can still show the button after this page: load the next one too.
+      watchMore();
     } else button.remove();
   } catch (err) {
     button.insertAdjacentHTML("afterend", errorHtml(err));
@@ -811,6 +835,7 @@ async function route(): Promise<void> {
   }
   if (seq !== navSeq) return;
   app.innerHTML = html;
+  watchMore();
   pageMetaEl.textContent = pageMeta;
   pageMetaEl.hidden = !pageMeta;
 }

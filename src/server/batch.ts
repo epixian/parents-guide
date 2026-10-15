@@ -5,7 +5,7 @@
 //   npm run batch -- --resume <batch-id>
 //
 // The ids file has one report id per line: tmdb-movie-603, tmdb-tv-1399-s01,
-// ol-OL27482W. Blank lines and lines starting with # are ignored. Titles that
+// ol-OL27482W. Text after # is a comment; blank lines are ignored. Titles that
 // already have a saved result, and titles not yet released, are skipped.
 //
 // The script waits for the batch to finish (most finish within an hour, all
@@ -29,8 +29,9 @@ const CATALOG_CONCURRENCY = 4;
 const cache = new FileReportCache(config.cacheDir);
 
 async function readIds(file: string): Promise<string[]> {
-  const lines = (await fs.readFile(file, "utf8")).split(/\r?\n/).map((l) => l.trim());
-  const ids = [...new Set(lines.filter((l) => l && !l.startsWith("#")))];
+  // Anything after # is a comment, e.g. "tmdb-movie-155  # The Dark Knight (2008)".
+  const lines = (await fs.readFile(file, "utf8")).split(/\r?\n/).map((l) => l.replace(/#.*/, "").trim());
+  const ids = [...new Set(lines.filter(Boolean))];
   const invalid = ids.filter((id) => !cachePathFor(id));
   if (invalid.length) throw new Error(`Invalid ids: ${invalid.join(", ")}`);
   return ids;

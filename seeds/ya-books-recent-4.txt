@@ -1,0 +1,106 @@
+# Part 4 of 5 (ranks 301-400): the 500 most-read young adult books first published 2011-2026, by Open Library reading-log count.
+# Source: Open Library search, subjects "young adult fiction", "young adult works", or "teen fiction", language eng,
+# sort=readinglog; box sets, study guides, and duplicate works removed. Generated 2026-10-15.
+# Open Library tags some adult and crossover titles (romantasy, new adult) as YA; they are kept, since teens read them.
+# Run: npm run batch -- seeds/ya-books-recent-4.txt --dry-run
+
+ol-OL20644393W  # Yes no maybe so (2020), by Becky Albertalli, 39 reading logs
+ol-OL17344335W  # The keeper (2015), by David Baldacci, 39 reading logs
+ol-OL24315405W  # Instructions for Dancing (2021), by Nicola Yoon, 38 reading logs
+ol-OL18823021W  # After (2012), by Morris Gleitzman, 38 reading logs
+ol-OL20097557W  # The Downstairs Girl (2019), by Stacey Lee, 38 reading logs
+ol-OL17923092W  # My sister lives on the mantelpiece (2011), by Annabel Pitcher, 38 reading logs
+ol-OL20904660W  # A Sky Beyond the Storm (2020), by Sabaa Tahir, 38 reading logs
+ol-OL20641003W  # Every other weekend (2020), by Abigail Johnson, 38 reading logs
+ol-OL18820980W  # Queen of Hearts (2014), by Colleen Oakes, 38 reading logs
+ol-OL17522896W  # Unspoken (2013), by Lisa Jane Smith, 37 reading logs
+ol-OL20651925W  # Only mostly devastated (2019), by Sophie Gonzales, 37 reading logs
+ol-OL20808209W  # Aurora Burning (2020), by Amie Kaufman, 37 reading logs
+ol-OL21926159W  # Counting down with You (2021), by Tashie Bhuiyan, 36 reading logs
+ol-OL21154153W  # Charlotte Says (2017), by Alex Bell, 36 reading logs
+ol-OL16167552W  # Destined (2011), by P. C. Cast, 36 reading logs
+ol-OL18173455W  # Monument 14 (2012), by Emmy Laybourne, 35 reading logs
+ol-OL20665082W  # Fable (2020), by Adrienne Young, 35 reading logs
+ol-OL20682715W  # We Are Totally Normal (2020), by Rahul Kanakia, 35 reading logs
+ol-OL19721393W  # The Nowhere Girls (2017), by Amy Lynn Reed, 35 reading logs
+ol-OL19798934W  # Not Your Sidekick (2016), by C. B. Lee, 35 reading logs
+ol-OL17883259W  # The edge of forever (2015), by Melissa E. Hurst, 35 reading logs
+ol-OL19915983W  # Escape from Asylum (2016), by Madeleine Roux, 35 reading logs
+ol-OL21685467W  # The Queen's Assassin (2020), by Melissa De La Cruz, 35 reading logs
+ol-OL16707380W  # Nanberry (2011), by Jackie French, 34 reading logs
+ol-OL19755561W  # Bridge of Clay (2018), by Markus Zusak, 34 reading logs
+ol-OL17709230W  # The Shadowhunter's Codex (2013), by Cassandra Clare, 34 reading logs
+ol-OL18181860W  # How to love (2013), by Katie Cotugno, 34 reading logs
+ol-OL19724621W  # The rules and regulations for mediating myths & magic (2017), by F. T. Lukens, 34 reading logs
+ol-OL24744269W  # The Taking of Jake Livingston (2021), by Ryan Douglass, 34 reading logs
+ol-OL19991542W  # The Retribution of Mara Dyer (Mara Dyer Series, Book 3) (2014), by Michelle Hodkin, 34 reading logs
+ol-OL17909050W  # Dusk (2013), by Eve Edwards, 34 reading logs
+ol-OL19991131W  # My True Love Gave to Me (2014), by Stephanie Perkins, 34 reading logs
+ol-OL21177831W  # Iron Heart (2020), by Nina Varela, 33 reading logs
+ol-OL18823217W  # Slated (2012), by Teri Terry, 33 reading logs
+ol-OL20157065W  # Wicked Saints (2019), by Emily A. Duncan, 33 reading logs
+ol-OL17793649W  # Wonder Woman--Warbringer (2014), by Leigh Bardugo, 33 reading logs
+ol-OL20027228W  # The Shadow Queen (Ravenspire Series, Book 1) (2016), by C. J. Redwine, 33 reading logs
+ol-OL20913821W  # City of Lost Souls (2012), by Cassandra Clare, 33 reading logs
+ol-OL15946518W  # Why we broke up (2011), by Lemony Snicket, 33 reading logs
+ol-OL15506831W  # The running dream (2011), by Wendelin Van Draanen, 32 reading logs
+ol-OL16482899W  # Cherub People's Republic (2011), by Robert Muchamore, 32 reading logs
+ol-OL21676305W  # K-Pop Confidential (2020), by Stephan Lee, 32 reading logs
+ol-OL20021038W  # This song is (not) for you (2016), by Laura Nowlin, 32 reading logs
+ol-OL17437231W  # Kill You Last (2011), by Todd Strasser, 32 reading logs
+ol-OL19751478W  # The darkest legacy (2018), by Alexandra Bracken, 32 reading logs
+ol-OL20024972W  # The Glittering Court (2016), by Richelle Mead, 32 reading logs
+ol-OL19919638W  # Ghosts of the Shadow Market (2019), by Cassandra Clare, 31 reading logs
+ol-OL19541546W  # At the Edge of the Universe (2017), by Shaun David Hutchinson, 31 reading logs
+ol-OL20868150W  # Akarnae (2015), by Lynette Noni, 31 reading logs
+ol-OL20758343W  # Stay Gold (2020), by Tobly McSmith, 31 reading logs
+ol-OL20039467W  # The Diabolic (2016), by S. J. Kincaid, 31 reading logs
+ol-OL19346631W  # And I Darken (2016), by Kiersten White, 31 reading logs
+ol-OL25908939W  # Huda F Are You? (2021), by Huda Fahmy, 30 reading logs
+ol-OL20648319W  # All the stars and teeth (2020), by Adalyn Grace, 30 reading logs
+ol-OL21995333W  # Little Thieves (2021), by Margaret Owen, 30 reading logs
+ol-OL20150132W  # American Royals (2019), by Katherine McGee, 30 reading logs
+ol-OL20034145W  # Girl mans up (2016), by M-E Girard, 30 reading logs
+ol-OL20641081W  # The hand on the wall (2020), by Maureen Johnson, 30 reading logs
+ol-OL20499542W  # Call Down the Hawk (2019), by Maggie Stiefvater, 30 reading logs
+ol-OL19663956W  # Bone Gap (2015), by Laura Ruby, 30 reading logs
+ol-OL17761066W  # Zeroes (2015), by Scott Westerfeld, 30 reading logs
+ol-OL17367662W  # Daughters unto devils (2015), by Amy Lukavics, 30 reading logs
+ol-OL19748578W  # Light filters in (2018), by Caroline Kaufman, 30 reading logs
+ol-OL20140570W  # Frankly in love (2019), by David Yoon, 30 reading logs
+ol-OL34341592W  # Defiant (2023), by Brandon Sanderson, 29 reading logs
+ol-OL19734199W  # All out (2018), by Saundra Mitchell, 29 reading logs
+ol-OL19755585W  # Sea witch (2018), by Sarah Henning, 29 reading logs
+ol-OL19798655W  # Lovely War (2019), by Julie Berry, 29 reading logs
+ol-OL20884599W  # The Extraordinaries (2019), by T. J. Klune, 29 reading logs
+ol-OL21904516W  # Star Wars The High Republic - Into the Dark (2021), by Claudia Gray, 29 reading logs
+ol-OL19626968W  # A Torch Against the Night (An Ember in the Ashes) (2017), by Sabaa Tahir, 29 reading logs
+ol-OL19968498W  # Pure (2012), by Jennifer L. Armentrout, 29 reading logs
+ol-OL17356840W  # Forever for a Year (2015), by B. T. Gottfred, 29 reading logs
+ol-OL20309605W  # The Strange and Beautiful Sorrows of Ava Lavender (2014), by Leslye Walton, 29 reading logs
+ol-OL24532488W  # The Box in the Woods (2021), by Maureen Johnson, 28 reading logs
+ol-OL20631526W  # The rest of the story (2019), by Sarah Dessen, 28 reading logs
+ol-OL20641061W  # Black girl unlimited (2020), by Echo Brown, 28 reading logs
+ol-OL17538031W  # Twilight (2012), by Stephenie Meyer, 28 reading logs
+ol-OL16810007W  # The Sacrifice (2012), by Charles Higson, 28 reading logs
+ol-OL17407863W  # Corsets & Clockwork (2011), by Trisha Telep, 28 reading logs
+ol-OL20893395W  # Cursed (2019), by Thomas Wheeler, 28 reading logs
+ol-OL21697835W  # A Vow So Bold and Deadly (2021), by Brigid Kemmerer, 27 reading logs
+ol-OL21769056W  # The girl who was supposed to die (2014), by April Henry, 27 reading logs
+ol-OL20011881W  # Need (2015), by Joelle Charbonneau, 27 reading logs
+ol-OL20758839W  # This Is My America (2020), by Kim Johnson, 27 reading logs
+ol-OL20715151W  # DeadEndia (2018), by Hamish Steele, 27 reading logs
+ol-OL20708607W  # Young samurai (2012), by Chris Bradford, 27 reading logs
+ol-OL20243305W  # 13 Minutes (2016), by Sarah Pinborough, 27 reading logs
+ol-OL24145186W  # Gilded (2021), by Marissa Meyer, 27 reading logs
+ol-OL21742433W  # What's a Girl Gotta Do ? (2016), by Holly Bourne, 27 reading logs
+ol-OL16183986W  # The Paladin Prophecy (2012), by Mark Frost, 26 reading logs
+ol-OL21895983W  # Cuban Girl's Guide to Tea and Tomorrow (2019), by Laura Taylor Namey, 26 reading logs
+ol-OL20014606W  # The Dead House (2015), by Dawn Kurtagich, 26 reading logs
+ol-OL19350653W  # Where the World Ends (2017), by Geraldine McCaughrean, 26 reading logs
+ol-OL19738900W  # Ash Princess (2018), by Laura Sebastian, 26 reading logs
+ol-OL20521436W  # The Season (2019), by Sarah MacLean, 26 reading logs
+ol-OL17850733W  # The Heart Forger (2018), by Rin Chupeco, 26 reading logs
+ol-OL20891043W  # Hawk (2020), by James Patterson, 26 reading logs
+ol-OL19721856W  # The road to winter (2016), by Smith, Mark, 26 reading logs
+ol-OL21888343W  # Star Wars - Queen's Peril (2020), by E. K. Johnston, 26 reading logs

@@ -1,10 +1,42 @@
-import { fetchJson } from "../http.js";
+import { HttpError, fetchJson } from "../http.js";
 import { isReleased } from "../refreshPolicy.js";
 import type { SearchResult, WorkInfo } from "../../shared/types.js";
 import { audienceScore, credits, truncate, type WorkDetails } from "./types.js";
 
 const BASE = "https://openlibrary.org";
-const HEADERS = { "user-agent": "pairents-guide/0.1", accept: "application/json" };
+// Open Library allows about 1 request per second, or 3 with a User-Agent that
+// names the app and a contact. https://openlibrary.org/developers/api
+const HEADERS = { "user-agent": "epixian/pairents-guide/0.1 (+https://example.com)", accept: "application/json" };
+
+/** Space request starts this far apart: just under 3 per second for this process. */
+const MIN_GAP_MS = 350;
+/** Waits before each retry of a 429 or 503 answer. */
+const RETRY_WAITS_MS = [2_000, 5_000];
+
+let nextSlot = 0;
+
+/** Wait for this process's next request slot. */
+async function takeSlot(): Promise<void> {
+  const now = Date.now();
+  const at = Math.max(now, nextSlot);
+  nextSlot = at + MIN_GAP_MS;
+  if (at > now) await new Promise((r) => setTimeout(r, at - now));
+}
+
+/** fetchJson for Open Library: rate limited, with retries when it says it is busy. */
+async function olFetch<T>(url: string): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    await takeSlot();
+    try {
+      return await fetchJson<T>(url, { headers: HEADERS });
+    } catch (err) {
+      const status = err instanceof HttpError ? err.upstreamStatus : undefined;
+      const wait = RETRY_WAITS_MS[attempt];
+      if ((status !== 429 && status !== 503) || wait === undefined) throw err;
+      await new Promise((r) => setTimeout(r, wait));
+    }
+  }
+}
 
 interface SearchDoc {
   key: string;
@@ -23,7 +55,7 @@ function searchDocs(q: string, limit: number, extraFields = ""): Promise<{ docs:
     fields: `key,title,author_name,author_key,first_publish_year,cover_i${extraFields}`,
     limit: String(limit),
   });
-  return fetchJson(`${BASE}/search.json?${params}`, { headers: HEADERS });
+  return olFetch(`${BASE}/search.json?${params}`);
 }
 
 export async function searchOpenLibrary(query: string): Promise<SearchResult[]> {
@@ -91,9 +123,9 @@ const publisherEntry = (name: string | null) => (name ? { name, url: null } : nu
 
 export async function getBook(workId: string, now: Date): Promise<WorkDetails> {
   const [work, search, editions] = await Promise.all([
-    fetchJson<Work>(`${BASE}/works/${workId}.json`, { headers: HEADERS }),
+    olFetch<Work>(`${BASE}/works/${workId}.json`),
     searchDocs(`key:/works/${workId}`, 1, ",ratings_average,ratings_count"),
-    fetchJson<{ entries?: Edition[] }>(`${BASE}/works/${workId}/editions.json?limit=100`, { headers: HEADERS }).catch(
+    olFetch<{ entries?: Edition[] }>(`${BASE}/works/${workId}/editions.json?limit=100`).catch(
       () => ({ entries: [] as Edition[] }),
     ),
   ]);

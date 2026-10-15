@@ -1,0 +1,106 @@
+# Part 5 of 5 (ranks 401-500): the 500 most-read young adult books first published 2011-2026, by Open Library reading-log count.
+# Source: Open Library search, subjects "young adult fiction", "young adult works", or "teen fiction", language eng,
+# sort=readinglog; box sets, study guides, and duplicate works removed. Generated 2026-10-15.
+# Open Library tags some adult and crossover titles (romantasy, new adult) as YA; they are kept, since teens read them.
+# Run: npm run batch -- seeds/ya-books-recent-5.txt --dry-run
+
+ol-OL20805776W  # A Song of Wraiths and Ruin (2020), by Roseanne A. Brown, 25 reading logs
+ol-OL17718536W  # Proxy (2013), by Alex London, 25 reading logs
+ol-OL20152250W  # The Fall of Crazy House (2019), by James Patterson, 25 reading logs
+ol-OL17073328W  # Sinner (2014), by Maggie Stiefvater, 25 reading logs
+ol-OL20009539W  # Through the dark (2015), by Alexandra Bracken, 25 reading logs
+ol-OL17919089W  # The boy I love (2014), by Nina de Gramont, 25 reading logs
+ol-OL17643507W  # Exposure (2014), by Kathy Reichs, 25 reading logs
+ol-OL21891758W  # None Shall Sleep (2020), by Ellie Marney, 24 reading logs
+ol-OL19912649W  # This Time Will Be Different (2019), by Misa Sugiura, 24 reading logs
+ol-OL17487194W  # Yaqui Delgado Wants To Kick Your Ass (2013), by Meg Medina, 24 reading logs
+ol-OL20812544W  # Parachutes (2020), by Kelly Yang, 24 reading logs
+ol-OL20780468W  # We Are Not from Here (2020), by Jenny Torres Sanchez, 24 reading logs
+ol-OL20109585W  # Untamed (2015), by A. G. Howard, 24 reading logs
+ol-OL21147325W  # Bodyguard (2017), by Chris Bradford, 24 reading logs
+ol-OL18184356W  # Muse of Nightmares (2018), by Laini Taylor, 24 reading logs
+ol-OL19984130W  # The fallen (2013), by Charles Higson, 24 reading logs
+ol-OL16540648W  # Ruins (2012), by Orson Scott Card, 24 reading logs
+ol-OL19262381W  # The Silent Songbird (2016), by Melanie Dickerson, 24 reading logs
+ol-OL26432653W  # Sunreach (2021), by Brandon Sanderson, 23 reading logs
+ol-OL24202775W  # Love Is a Revolution (2021), by Renée Watson, 23 reading logs
+ol-OL16211399W  # Putting makeup on the fat boy (2011), by Bil Wright, 23 reading logs
+ol-OL22652062W  # The kaya-girl (2012), by Mamle Wolo, 23 reading logs
+ol-OL20000245W  # All the rage (2015), by Courtney Summers, 23 reading logs
+ol-OL20832130W  # Skyhunter (2020), by Marie Lu, 23 reading logs
+ol-OL15941697W  # Forever (2011), by Maggie Stiefvater, 23 reading logs
+ol-OL20046945W  # This is our story (2016), by Ashley Elston, 23 reading logs
+ol-OL20906922W  # Ruinsong (2020), by Julia Ember, 23 reading logs
+ol-OL19983627W  # Blood of my blood (2014), by Barry Lyga, 23 reading logs
+ol-OL19707321W  # Deity (2012), by Jennifer L. Armentrout, 23 reading logs
+ol-OL17640177W  # The Inquisitor's Tale (2016), by Adam Gidwitz, 23 reading logs
+ol-OL16412640W  # Steampunk! (2011), by Kelly Link, 23 reading logs
+ol-OL19995791W  # Under a painted sky (2015), by Stacey Lee, 23 reading logs
+ol-OL24350948W  # Night School (2012), by C. J. Daugherty, 22 reading logs
+ol-OL16656562W  # The dead I know (2011), by Scot Gardner, 22 reading logs
+ol-OL20639252W  # Loveboat, Taipei (2020), by Abigail Hing Wen, 22 reading logs
+ol-OL19631680W  # The Evolution of Mara Dyer (Mara Dyer Series, Book 2) (2012), by Michelle Hodkin, 22 reading logs
+ol-OL19649942W  # The Astonishing Color of After (2018), by Emily X.R. Pan, 22 reading logs
+ol-OL20039818W  # Goldenhand (2016), by Garth Nix, 22 reading logs
+ol-OL16167380W  # The Wood Queen (The Iron Witch Trilogy, Book 2) (2012), by Karen Mahoney, 22 reading logs
+ol-OL20037210W  # As I descended (2016), by Robin Talley, 22 reading logs
+ol-OL20159186W  # Internment (2019), by Samira Ahmed, 22 reading logs
+ol-OL17860884W  # Extraordinary means (2015), by Robyn Schneider, 22 reading logs
+ol-OL17749903W  # Defy the Stars (2017), by Claudia Gray, 22 reading logs
+ol-OL17060133W  # Skink--No Surrender (2014), by Carl Hiaasen, 22 reading logs
+ol-OL16308103W  # Lenobia's Vow (2012), by P. C. Cast, 22 reading logs
+ol-OL25446553W  # Far Wilder Magic (2022), by Allison Saft, 21 reading logs
+ol-OL20024518W  # The serpent king (2016), by Jeff Zentner, 21 reading logs
+ol-OL19711484W  # Solo (2017), by Kwame Alexander, 21 reading logs
+ol-OL20800248W  # The Left-Handed Booksellers of London (2020), by Garth Nix, 21 reading logs
+ol-OL20800538W  # As Old as Time (2017), by Liz Braswell, 21 reading logs
+ol-OL20682712W  # They Went Left (2020), by Monica Hesse, 21 reading logs
+ol-OL19667474W  # Mighty Jack and the Goblin King (2017), by Ben Hatke, 21 reading logs
+ol-OL26595734W  # Squire (2022), by Nadia Shammas, 21 reading logs
+ol-OL35262331W  # Cursed (2022), by Marissa Meyer, 21 reading logs
+ol-OL17756831W  # Light (2013), by Michael Grant, 21 reading logs
+ol-OL16471215W  # Angel fire (2011), by Lee Weatherly, 21 reading logs
+ol-OL18021641W  # Imposters (2018), by Scott Westerfeld, 21 reading logs
+ol-OL20634473W  # The Guinevere deception (2019), by Kiersten White, 21 reading logs
+ol-OL17692154W  # Girls like us (2014), by Gail Giles, 20 reading logs
+ol-OL17576557W  # The Sky So Heavy (2013), by Claire Zorn, 20 reading logs
+ol-OL20916006W  # Unspeakable (2014), by Michelle Pickett, 20 reading logs
+ol-OL20045202W  # Life in a fishbowl (2017), by Len Vlahos, 20 reading logs
+ol-OL20682702W  # Rules for Being a Girl (2020), by Candace Bushnell, 20 reading logs
+ol-OL20878733W  # Black Enough (2019), by Ibi Aanu Zoboi, 20 reading logs
+ol-OL21364291W  # Evermore (2018), by Sara Holland, 20 reading logs
+ol-OL16585205W  # The hunt (2012), by Andrew Fukuda, 20 reading logs
+ol-OL19634640W  # Star Wars - Rebel Rising (2017), by Beth Revis, 20 reading logs
+ol-OL21710664W  # The Lives of Saints (2019), by Leigh Bardugo, 20 reading logs
+ol-OL19727497W  # Girls made of snow and glass (2017), by Melissa Bashardoust, 20 reading logs
+ol-OL19965035W  # Of Triton (2013), by Anna Banks, 20 reading logs
+ol-OL21356310W  # Cupid's Match (2019), by Lauren Palphreyman, 20 reading logs
+ol-OL42765048W  # Holt and Whitlock (2024), by Jordyn Frederick, 20 reading logs
+ol-OL15946512W  # Summer and the city (2011), by Candace Bushnell, 19 reading logs
+ol-OL18820809W  # Falling into Place (2014), by Amy Zhang, 19 reading logs
+ol-OL21900680W  # Dear Justyce (2020), by Nic Stone, 19 reading logs
+ol-OL20162043W  # A Danger to Herself and Others (2019), by Alyssa Sheinmel, 19 reading logs
+ol-OL19664746W  # Far from the tree (2017), by Robin Benway, 19 reading logs
+ol-OL17695468W  # Trouble (2014), by Non Pratt, 19 reading logs
+ol-OL20805970W  # Catfishing on CatNet (2019), by Naomi Kritzer, 19 reading logs
+ol-OL20641045W  # Infinity son (2019), by Adam Silvera, 19 reading logs
+ol-OL20799127W  # Torn (2012), by Amanda Hocking, 19 reading logs
+ol-OL20882191W  # Butterfly Yellow (2019), by Thanhha Lai, 19 reading logs
+ol-OL17900754W  # None of the above (2015), by I. W. Gregorio, 19 reading logs
+ol-OL19086316W  # Reckless (2012), by Cornelia Funke, 19 reading logs
+ol-OL20112538W  # Of Ice and Shadows (2019), by Audrey Coulthurst, 19 reading logs
+ol-OL20048441W  # Witch's pyre (2016), by Josephine Angelini, 19 reading logs
+ol-OL17725389W  # Eve & Adam (2012), by Michael Grant, 19 reading logs
+ol-OL20730268W  # The Mermaid, the Witch, and the Sea (2020), by Maggie Tokuda-Hall, 19 reading logs
+ol-OL19663149W  # The five stages of Andrew Brawley (2015), by Shaun David Hutchinson, 19 reading logs
+ol-OL20882382W  # Finding Audrey (2015), by Sophie Kinsella, 18 reading logs
+ol-OL21688192W  # The Cost of Knowing (2021), by Brittney Morris, 18 reading logs
+ol-OL19995764W  # Vanishing Girls (2015), by Lauren Oliver, 18 reading logs
+ol-OL19734280W  # Tyler Johnson was here (2018), by Jay Coles, 18 reading logs
+ol-OL19662884W  # Pride (2018), by Ibi Aanu Zoboi, 18 reading logs
+ol-OL20640559W  # All the days past, all the days to come (2020), by Mildred D. Taylor, 18 reading logs
+ol-OL19762827W  # They call me Güero (2018), by David Bowles, 18 reading logs
+ol-OL16167343W  # Enchanted (2012), by Alethea Kontis, 18 reading logs
+ol-OL19734268W  # Mapping the bones (2018), by Jane Yolen, 18 reading logs
+ol-OL21501325W  # Think Twice (2016), by Sarah Mlynowski, 18 reading logs
+ol-OL20011873W  # From a distant star (2015), by Karen McQuestion, 18 reading logs

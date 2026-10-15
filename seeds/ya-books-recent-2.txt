@@ -1,0 +1,106 @@
+# Part 2 of 5 (ranks 101-200): the 500 most-read young adult books first published 2011-2026, by Open Library reading-log count.
+# Source: Open Library search, subjects "young adult fiction", "young adult works", or "teen fiction", language eng,
+# sort=readinglog; box sets, study guides, and duplicate works removed. Generated 2026-10-15.
+# Open Library tags some adult and crossover titles (romantasy, new adult) as YA; they are kept, since teens read them.
+# Run: npm run batch -- seeds/ya-books-recent-2.txt --dry-run
+
+ol-OL20831007W  # How the King of Elfhame Learned to Hate Stories (2020), by Holly Black, 197 reading logs
+ol-OL20757074W  # Cemetery Boys (2020), by Aiden Thomas, 197 reading logs
+ol-OL17478478W  # Half Bad (2014), by Sally Green, 196 reading logs
+ol-OL21154491W  # I Was Born for This (2018), by Alice Oseman, 188 reading logs
+ol-OL20863101W  # Concrete Rose (2021), by Angie Thomas, 187 reading logs
+ol-OL19662996W  # Crush (2018), by Svetlana Chmakova, 172 reading logs
+ol-OL20670162W  # Life and Death (2015), by Stephenie Meyer, 170 reading logs
+ol-OL20148038W  # Broken Throne (2019), by Victoria Aveyard, 169 reading logs
+ol-OL16617537W  # Every day (2012), by David Levithan, 164 reading logs
+ol-OL20155371W  # A Curse So Dark and Lonely (2019), by Brigid Kemmerer, 163 reading logs
+ol-OL15586813W  # Delirium (2011), by Lauren Oliver, 161 reading logs
+ol-OL17874830W  # Dangerous Lies (2015), by Becca Fitzpatrick, 159 reading logs
+ol-OL20919204W  # Crier's War (2019), by Nina Varela, 157 reading logs
+ol-OL21691171W  # This Winter (2015), by Alice Oseman, 157 reading logs
+ol-OL37572598W  # The Reappearance of Rachel Price (2024), by Holly Jackson, 157 reading logs
+ol-OL20805905W  # Firekeeper's Daughter (2021), by Angeline Boulley, 157 reading logs
+ol-OL19668417W  # We are okay (2017), by Nina LaCour, 156 reading logs
+ol-OL21703280W  # Rule of Wolves (2021), by Leigh Bardugo, 155 reading logs
+ol-OL24592776W  # Ace of Spades (2019), by Faridah Àbíké-Íyímídé, 153 reading logs
+ol-OL22150465W  # Crush (2020), by Tracy Wolff, 151 reading logs
+ol-OL20651342W  # Chain of Gold (2019), by Cassandra Clare, 147 reading logs
+ol-OL17717265W  # Library of Souls (Miss Peregrine’s Peculiar Children 3) (2015), by Ransom Riggs, 147 reading logs
+ol-OL26602235W  # Belladonna (2022), by Adalyn Grace, 147 reading logs
+ol-OL18008837W  # History Is All You Left Me (2017), by Adam Silvera, 146 reading logs
+ol-OL17876071W  # When Dimple Met Rishi (2017), by Sandhya Menon, 144 reading logs
+ol-OL34957950W  # Murtagh (2023), by Christopher Paolini, 143 reading logs
+ol-OL16807251W  # Two Boys Kissing (2013), by David Levithan, 141 reading logs
+ol-OL15746656W  # Anya's ghost (2011), by Vera Brosgol, 138 reading logs
+ol-OL16126144W  # Code Name Verity (2012), by Elizabeth Wein, 137 reading logs
+ol-OL18543721W  # Girls of Paper and Fire (2018), by Natasha Ngan, 134 reading logs
+ol-OL20730641W  # Clap When You Land (2020), by Elizabeth Acevedo, 129 reading logs
+ol-OL17094879W  # This One Summer (2014), by Mariko Tamaki, 129 reading logs
+ol-OL20651847W  # The Toll (2019), by Neal Shusterman, 128 reading logs
+ol-OL17933286W  # Never Say Die (2017), by Anthony Horowitz, 126 reading logs
+ol-OL19762160W  # Archenemies (2014), by Marissa Meyer, 124 reading logs
+ol-OL20744409W  # Everything Sad Is Untrue (2020), by Daniel Nayeri, 123 reading logs
+ol-OL20142351W  # Wayward Son (2019), by Rainbow Rowell, 123 reading logs
+ol-OL18187337W  # The Bane Chronicles (2014), by Cassandra Clare, 122 reading logs
+ol-OL17339154W  # More Than This (2013), by Patrick Ness, 121 reading logs
+ol-OL20730652W  # Felix Ever After (2020), by Kacen Callender, 120 reading logs
+ol-OL16557740W  # The Program (2013), by Suzanne Young, 119 reading logs
+ol-OL19731287W  # The prince and the dressmaker (2018), by Jen Wang, 118 reading logs
+ol-OL17305107W  # The Infinite Sea (2014), by Richard Yancey, 117 reading logs
+ol-OL26825986W  # Youve Reached Sam (2021), by Dustin Thao, 116 reading logs
+ol-OL24778640W  # This Woven Kingdom (2022), by Tahereh Mafi, 111 reading logs
+ol-OL20521090W  # Again, but Better (2019), by Christine Riccio, 111 reading logs
+ol-OL17092593W  # Champion (2013), by Marie Lu, 111 reading logs
+ol-OL20416084W  # Supernova (2019), by Marissa Meyer, 111 reading logs
+ol-OL19340381W  # Tales from the Shadowhunter Academy (2016), by Cassandra Clare, 110 reading logs
+ol-OL16014238W  # The Power of Six (2011), by Pittacus Lore, 109 reading logs
+ol-OL20031490W  # The Problem with Forever (2016), by Jennifer L. Armentrout, 107 reading logs
+ol-OL18008835W  # Of Fire and Stars (2016), by Audrey Coulthurst, 107 reading logs
+ol-OL17511669W  # Reached (Matched Trilogy, Book 3) (2012), by Ally Condie, 107 reading logs
+ol-OL19075470W  # Starsight (2019), by Brandon Sanderson, 105 reading logs
+ol-OL21182345W  # Did I mention I love you? (2015), by Estelle Maskame, 105 reading logs
+ol-OL16116603W  # Akata witch (2011), by Nnedi Okorafor, 104 reading logs
+ol-OL20091317W  # Wilder Girls (2019), by Rory Power, 103 reading logs
+ol-OL17639376W  # First class murder (2015), by Robin Stevens, 100 reading logs
+ol-OL19623122W  # The Vanishing Stair (Truly Devious Book 2) (2019), by Maureen Johnson, 99 reading logs
+ol-OL19352271W  # The Darkest Part of the Forest (2015), by Holly Black, 98 reading logs
+ol-OL17876066W  # The Language of Thorns (2017), by Leigh Bardugo, 97 reading logs
+ol-OL17827992W  # La Belle Sauvage (2017), by Philip Pullman, 97 reading logs
+ol-OL17615005W  # Calamity (2016), by Brandon Sanderson, 96 reading logs
+ol-OL20155012W  # Bloom (2019), by Kevin Panetta, 96 reading logs
+ol-OL17321009W  # The Shepherd's Crown (2015), by Terry Pratchett, 96 reading logs
+ol-OL20828964W  # Am I normal yet? (2015), by Holly Bourne, 95 reading logs
+ol-OL36127439W  # Nightbane (2022), by Alex Aster, 94 reading logs
+ol-OL17323728W  # The Boy at the Top of the Mountain (2015), by John Boyne, 94 reading logs
+ol-OL17101607W  # Russian Roulette - Alex Rider 10 (2013), by Anthony Horowitz, 93 reading logs
+ol-OL17719038W  # Strange the Dreamer (2016), by Laini Taylor, 93 reading logs
+ol-OL20195113W  # Paperweight (2015), by Meg Haston, 93 reading logs
+ol-OL17081561W  # The Rithmatist (2013), by Brandon Sanderson, 92 reading logs
+ol-OL21838060W  # Long Way Down (2017), by Jason Reynolds, 91 reading logs
+ol-OL20153019W  # With the Fire on High (2019), by Elizabeth Acevedo, 91 reading logs
+ol-OL17710061W  # Carve the Mark (2016), by Veronica Roth, 90 reading logs
+ol-OL18821976W  # The Private School Murders (2013), by James Patterson, 90 reading logs
+ol-OL19548703W  # Cruel Crown (2016), by Victoria Aveyard, 88 reading logs
+ol-OL17073311W  # Fear Street Novel - Party Games (2014), by Robert Lawrence Stine, 85 reading logs
+ol-OL20856335W  # The Falling in Love Montage (2020), by Ciara Smyth, 80 reading logs
+ol-OL19622246W  # Tales of the Peculiar (2016), by Ransom Riggs, 80 reading logs
+ol-OL21896066W  # All This Time (2020), by Mikki Daughtry, 78 reading logs
+ol-OL20295823W  # Awake (2015), by Natasha Preston, 78 reading logs
+ol-OL17821420W  # The Eye of Minds (2013), by James Dashner, 78 reading logs
+ol-OL17400571W  # The Bunker Diary (2013), by Kevin Brooks, 78 reading logs
+ol-OL20336128W  # The 100 (2014), by Kass Morgan, 76 reading logs
+ol-OL20791719W  # The Gilded Ones (2020), by Namina Forna, 76 reading logs
+ol-OL20119852W  # Loki (2019), by Mackenzi Lee, 74 reading logs
+ol-OL22004671W  # Lore (2021), by Alexandra Bracken, 72 reading logs
+ol-OL20029535W  # Asking for it (2015), by Louise O'Neill, 72 reading logs
+ol-OL21659578W  # 1:35 AM (Five Nights at Freddy's (2020), by Scott Cawthon, 71 reading logs
+ol-OL19751537W  # That's Not What Happened (2018), by Kody Keplinger, 71 reading logs
+ol-OL25469674W  # Tesori Perduti (2018), by Elisabetta Dami, 71 reading logs
+ol-OL23612762W  # Any Way the Wind Blows (2021), by Rainbow Rowell, 70 reading logs
+ol-OL19369714W  # Star Wars - Lost Stars (2015), by Claudia Gray, 70 reading logs
+ol-OL21887830W  # Clown in a Cornfield (2020), by Adam Cesare, 69 reading logs
+ol-OL20637387W  # The Conference of the Birds (2020), by Ransom Riggs, 69 reading logs
+ol-OL24407365W  # The Betrayed (2021), by Kiera Cass, 68 reading logs
+ol-OL20184676W  # The Weight of Water (2012), by Sarah Crossan, 68 reading logs
+ol-OL20760827W  # The Magic Fish (2020), by Le Nguyen Trung, 67 reading logs
+ol-OL19751476W  # Darius the Great is not okay (2018), by Adib Khorram, 67 reading logs

@@ -1,9 +1,12 @@
 import "./style.css";
 import {
   CATEGORIES,
+  CATEGORY_SECTIONS,
+  COMPOSITES,
   SCORE_LABELS,
   SCORE_MAX,
   TREATMENTS,
+  type Category,
   type CategoryId,
   type TreatmentId,
 } from "../shared/categories.js";
@@ -41,13 +44,37 @@ function renderPrefs(): void {
       <button type="button" data-all="show">Show all</button>
       <button type="button" data-all="hide">Hide all</button>
     </p>
-    ${CATEGORIES.map(
-      (c) => `
-      <label class="pref">
-        <input type="checkbox" value="${c.id}" ${hidden.has(c.id) ? "" : "checked"} />
-        <span>${esc(c.label)}</span>
-      </label>`,
+    ${CATEGORY_SECTIONS.map(
+      (section) => `
+      <fieldset class="pref-section">
+        <legend>${esc(section.label)}</legend>
+        ${CATEGORIES.filter((c) => c.section === section.id)
+          .map(
+            (c) => `
+        <label class="pref">
+          <input type="checkbox" value="${c.id}" ${hidden.has(c.id) ? "" : "checked"} />
+          <span>${esc(c.label)}</span>
+        </label>`,
+          )
+          .join("")}
+      </fieldset>`,
     ).join("")}`;
+}
+
+/**
+ * Table rows for the visible categories, with a heading row before each
+ * section. A section with no rows gets no heading.
+ */
+function sectionRows(row: (c: Category) => string, columns: number): string {
+  const visible = visibleCategories(hidden);
+  return CATEGORY_SECTIONS.map((section) => {
+    const rows = visible
+      .filter((c) => c.section === section.id)
+      .map(row)
+      .filter(Boolean)
+      .join("");
+    return rows ? `<tr class="section-row"><th colspan="${columns}" scope="colgroup">${esc(section.label)}</th></tr>${rows}` : "";
+  }).join("");
 }
 
 prefsBody.addEventListener("change", (e) => {
@@ -97,31 +124,96 @@ function creditHtml(e: CreditEntry): string {
     : esc(e.name);
 }
 
-/** Title, poster, year, rating, credits, and themes. */
-function infoBox(title: string, subtitle: string | null, info: WorkInfo | undefined, themes: string[] = []): string {
+/** Title area: poster, title, year, rating, and the composites. Details go lower on the page. */
+function titleHeader(title: string, subtitle: string | null, info: WorkInfo | undefined, composites: string): string {
   const facts = [
     info?.years ? `<span>${esc(info.years)}</span>` : "",
     info?.rating
       ? `<span class="rating" title="${esc(info.rating.system)} rating">${esc(info.rating.value)}</span>`
       : "",
   ].filter(Boolean);
+  return `
+    <section class="title-area${info?.imageUrl ? " has-poster" : ""}">
+      ${info?.imageUrl ? `<img class="poster" src="${esc(info.imageUrl)}" alt="" />` : ""}
+      <div class="title-text">
+        <h1>${esc(title)}${subtitle ? ` <span class="muted">— ${esc(subtitle)}</span>` : ""}</h1>
+        ${facts.length ? `<p class="facts">${facts.join("")}</p>` : ""}
+      </div>
+      ${composites}
+    </section>`;
+}
+
+/** Average and highest of the given scores, or null if there are none. */
+function summarize(scores: (number | undefined)[]): { avg: number; max: number } | null {
+  const known = scores.filter((n): n is number => typeof n === "number");
+  if (!known.length) return null;
+  return { avg: known.reduce((a, b) => a + b, 0) / known.length, max: Math.max(...known) };
+}
+
+const pct = (score: number) => `${Math.round((score / SCORE_MAX) * 100)}%`;
+
+/**
+ * One composite: the average, with the highest single score as a faded layer
+ * behind it on the same bar. An average alone can hide one strong topic.
+ */
+function compositeTile(label: string, { avg, max }: { avg: number; max: number }): string {
+  const level = Math.round(avg);
+  const showMax = max > avg;
+  return `
+    <div class="composite" aria-label="${esc(label)}: average ${avg.toFixed(1)}, highest ${max} of ${SCORE_MAX}">
+      <span class="composite-label">${esc(label)}</span>
+      <span class="composite-value"><strong>${avg.toFixed(1)}</strong> / ${SCORE_MAX}</span>
+      <span class="bar layered" aria-hidden="true">
+        ${showMax ? `<span class="bar-max" data-level="${max}" style="width:${pct(max)}"></span>` : ""}
+        <span class="bar-avg" data-level="${level}" style="width:${pct(avg)}"></span>
+      </span>
+      <span class="composite-label">${esc(SCORE_LABELS[level])}${showMax ? ` · highest ${max}` : ""}</span>
+    </div>`;
+}
+
+/**
+ * Group composites: the average score of the group's topics that the user has
+ * not hidden. A group with every topic hidden is left out. For a series, pass
+ * the highest score of each topic; the labels then say "up to".
+ */
+function compositesHtml(scoreOf: (id: CategoryId) => number | undefined, opts: { upTo?: boolean } = {}): string {
+  const visible = new Set(visibleCategories(hidden).map((c) => c.id));
+  const tiles = COMPOSITES.flatMap((group) => {
+    const result = summarize(group.categories.filter((id) => visible.has(id)).map(scoreOf));
+    return result ? [compositeTile(`${opts.upTo ? "Up to · " : ""}${group.label}`, result)] : [];
+  });
+  return tiles.length ? `<div class="composites">${tiles.join("")}</div>` : "";
+}
+
+/**
+ * Jump links to the sections below. Buttons, not #anchors: the page uses the
+ * URL hash for routing.
+ */
+function jumpLinks(sections: [id: string, label: string][]): string {
+  return `<nav class="jumps" aria-label="On this page">${sections
+    .map(([id, label]) => `<button type="button" data-jump="${id}">${esc(label)}</button>`)
+    .join("")}</nav>`;
+}
+
+/** Details box: credits, themes, and the catalog link. */
+function detailsBox(info: WorkInfo | undefined, themes: string[] = []): string {
   // Values are HTML: credits may contain links.
   const rows: [label: string, html: string][] = [
     ...(info?.credits ?? []).map((c): [string, string] => [c.label, (c.entries ?? []).map(creditHtml).join(", ")]),
     ...(themes.length ? [["Themes", esc(themes.join(" · "))] as [string, string]] : []),
   ];
   return `
-    <section class="info">
-      ${info?.imageUrl ? `<img class="poster" src="${esc(info.imageUrl)}" alt="" />` : ""}
-      <div class="info-text">
-        <h1>${esc(title)}${subtitle ? ` <span class="muted">— ${esc(subtitle)}</span>` : ""}</h1>
-        ${facts.length ? `<p class="facts">${facts.join("")}</p>` : ""}
-        ${
-          rows.length
-            ? `<dl>${rows.map(([label, html]) => `<div><dt>${esc(label)}</dt><dd>${html}</dd></div>`).join("")}</dl>`
-            : ""
-        }
-        ${info?.source ? `<p class="source"><a href="${esc(info.source.url)}" target="_blank" rel="noopener">View on ${esc(info.source.name)}</a></p>` : ""}
+    <section class="card section" id="sec-details">
+      <h2>Details</h2>
+      <div class="info">
+        <div class="info-text">
+          ${
+            rows.length
+              ? `<dl>${rows.map(([label, html]) => `<div><dt>${esc(label)}</dt><dd>${html}</dd></div>`).join("")}</dl>`
+              : `<p class="muted">No details available.</p>`
+          }
+          ${info?.source ? `<p class="source"><a href="${esc(info.source.url)}" target="_blank" rel="noopener">View on ${esc(info.source.name)}</a></p>` : ""}
+        </div>
       </div>
     </section>`;
 }
@@ -134,37 +226,44 @@ function errorHtml(err: unknown): string {
   return `<p class="status error">${esc((err as Error).message)}</p>`;
 }
 
-function reportCard(report: Report, stale?: boolean): string {
-  const rows = visibleCategories(hidden)
-    .map((c) => {
-      const r = report.categories[c.id];
-      if (!r) return "";
-      return `
+function hiddenNote(): string {
+  const hiddenCount = CATEGORIES.length - visibleCategories(hidden).length;
+  return hiddenCount ? `<p class="muted small">${hiddenCount} topic(s) hidden by your preferences.</p>` : "";
+}
+
+function ratingsSection(report: Report): string {
+  const rows = sectionRows((c) => {
+    const r = report.categories[c.id];
+    if (!r) return "";
+    return `
       <tr>
         <th scope="row">${esc(c.label)}</th>
         <td class="score">${scoreBar(r.score)}<span class="score-label">${r.score} · ${esc(SCORE_LABELS[r.score])}</span>${treatmentChip(r.treatment)}</td>
         <td>${esc(r.notes)}</td>
       </tr>`;
-    })
-    .join("");
-  const hiddenCount = CATEGORIES.length - visibleCategories(hidden).length;
-  const positives = report.positives ?? [];
+  }, 3);
   return `
-    <section class="card">
-      <p class="summary">${esc(report.summary)}</p>
-      ${report.confidence === "low" ? `<p class="notice">The AI knows this work only a little. Details can be wrong.</p>` : ""}
-      ${stale ? `<p class="notice">This result could not be refreshed just now. It may be out of date.</p>` : ""}
-      ${
-        positives.length
-          ? `<div class="positives"><h2>Positive elements</h2><ul>${positives.map((p) => `<li>${esc(p)}</li>`).join("")}</ul></div>`
-          : ""
-      }
+    <section class="card section" id="sec-ratings">
+      <h2>Ratings</h2>
       <table class="ratings">
         <thead><tr><th>Topic</th><th>Level</th><th>Details</th></tr></thead>
         <tbody>${rows || `<tr><td colspan="3" class="muted">All topics are hidden. Change "My concerns" to see them.</td></tr>`}</tbody>
       </table>
-      ${hiddenCount ? `<p class="muted small">${hiddenCount} topic(s) hidden by your preferences.</p>` : ""}
-      <p class="muted small">Rated ${esc(new Date(report.refreshedAt).toLocaleDateString())} by ${esc(report.model)} · confidence: ${esc(report.confidence)}</p>
+      ${hiddenNote()}
+    </section>`;
+}
+
+function summarySection(report: Report): string {
+  const positives = report.positives ?? [];
+  return `
+    <section class="card section" id="sec-summary">
+      <h2>Summary</h2>
+      <p class="summary">${esc(report.summary)}</p>
+      ${
+        positives.length
+          ? `<div class="positives"><h3>Positive elements</h3><ul>${positives.map((p) => `<li>${esc(p)}</li>`).join("")}</ul></div>`
+          : ""
+      }
     </section>`;
 }
 
@@ -208,9 +307,19 @@ async function showReport(id: string): Promise<string> {
       <p class="status">Not yet released${res.releaseDate ? ` (expected ${esc(res.releaseDate)})` : ""}. Ratings are available after release.</p>`;
   }
   const r = res.report;
+  pageMeta = `Rated ${new Date(r.refreshedAt).toLocaleDateString()} by ${r.model} · confidence: ${r.confidence}`;
   return `${back}
-    ${infoBox(r.title, r.kind === "tv-season" ? r.subtitle : null, r.info, r.themes)}
-    ${reportCard(r, res.stale)}`;
+    ${titleHeader(r.title, r.kind === "tv-season" ? r.subtitle : null, r.info, compositesHtml((id) => r.categories[id]?.score))}
+    ${r.confidence === "low" ? `<p class="notice">The AI knows this work only a little. Details can be wrong.</p>` : ""}
+    ${res.stale ? `<p class="notice">This result could not be refreshed just now. It may be out of date.</p>` : ""}
+    ${jumpLinks([
+      ["sec-ratings", "Ratings"],
+      ["sec-summary", "Summary"],
+      ["sec-details", "Details"],
+    ])}
+    ${ratingsSection(r)}
+    ${summarySection(r)}
+    ${detailsBox(r.info, r.themes)}`;
 }
 
 /** Themes across the rated seasons, most frequent first. */
@@ -226,32 +335,16 @@ async function showSeries(tmdbId: string): Promise<string> {
   setLoading("Loading series…");
   const s: SeriesResponse = await api.series(tmdbId);
   const agg = s.aggregate;
-  const aggRows = visibleCategories(hidden)
-    .map((c) => {
-      const range = agg.categories[c.id];
-      if (!range) return "";
-      const text = range.min === range.max ? `${range.max}` : `${range.min}–${range.max}`;
-      return `<tr><th scope="row">${esc(c.label)}</th><td class="score">${rangeBar(range)}<span class="score-label">${text}</span></td></tr>`;
-    })
-    .join("");
+  const aggRows = sectionRows((c) => {
+    const range = agg.categories[c.id];
+    if (!range) return "";
+    const text = range.min === range.max ? `${range.max}` : `${range.min}–${range.max}`;
+    return `<tr><th scope="row">${esc(c.label)}</th><td class="score">${rangeBar(range)}<span class="score-label">${text}</span></td></tr>`;
+  }, 2);
 
-  return `
-    ${infoBox(s.title, null, s.info, seriesThemes(s))}
-    ${s.overview ? `<p>${esc(s.overview)}</p>` : ""}
-    <section class="card">
-      <h2>Whole series</h2>
-      ${
-        agg.ratedSeasons
-          ? `${agg.partial ? `<p class="notice">Partial: based on ${agg.ratedSeasons} of ${agg.releasedSeasons} released seasons. Rate more seasons below to complete it.</p>` : ""}
-             <table class="ratings"><tbody>${aggRows}</tbody></table>`
-          : `<p class="muted">No seasons rated yet. Select a season below.</p>`
-      }
-    </section>
-    <h2>Seasons</h2>
-    <ul class="seasons">
-      ${s.seasons
-        .map(
-          (season) => `
+  const seasonsList = s.seasons
+    .map(
+      (season) => `
         <li>
           <span><strong>${esc(season.name)}</strong> <span class="muted small">${season.episodeCount} episodes${season.airDate ? ` · ${esc(season.airDate.slice(0, 4))}` : ""}</span></span>
           ${
@@ -262,9 +355,35 @@ async function showSeries(tmdbId: string): Promise<string> {
                 : `<span class="muted small">Not yet released</span>`
           }
         </li>`,
-        )
-        .join("")}
-    </ul>`;
+    )
+    .join("");
+
+  const sections: [string, string][] = [
+    ["sec-ratings", "Ratings"],
+    ["sec-seasons", "Seasons"],
+    ...(s.overview ? ([["sec-summary", "Summary"]] as [string, string][]) : []),
+    ["sec-details", "Details"],
+  ];
+
+  return `
+    ${titleHeader(s.title, null, s.info, compositesHtml((id) => agg.categories[id]?.max, { upTo: true }))}
+    ${jumpLinks(sections)}
+    <section class="card section" id="sec-ratings">
+      <h2>Ratings for the whole series</h2>
+      ${
+        agg.ratedSeasons
+          ? `${agg.partial ? `<p class="notice">Partial: based on ${agg.ratedSeasons} of ${agg.releasedSeasons} released seasons. Rate more seasons below to complete it.</p>` : ""}
+             <table class="ratings"><tbody>${aggRows}</tbody></table>
+             ${hiddenNote()}`
+          : `<p class="muted">No seasons rated yet. Select a season below.</p>`
+      }
+    </section>
+    <section class="card section" id="sec-seasons">
+      <h2>Seasons</h2>
+      <ul class="seasons">${seasonsList}</ul>
+    </section>
+    ${s.overview ? `<section class="card section" id="sec-summary"><h2>Summary</h2><p class="summary">${esc(s.overview)}</p></section>` : ""}
+    ${detailsBox(s.info, seriesThemes(s))}`;
 }
 
 const RECENT_HEADINGS: Record<RecentItem["kind"], string> = { movie: "Movies", tv: "TV shows", book: "Books" };
@@ -318,8 +437,13 @@ async function showHome(): Promise<string> {
 // Each navigation gets a number, so a slow response cannot overwrite a newer view.
 let navSeq = 0;
 
+/** Line for the site footer about the current page (e.g. the rating date). Views set it. */
+let pageMeta = "";
+const pageMetaEl = document.querySelector<HTMLElement>("#page-meta")!;
+
 async function route(): Promise<void> {
   const seq = ++navSeq;
+  pageMeta = "";
   const hash = location.hash.replace(/^#/, "") || "/";
   let html: string;
   try {
@@ -331,13 +455,23 @@ async function route(): Promise<void> {
   } catch (err) {
     html = errorHtml(err);
   }
-  if (seq === navSeq) app.innerHTML = html;
+  if (seq !== navSeq) return;
+  app.innerHTML = html;
+  pageMetaEl.textContent = pageMeta;
+  pageMetaEl.hidden = !pageMeta;
 }
 
 searchForm.addEventListener("submit", (e) => {
   e.preventDefault();
   const q = searchInput.value.trim();
   if (q.length >= 2) location.hash = `#/search?q=${encodeURIComponent(q)}`;
+});
+
+app.addEventListener("click", (e) => {
+  const id = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-jump]")?.dataset.jump;
+  if (!id) return;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.getElementById(id)?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
 });
 
 window.addEventListener("hashchange", () => void route());

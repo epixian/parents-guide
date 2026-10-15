@@ -17,7 +17,7 @@ import { config } from "./config.js";
 import { HttpError } from "./http.js";
 
 /** Bump when the prompt or the category list changes. Stored in each cached result. */
-export const PROMPT_VERSION = 4;
+export const PROMPT_VERSION = 5;
 
 // The API does not enforce numeric ranges or enums inside nested objects; the
 // SDK only checks them after the response arrives, and a failed check wastes

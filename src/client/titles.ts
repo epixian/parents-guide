@@ -17,9 +17,12 @@ const SUGGEST_LIMIT = 8;
 
 let list: { at: number; titles: Promise<IndexEntry[]>; ready: boolean } | null = null;
 
+type Connection = { saveData?: boolean; effectiveType?: string };
+const connection = () => (navigator as Navigator & { connection?: Connection }).connection;
+
 /** True when the visitor turned on data saver (Chrome and Edge only; other browsers give no value). */
 function saveData(): boolean {
-  return (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
+  return connection()?.saveData === true;
 }
 
 /** The list, loaded or checked again when older than maxAge. Null when the server must filter. */
@@ -40,6 +43,17 @@ function load(maxAge: number): Promise<IndexEntry[]> | null {
 /** Start to load the list, for example when the search box gets focus. */
 export function preloadTitles(): void {
   void load(MAX_AGE_MS)?.catch(() => {});
+}
+
+/**
+ * Load the list when the browser is idle, so the first search or browse needs
+ * no wait. For the home page, where most visitors search or browse next. Not
+ * on a slow connection (Chrome and Edge only); the search box still loads it on focus.
+ */
+export function prefetchTitles(): void {
+  if (/2g|3g/.test(connection()?.effectiveType ?? "")) return;
+  if ("requestIdleCallback" in window) requestIdleCallback(preloadTitles, { timeout: 5000 });
+  else setTimeout(preloadTitles, 2000); // Safari
 }
 
 /** True when suggestions can come from a loaded list, with no network wait. */

@@ -28,7 +28,7 @@ import type {
   WorkInfo,
 } from "../shared/types.js";
 import { api } from "./api.js";
-import { browse, preloadTitles, suggest, titlesReady } from "./titles.js";
+import { browse, prefetchTitles, preloadTitles, suggest, titlesReady } from "./titles.js";
 import { loadHidden, markTipSeen, saveHidden, tipSeen, visibleCategories } from "./prefs.js";
 
 const app = document.querySelector<HTMLElement>("#app")!;
@@ -770,6 +770,7 @@ async function showHome(): Promise<string> {
   searchInput.value = "";
   // These lists are a bonus: if one fails to load, show the home page without it.
   const [trending, recent] = await Promise.all([api.trending().catch(() => []), api.recent().catch(() => null)]);
+  afterRender = prefetchTitles;
   return `
     <section class="hero">
       <h1>Know what is in it before your kids see it.</h1>

@@ -10,14 +10,29 @@ import { HttpError } from "./http.js";
 import type { ReportService } from "./reports.js";
 import type { SearchCache } from "./searchCache.js";
 
-function clientKey(c: Context): string {
-  if (config.trustProxy) {
-    const forwarded = c.req.header("x-forwarded-for")?.split(",")[0]?.trim();
-    if (forwarded) return forwarded;
-    const real = c.req.header("x-real-ip");
+/**
+ * The visitor's address, for the AI limit and trending. Behind nginx, use
+ * X-Real-IP: nginx sets it to the connecting address, so a client cannot
+ * change it. Never the first X-Forwarded-For entry: nginx appends to whatever
+ * the client sent, so that entry can be any value. The last entry is the one
+ * that nginx added.
+ */
+export function clientAddress(
+  header: (name: string) => string | undefined,
+  remote: string | undefined,
+  trustProxy: boolean,
+): string {
+  if (trustProxy) {
+    const real = header("x-real-ip")?.trim();
     if (real) return real;
+    const forwarded = header("x-forwarded-for")?.split(",").at(-1)?.trim();
+    if (forwarded) return forwarded;
   }
-  return getConnInfo(c).remote.address ?? "unknown";
+  return remote ?? "unknown";
+}
+
+function clientKey(c: Context): string {
+  return clientAddress((name) => c.req.header(name), getConnInfo(c).remote.address, config.trustProxy);
 }
 
 export function createApi(reports: ReportService, searchCache: SearchCache, titlesBrotli = new BrotliCache()): Hono {

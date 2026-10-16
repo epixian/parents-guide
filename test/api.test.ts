@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import zlib from "node:zlib";
 import assert from "node:assert/strict";
-import { createApi } from "../src/server/app.js";
+import { clientAddress, createApi } from "../src/server/app.js";
 import { acceptsBrotli, BrotliCache } from "../src/server/brotliCache.js";
 import type { ReportService } from "../src/server/reports.js";
 import type { SearchCache } from "../src/server/searchCache.js";
@@ -87,4 +87,16 @@ test("acceptsBrotli reads Accept-Encoding", () => {
   assert.equal(acceptsBrotli("gzip"), false);
   assert.equal(acceptsBrotli("brotli"), false);
   assert.equal(acceptsBrotli(undefined), false);
+});
+
+test("clientAddress cannot be set by the client behind nginx", () => {
+  const headers = (h: Record<string, string>) => (name: string) => h[name];
+  // nginx: X-Real-IP $remote_addr; X-Forwarded-For $proxy_add_x_forwarded_for (client value, then the real address).
+  const spoofed = headers({ "x-real-ip": "203.0.113.7", "x-forwarded-for": "1.2.3.4, 203.0.113.7" });
+  assert.equal(clientAddress(spoofed, "127.0.0.1", true), "203.0.113.7");
+  assert.equal(clientAddress(headers({ "x-forwarded-for": "1.2.3.4, 203.0.113.7" }), "127.0.0.1", true), "203.0.113.7");
+  assert.equal(clientAddress(headers({}), "127.0.0.1", true), "127.0.0.1");
+  // Without a trusted proxy, headers are ignored.
+  assert.equal(clientAddress(spoofed, "198.51.100.2", false), "198.51.100.2");
+  assert.equal(clientAddress(headers({}), undefined, false), "unknown");
 });

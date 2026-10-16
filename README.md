@@ -14,6 +14,8 @@ AI summaries of parental concerns for movies, TV shows, and books. A user search
 
 7. `GET /api/watch/:id` returns the US streaming services for a movie or TV series (`tmdb-movie-603`, `tmdb-tv-1399`; a season id gets the series' services). It keeps subscription, free, and free-with-ads services, and leaves out rent and buy. TMDB lists some brands many times (Starz, Starz Amazon Channel, Starz Apple TV channel); the server groups them into one entry, and puts the top 10 US services first (`TOP` in `src/server/watchProviders.ts`). A title page shows up to 3 logos and a "+N more" link. `GET /api/providers` returns every US service, for the "My services" panel. TMDB has this data from JustWatch; the site footer credits JustWatch. Users uncheck the services they do not have, and that choice stays in the browser (`localStorage`), like the hidden categories.
 
+8. `GET /api/similar/:id` returns up to 12 titles that TMDB recommends for a movie or TV series (a season id gets the series' list). The page shows them in a "Similar titles" section between Summary and Details. TMDB's "similar" list matches only on genres and keywords and gives poor results, so the server uses TMDB recommendations, without titles that have few votes.
+
 The AI prompt always covers every category, so one cached result serves every user. Filtering happens in the browser.
 
 ### Cache and refresh policy
@@ -41,6 +43,8 @@ Results refresh only when someone requests them, based on the title's age (see `
 Catalog facts (credits, poster, and the audience score from TMDB or Open Library) are reloaded on the next view when they are more than 30 days old. This is a catalog call only, with no AI cost. A book keeps the publisher that the AI gave.
 
 Streaming services are kept for one day in `<CACHE_DIR>/watch/`. The first request after that day gets them from TMDB again and replaces the file. If TMDB fails, the server uses the older file for up to one week. Files older than one week are deleted.
+
+Similar titles are kept for one week in `<CACHE_DIR>/similar/`, in the same way (fallback up to 30 days).
 
 No AI lookup happens before the release date. A TV season's age comes from its most recent aired episode. A book with only a publication year uses January 1 of that year.
 

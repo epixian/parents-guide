@@ -88,6 +88,12 @@ export class ReportService {
     return this.index.items(ids).slice(0, limit);
   }
 
+  /** Card data for the rated titles among the ids, in the same order. Others are skipped. */
+  async items(ids: string[]): Promise<RecentItem[]> {
+    await this.loadIndex();
+    return this.index.items(ids);
+  }
+
   /** Count a page view for the trending list. TV seasons count toward their series. */
   recordView(id: string, visitorKey: string): void {
     this.popularity.record(id.replace(/^(tmdb-tv-\d+)-s\d+$/, "$1"), visitorKey);

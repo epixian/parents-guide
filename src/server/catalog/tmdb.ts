@@ -287,6 +287,49 @@ export async function getTvSeason(tmdbId: string, seasonNumber: number, now: Dat
   };
 }
 
+/**
+ * The TMDB movie or TV series behind a report or series id: tmdb-movie-603,
+ * tmdb-tv-1399, or a season (tmdb-tv-1399-s01), which gives its series. Null
+ * for other ids (books).
+ */
+export function parseScreenId(id: string): { kind: "movie" | "tv"; tmdbId: string } | null {
+  const m = /^tmdb-(?:movie-(\d+)|tv-(\d+)(?:-s\d+)?)$/.exec(id);
+  if (!m) return null;
+  return m[1] ? { kind: "movie", tmdbId: m[1] } : { kind: "tv", tmdbId: m[2]! };
+}
+
+// ---------- Similar titles ----------
+
+interface RecommendationItem {
+  id: number;
+  media_type?: string;
+  adult?: boolean;
+}
+
+/** Pages of 20. The page shows only rated titles, so it needs more than one page to choose from. */
+const RECOMMENDATION_PAGES = 2;
+
+/**
+ * Ids of the titles that TMDB recommends for a movie or TV series
+ * (tmdb-movie-N, tmdb-tv-N), best first. TMDB's "similar" list matches on
+ * genres and keywords only and gives poor results; recommendations come from
+ * what users watch together.
+ */
+export async function getRecommendations(kind: "movie" | "tv", tmdbId: string): Promise<string[]> {
+  const pages = await Promise.all(
+    Array.from({ length: RECOMMENDATION_PAGES }, (_, i) =>
+      tmdb<{ results?: RecommendationItem[] }>(`/${kind}/${tmdbId}/recommendations?language=en-US&page=${i + 1}`),
+    ),
+  );
+  const ids = pages
+    .flatMap((p) => p.results ?? [])
+    .flatMap((r) => {
+      const type = r.media_type ?? kind;
+      return !r.adult && (type === "movie" || type === "tv") ? [`tmdb-${type}-${r.id}`] : [];
+    });
+  return [...new Set(ids)];
+}
+
 // ---------- Where to watch ----------
 
 /** Country for streaming availability. Same as the MPA and TV ratings. */

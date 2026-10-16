@@ -5,6 +5,7 @@ import { clientAddress, createApi } from "../src/server/app.js";
 import { acceptsBrotli, BrotliCache } from "../src/server/brotliCache.js";
 import type { ReportService } from "../src/server/reports.js";
 import type { SearchCache } from "../src/server/searchCache.js";
+import type { SimilarService } from "../src/server/similar.js";
 import type { WatchService } from "../src/server/watchProviders.js";
 import type { IndexEntry } from "../src/shared/types.js";
 
@@ -26,7 +27,7 @@ function apiWith(tag: { value: string }, brotli = new BrotliCache()) {
     titles: async () => ({ tag: tag.value, titles: [TITLE] }),
     browse: async () => ({ total: 0, offset: 0, items: [], tags: [] }),
   } as unknown as ReportService;
-  return createApi(reports, {} as SearchCache, {} as WatchService, brotli);
+  return createApi(reports, {} as SearchCache, {} as WatchService, {} as SimilarService, brotli);
 }
 
 test("GET /titles sends the list with an ETag, then 304 until the list changes", async () => {
@@ -100,4 +101,19 @@ test("clientAddress cannot be set by the client behind nginx", () => {
   // Without a trusted proxy, headers are ignored.
   assert.equal(clientAddress(spoofed, "198.51.100.2", false), "198.51.100.2");
   assert.equal(clientAddress(headers({}), undefined, false), "unknown");
+});
+
+test("GET /similar/:id answers with the rated titles only, in TMDB's order, up to 12", async () => {
+  const rated = new Set(["tmdb-movie-1", "tmdb-movie-3", ...Array.from({ length: 20 }, (_, i) => `tmdb-movie-${100 + i}`)]);
+  const reports = {
+    items: async (ids: string[]) => ids.filter((id) => rated.has(id)).map((id) => ({ ...TITLE, id })),
+  } as unknown as ReportService;
+  const similar = {
+    title: async () => ["tmdb-movie-3", "tmdb-movie-2", "tmdb-movie-1", ...Array.from({ length: 20 }, (_, i) => `tmdb-movie-${100 + i}`)],
+  } as unknown as SimilarService;
+  const api = createApi(reports, {} as SearchCache, {} as WatchService, similar);
+  const res = await api.request("/similar/tmdb-movie-329");
+  const ids = ((await res.json()) as IndexEntry[]).map((t) => t.id);
+  assert.equal(ids.length, 12);
+  assert.deepEqual(ids.slice(0, 3), ["tmdb-movie-3", "tmdb-movie-1", "tmdb-movie-100"]);
 });

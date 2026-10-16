@@ -11,6 +11,7 @@ import { Popularity } from "./popularity.js";
 import { RateLimiter } from "./rateLimit.js";
 import { ReportService } from "./reports.js";
 import { SearchCache } from "./searchCache.js";
+import { SimilarService } from "./similar.js";
 import { WatchService } from "./watchProviders.js";
 
 fs.mkdirSync(config.cacheDir, { recursive: true });
@@ -42,7 +43,11 @@ const watch = new WatchService(config.cacheDir);
 setInterval(() => void watch.prune(), 60 * 60 * 1000).unref();
 void watch.prune();
 
-app.route("/api", createApi(reports, searchCache, watch));
+const similar = new SimilarService(config.cacheDir);
+setInterval(() => void similar.prune(), 60 * 60 * 1000).unref();
+void similar.prune();
+
+app.route("/api", createApi(reports, searchCache, watch, similar));
 
 // Production: serve the built client. In development, Vite serves it instead.
 const clientDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../client");

@@ -47,8 +47,8 @@ export function preloadTitles(): void {
 
 /**
  * Load the list when the browser is idle, so the first search or browse needs
- * no wait. For the home page, where most visitors search or browse next. Not
- * on a slow connection (Chrome and Edge only); the search box still loads it on focus.
+ * no wait. Called once when the app starts, on any page. Not on a slow
+ * connection (Chrome and Edge only); the search box still loads it on focus.
  */
 export function prefetchTitles(): void {
   if (/2g|3g/.test(connection()?.effectiveType ?? "")) return;

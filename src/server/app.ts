@@ -9,6 +9,7 @@ import { config } from "./config.js";
 import { HttpError } from "./http.js";
 import type { ReportService } from "./reports.js";
 import type { SearchCache } from "./searchCache.js";
+import type { SimilarService } from "./similar.js";
 import type { WatchService } from "./watchProviders.js";
 
 /**
@@ -36,10 +37,14 @@ function clientKey(c: Context): string {
   return clientAddress((name) => c.req.header(name), getConnInfo(c).remote.address, config.trustProxy);
 }
 
+/** Cards in the "Similar titles" section. */
+const SIMILAR_LIMIT = 12;
+
 export function createApi(
   reports: ReportService,
   searchCache: SearchCache,
   watch: WatchService,
+  similar: SimilarService,
   titlesBrotli = new BrotliCache(),
 ): Hono {
   const api = new Hono();
@@ -137,6 +142,12 @@ export function createApi(
   api.get("/watch/:id", async (c) => c.json(await watch.title(c.req.param("id"))));
 
   api.get("/providers", async (c) => c.json(await watch.catalog()));
+
+  // Rated titles that TMDB recommends for a movie or TV series, best first.
+  api.get("/similar/:id", async (c) => {
+    const ids = await similar.title(c.req.param("id"));
+    return c.json((await reports.items(ids)).slice(0, SIMILAR_LIMIT));
+  });
 
   api.notFound((c) => c.json<ApiError>({ error: "Not found" }, 404));
 

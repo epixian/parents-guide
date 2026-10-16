@@ -36,5 +36,7 @@ export const api = {
   watch: (id: string) => get<WatchResponse>(`/api/watch/${encodeURIComponent(id)}`),
   /** Every streaming service, for "My services". */
   providers: () => get<WatchProvider[]>("/api/providers"),
+  /** Rated titles that TMDB recommends for a movie, TV series, or season (the series' list). */
+  similar: (id: string) => get<RecentItem[]>(`/api/similar/${encodeURIComponent(id)}`),
   series: (tmdbId: string) => get<SeriesResponse>(`/api/tv/${encodeURIComponent(tmdbId)}`),
 };

@@ -297,6 +297,62 @@ function loadWatch(id: string, seq: number): void {
     });
 }
 
+// ---------- Similar titles ----------
+
+/** Similar rated titles per title id, kept for one hour. */
+const similarCache = new Map<string, { at: number; items: RecentItem[] }>();
+
+function cachedSimilar(): RecentItem[] | null {
+  const hit = watchId ? similarCache.get(watchId) : undefined;
+  return hit && Date.now() - hit.at < 60 * 60 * 1000 ? hit.items : null;
+}
+
+/** True when the page gets a "Similar titles" section: movies and TV, unless the list is known to be empty. */
+const hasSimilar = () => Boolean(watchId) && cachedSimilar()?.length !== 0;
+
+function similarCardsHtml(items: RecentItem[]): string {
+  return `<ul class="cards">${items.map((item) => cardHtml(item, false, miniComposites(item))).join("")}</ul>`;
+}
+
+/** The "Similar titles" section, filled when the list arrives. Only rated titles show. */
+function similarSection(): string {
+  if (!hasSimilar()) return "";
+  const items = cachedSimilar();
+  const ready = items !== null;
+  return `
+    <section class="card section" id="sec-similar">
+      ${sectionHead("Similar titles")}
+      <div id="similar-slot"${ready ? "" : ` aria-busy="true"`}>
+        ${ready ? similarCardsHtml(items) : `<p class="status"><span class="spinner" aria-hidden="true"></span>Loading similar titles…</p>`}
+      </div>
+    </section>`;
+}
+
+/** Load the similar titles for the page; no-op when they came from the cache. */
+function loadSimilar(id: string, seq: number): void {
+  const slot = document.querySelector<HTMLElement>("#similar-slot");
+  if (!slot?.hasAttribute("aria-busy")) return;
+  const fill = (items: RecentItem[]) => {
+    const box = document.querySelector<HTMLElement>("#similar-slot");
+    if (seq !== navSeq || !box) return;
+    if (items.length) {
+      box.innerHTML = similarCardsHtml(items);
+      box.removeAttribute("aria-busy");
+      return;
+    }
+    // No rated similar titles (or an error): remove the section and its jump link.
+    document.querySelector("#sec-similar")?.remove();
+    document.querySelector('[data-jump="sec-similar"]')?.remove();
+  };
+  api
+    .similar(id)
+    .then((items) => {
+      similarCache.set(id, { at: Date.now(), items });
+      fill(items);
+    })
+    .catch(() => fill([]));
+}
+
 // ---------- Watchlist and thumbs ----------
 
 let watchlist = loadWatchlist();
@@ -879,10 +935,12 @@ async function showReport(id: string): Promise<string> {
     ${jumpLinks([
       ["sec-ratings", "Ratings"],
       ["sec-summary", "Summary"],
+      ...(hasSimilar() ? ([["sec-similar", "Similar"]] as [string, string][]) : []),
       ["sec-details", "Details"],
     ])}
     ${ratingsSection(r)}
     ${summarySection(r, mood)}
+    ${similarSection()}
     ${detailsBox(r.info, r.themes)}`;
 }
 
@@ -946,6 +1004,7 @@ async function showSeries(tmdbId: string): Promise<string> {
     ["sec-ratings", "Ratings"],
     ["sec-seasons", "Seasons"],
     ...(hasSummary ? ([["sec-summary", "Summary"]] as [string, string][]) : []),
+    ...(hasSimilar() ? ([["sec-similar", "Similar"]] as [string, string][]) : []),
     ["sec-details", "Details"],
   ];
 
@@ -975,6 +1034,7 @@ async function showSeries(tmdbId: string): Promise<string> {
           </section>`
         : ""
     }
+    ${similarSection()}
     ${detailsBox(s.info, seriesThemes(s))}`;
 }
 
@@ -1052,7 +1112,6 @@ async function showHome(): Promise<string> {
     // The rated titles give watchlist cards their bars. Loaded only for a watchlist.
     Object.keys(watchlist).length ? titlesById() : null,
   ]);
-  afterRender = prefetchTitles;
   return `
     <section class="hero">
       <h1>Know what is in it before your kids see it.</h1>
@@ -1367,7 +1426,10 @@ async function route(): Promise<void> {
   const after = afterRender as (() => void) | null;
   afterRender = null;
   after?.();
-  if (watchId) loadWatch(watchId, seq);
+  if (watchId) {
+    loadWatch(watchId, seq);
+    loadSimilar(watchId, seq);
+  }
   pageMetaEl.textContent = pageMeta;
   pageMetaEl.hidden = !pageMeta;
   footerEl.hidden = false;
@@ -1558,3 +1620,6 @@ app.addEventListener("click", (e) => {
 window.addEventListener("hashchange", () => void route());
 renderPrefs();
 void route();
+// Load the rated titles when the browser is idle, on any first page, so search,
+// browse, and the watchlist bars need no wait later.
+prefetchTitles();

@@ -1658,21 +1658,43 @@ let currentHash = "";
 /** The poster image of the last clicked link, to prefer it when a title shows in two lists. */
 let clickedPoster: HTMLImageElement | null = null;
 
+/**
+ * For each page, the poster link that was last clicked on it: which of the
+ * links to that title it was, in page order. A title can show in several rows
+ * (Trending and the watchlist); Back returns the poster to the one clicked.
+ */
+const clickedOn = new Map<string, { href: string; n: number }>();
+
+/** Poster links to a route on the page, in page order. */
+const posterLinks = (href: string) =>
+  [...app.querySelectorAll<HTMLAnchorElement>(`a[href="${CSS.escape(href)}"]`)].filter((a) => a.querySelector("img"));
+
 document.addEventListener(
   "click",
   (e) => {
-    clickedPoster = (e.target as HTMLElement).closest("a")?.querySelector("img") ?? null;
+    const link = (e.target as HTMLElement).closest("a");
+    clickedPoster = link?.querySelector("img") ?? null;
+    const href = link?.getAttribute("href");
+    if (clickedPoster && href?.startsWith("#/") && app.contains(link)) {
+      clickedOn.set(currentHash, { href, n: posterLinks(href).indexOf(link!) });
+    }
   },
   true,
 );
 
 const isTitlePage = (hash: string) => /^\/(r|tv)\//.test(hash);
 
-/** A visible poster in a link to the given route, preferring the clicked one. */
+/**
+ * A visible poster in a link to the given route on the page now shown. The
+ * one that was clicked on this page comes first, if it is still there.
+ */
 function listPoster(hash: string): HTMLImageElement | null {
   const href = `#${hash}`;
-  if (clickedPoster?.isConnected && clickedPoster.closest("a")?.getAttribute("href") === href) return clickedPoster;
-  for (const img of app.querySelectorAll<HTMLImageElement>(`a[href="${CSS.escape(href)}"] img`)) {
+  const links = posterLinks(href);
+  const clicked = clickedOn.get(currentHash);
+  const order = clicked?.href === href && links[clicked.n] ? [links[clicked.n]!, ...links] : links;
+  for (const link of order) {
+    const img = link.querySelector("img")!;
     const box = img.getBoundingClientRect();
     if (box.bottom > 0 && box.top < window.innerHeight && box.width) return img;
   }
@@ -1681,25 +1703,77 @@ function listPoster(hash: string): HTMLImageElement | null {
 
 const titlePoster = () => app.querySelector<HTMLImageElement>(".title-area .poster");
 
+/**
+ * A poster that leaves the page before the next page is ready (a search
+ * suggestion closes when it is chosen): a copy of it stays at the same screen
+ * position until the animation takes it, or for one second at most.
+ */
+let heldPoster: { img: HTMLImageElement; hash: string } | null = null;
+
+function holdPoster(img: HTMLImageElement | null, hash: string): void {
+  heldPoster?.img.remove();
+  heldPoster = null;
+  const box = img?.getBoundingClientRect();
+  if (!img || !box?.width) return;
+  const copy = img.cloneNode() as HTMLImageElement;
+  Object.assign(copy.style, {
+    position: "fixed",
+    left: `${box.left}px`,
+    top: `${box.top}px`,
+    width: `${box.width}px`,
+    height: `${box.height}px`,
+    margin: "0",
+    zIndex: "1000",
+    pointerEvents: "none",
+  });
+  document.body.append(copy);
+  const held = { img: copy, hash };
+  heldPoster = held;
+  setTimeout(() => {
+    if (heldPoster !== held) return;
+    copy.remove();
+    heldPoster = null;
+  }, 1000);
+}
+
 /** Wait for an image to be ready to draw, but not for long. */
 const imageReady = (img: HTMLImageElement) =>
   Promise.race([img.decode().catch(() => {}), new Promise((resolve) => setTimeout(resolve, 300))]);
 
-/** Run render(), animating the poster from the old page to the new one when both pages have it. */
+/**
+ * Run render(), animating the poster from the old page to the new one when both
+ * pages have it. Direction:
+ * - A clicked poster links to the new page (a card, a search result, a
+ *   Similar card, or a search suggestion): it moves to the new title page's poster.
+ * - Otherwise, leaving a title page (Back): its poster moves to the card for
+ *   it on the new page, which can be a list or another title's Similar section,
+ *   or to the new page's poster when that is a title page with no such card.
+ * - Otherwise (Forward): a visible card for the new title page moves to it.
+ */
 async function morphPoster(fromHash: string, toHash: string, render: () => Promise<void>): Promise<void> {
-  const forward = isTitlePage(toHash) && !isTitlePage(fromHash);
-  const back = isTitlePage(fromHash) && !isTitlePage(toHash);
-  const source = forward ? listPoster(toHash) : back ? titlePoster() : null;
+  const held = heldPoster?.hash === toHash ? heldPoster.img : null;
+  heldPoster = null;
+  const clicked =
+    held ??
+    (clickedPoster?.isConnected && clickedPoster.closest("a")?.getAttribute("href") === `#${toHash}` ? clickedPoster : null);
+  clickedPoster = null;
+  const toTitle = clicked !== null || (isTitlePage(toHash) && !isTitlePage(fromHash));
+  const source = clicked ?? (isTitlePage(fromHash) ? titlePoster() : isTitlePage(toHash) ? listPoster(toHash) : null);
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (!source || reduce || !document.startViewTransition) {
+    held?.remove();
     await render();
     return;
   }
   source.style.viewTransitionName = "poster";
   let target: HTMLImageElement | null = null;
   const transition = document.startViewTransition(async () => {
+    held?.remove();
     await render();
-    target = forward ? titlePoster() : listPoster(fromHash);
+    target = toTitle ? titlePoster() : listPoster(fromHash);
+    // Between two title pages with no card for the old one (a series and its
+    // season): poster to poster.
+    if (!target && isTitlePage(fromHash) && isTitlePage(toHash)) target = titlePoster();
     if (!target) return; // No poster on the new page: the pages cross-fade.
     target.style.viewTransitionName = "poster";
     await imageReady(target);
@@ -1851,6 +1925,8 @@ function highlightSuggestion(i: number): void {
 function openSuggestion(i: number): void {
   const s = suggestions[i];
   if (!s) return;
+  // The list closes now; a copy of the thumbnail stays for the poster animation.
+  holdPoster(document.querySelector<HTMLImageElement>(`#suggestion-${i} img`), pageHref(s).slice(1));
   closeSuggestions();
   searchInput.blur(); // Phones: close the keyboard, so the page is visible.
   location.hash = pageHref(s);

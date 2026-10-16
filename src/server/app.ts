@@ -60,20 +60,29 @@ export function createApi(reports: ReportService, searchCache: SearchCache): Hon
   // Every saved title in one list. The browser filters it with src/shared/browse.ts.
   // "no-cache" with an ETag: the browser keeps its copy and asks again on each
   // use, and the answer is an empty 304 until a title is added or changed.
-  // Browsers that accept Brotli get a copy compressed once per version (see BrotliCache).
+  // Browsers that accept Brotli get a copy compressed once per version (see
+  // BrotliCache). That copy has its own ETag ("-br"), as each content coding
+  // must; either ETag of the current version gets a 304.
   api.get("/titles", async (c) => {
     const { tag, titles } = await reports.titles();
-    const etag = `W/"${tag}"`;
-    c.header("ETag", etag);
+    const plainTag = `W/"${tag}"`;
+    const brTag = `W/"${tag}-br"`;
     c.header("Cache-Control", "no-cache");
     c.header("Vary", "Accept-Encoding");
-    if (c.req.header("if-none-match")?.split(",").some((t) => t.trim() === etag)) return c.body(null, 304);
+    const known = c.req.header("if-none-match")?.split(",").map((t) => t.trim()) ?? [];
+    const match = known.find((t) => t === plainTag || t === brTag);
+    if (match) {
+      c.header("ETag", match);
+      return c.body(null, 304);
+    }
     const br = acceptsBrotli(c.req.header("accept-encoding")) ? titlesBrotli.get(tag, () => JSON.stringify(titles)) : null;
     if (br) {
+      c.header("ETag", brTag);
       c.header("Content-Type", "application/json; charset=UTF-8");
       c.header("Content-Encoding", "br");
       return c.body(new Uint8Array(br));
     }
+    c.header("ETag", plainTag);
     return c.json(titles);
   });
 

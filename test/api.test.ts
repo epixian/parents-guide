@@ -67,12 +67,19 @@ test("GET /titles sends plain JSON until the Brotli copy is ready, then Brotli",
     res = await api.request("/titles", { headers });
   }
   assert.equal(res.headers.get("content-encoding"), "br");
+  assert.equal(res.headers.get("etag"), 'W/"b-1-br"');
   assert.match(res.headers.get("content-type")!, /application\/json/);
   const body = zlib.brotliDecompressSync(Buffer.from(await res.arrayBuffer()));
   assert.deepEqual(JSON.parse(body.toString()), [TITLE]);
 
   const gzipOnly = await api.request("/titles", { headers: { "accept-encoding": "gzip" } });
   assert.equal(gzipOnly.headers.get("content-encoding"), null);
+  assert.equal(gzipOnly.headers.get("etag"), 'W/"b-1"');
+
+  // Either ETag of the current version gets a 304, with that ETag.
+  const again = await api.request("/titles", { headers: { ...headers, "if-none-match": 'W/"b-1-br"' } });
+  assert.equal(again.status, 304);
+  assert.equal(again.headers.get("etag"), 'W/"b-1-br"');
 });
 
 test("acceptsBrotli reads Accept-Encoding", () => {

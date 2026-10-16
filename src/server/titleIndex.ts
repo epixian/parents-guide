@@ -98,8 +98,12 @@ export class TitleIndex {
   private changes = 0;
   private merged: { changes: number; titles: IndexEntry[] } | null = null;
 
+  /** Add or replace a result. A save that changes nothing in the index (a mood, a refresh with the same scores) keeps the version. */
   add(report: Report): void {
-    this.results.set(report.id, toEntry(report));
+    const entry = toEntry(report);
+    const old = this.results.get(report.id);
+    if (old && JSON.stringify(old) === JSON.stringify(entry)) return;
+    this.results.set(report.id, entry);
     this.changes++;
   }
 

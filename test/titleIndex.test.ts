@@ -93,3 +93,17 @@ test("version goes up on each add, and titles() is reused until then", () => {
   assert.notEqual(index.titles(), first);
   assert.equal(index.titles().length, 2);
 });
+
+test("a save that changes nothing in the index keeps the version", () => {
+  const index = new TitleIndex();
+  const r = report("tmdb-movie-1", "movie", "2026-10-01T00:00:00Z");
+  index.add(r);
+  const v = index.version;
+  index.add({ ...r, refreshedAt: "2026-10-05T00:00:00Z", summary: "New words" });
+  index.add({ ...r, mood: { tone: 3, feeling: 2, depth: 2, note: "", version: 2 } });
+  assert.equal(index.version, v);
+  const scored = structuredClone(r);
+  scored.categories.violence.score = 2;
+  index.add(scored);
+  assert.equal(index.version, v + 1);
+});

@@ -36,11 +36,13 @@ import { browse, prefetchTitles, preloadTitles, suggest, titlesById, titlesReady
 import {
   loadHidden,
   loadHiddenProviders,
+  loadNotInterested,
   loadThumbs,
   loadWatchlist,
   markTipSeen,
   saveHidden,
   saveHiddenProviders,
+  saveNotInterested,
   saveThumbs,
   saveWatchlist,
   tipSeen,
@@ -375,6 +377,7 @@ function loadSimilar(id: string, seq: number): void {
 
 let watchlist = loadWatchlist();
 let thumbs = loadThumbs();
+let notInterested = loadNotInterested();
 
 /** Id for the watchlist and thumbs: a TV season uses its series. */
 const markId = (id: string) => id.replace(/^(tmdb-tv-\d+)-s\d+$/, "$1");
@@ -440,6 +443,7 @@ function toggleMark(button: HTMLButtonElement): void {
 window.addEventListener("storage", () => {
   watchlist = loadWatchlist();
   thumbs = loadThumbs();
+  notInterested = loadNotInterested();
   const box = document.querySelector<HTMLElement>("#marks");
   if (box) box.outerHTML = marksHtml(box.dataset.id!, JSON.parse(box.dataset.title!) as MarkTitle);
   rerankSimilar();
@@ -1065,10 +1069,11 @@ function pageHref(item: Pick<RecentItem, "id" | "kind">): string {
   return item.kind === "tv" ? `#/tv/${item.id.replace("tmdb-tv-", "")}` : `#/r/${item.id}`;
 }
 
-/** extra: HTML between the poster and the title (the composite bars). */
-function cardHtml(item: RecentItem, showKind: boolean, extra = ""): string {
+/** extra: HTML between the poster and the title (the composite bars). overlay: buttons over the poster. */
+function cardHtml(item: RecentItem, showKind: boolean, extra = "", overlay = ""): string {
   return `
     <li>
+      ${overlay}
       <a href="${pageHref(item)}">
         ${item.imageUrl ? `<img src="${esc(item.imageUrl)}" alt="" width="110" height="165" loading="lazy" decoding="async" />` : `<span class="noimg" aria-hidden="true"></span>`}
         ${extra}
@@ -1141,7 +1146,7 @@ async function showWatchlist(): Promise<string> {
 function recommendedHtml(index: Map<string, IndexEntry> | null): string {
   if (!index) return "";
   const picks = recommend([...index.values()], thumbs, {
-    exclude: new Set(Object.keys(watchlist)),
+    exclude: new Set([...Object.keys(watchlist), ...Object.keys(notInterested)]),
     categories: visibleCategories(hidden).map((c) => c.id),
     limit: 12,
   });
@@ -1157,8 +1162,53 @@ function recommendedHtml(index: Map<string, IndexEntry> | null): string {
           <span class="info-tip" id="recommend-info" role="tooltip">Recommendations are automatically generated based on titles you liked/disliked and never leave the browser.</span>
         </span>
       </h2>
-      <ul class="cards">${picks.map((t) => cardHtml(t, true, miniComposites(t))).join("")}</ul>
+      <ul class="cards">${picks.map((t) => cardHtml(t, true, miniComposites(t), recommendActions(t))).join("")}</ul>
     </section>`;
+}
+
+// Feather icons (MIT): bookmark and eye-off.
+const ACTION_ICONS = {
+  list: MARK_ICONS.list,
+  hide: "M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22",
+};
+
+/** "Add to watchlist" and "Not interested" buttons over a recommended card's poster. */
+function recommendActions(t: IndexEntry): string {
+  const button = (action: keyof typeof ACTION_ICONS, label: string, tip: string) => `
+    <button type="button" class="card-action" data-card-action="${action}" aria-label="${esc(label)}" title="${esc(tip)}">
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="${ACTION_ICONS[action]}" /></svg>
+    </button>`;
+  const title: MarkTitle = { kind: t.kind, title: t.title, years: t.years, imageUrl: t.imageUrl };
+  return `
+    <div class="card-actions" data-id="${esc(t.id)}" data-title="${esc(JSON.stringify(title))}">
+      ${button("list", `Add ${t.title} to watchlist`, "Add to watchlist")}
+      ${button("hide", `Not interested in ${t.title}`, "Not interested")}
+    </div>`;
+}
+
+/** Rated titles from the last home page render, to draw its watchlist and recommendations again. */
+let homeIndex: Map<string, IndexEntry> | null = null;
+
+/** The home page rows that depend on the user's choices. */
+function personalHtml(): string {
+  return `<div id="home-personal">${watchlistHtml(homeIndex)}${recommendedHtml(homeIndex)}</div>`;
+}
+
+function cardAction(button: HTMLButtonElement): void {
+  const box = button.closest<HTMLElement>(".card-actions")!;
+  const id = box.dataset.id!;
+  const position = [...document.querySelectorAll("#home-personal .recommended .card-actions")].indexOf(box);
+  if (button.dataset.cardAction === "list") {
+    watchlist[id] = { ...(JSON.parse(box.dataset.title!) as MarkTitle), addedAt: new Date().toISOString() };
+    saveWatchlist(watchlist);
+  } else {
+    notInterested[id] = new Date().toISOString();
+    saveNotInterested(notInterested);
+  }
+  // The card leaves the recommendations; the next one moves into its place.
+  document.querySelector("#home-personal")!.outerHTML = personalHtml();
+  const cards = document.querySelectorAll<HTMLElement>("#home-personal .recommended .cards > li");
+  (cards[position] ?? cards[cards.length - 1])?.querySelector<HTMLElement>("a")?.focus({ preventScroll: true });
 }
 
 /** One row of poster cards per media kind. A kind with no saved titles is left out. */
@@ -1189,13 +1239,13 @@ async function showHome(): Promise<string> {
     // The rated titles give watchlist cards their bars and the recommendations. Loaded only when needed.
     Object.keys(watchlist).length || Object.values(thumbs).includes("up") ? titlesById() : null,
   ]);
+  homeIndex = index;
   return `
     <section class="hero">
       <h1>Know what is in it before your kids see it.</h1>
       <p>AI-generated summaries of movies, TV shows, and books for content that parents may want to know about.</p>
     </section>
-    ${watchlistHtml(index)}
-    ${recommendedHtml(index)}
+    ${personalHtml()}
     ${trendingHtml(trending)}
     ${recent ? recentHtml(recent) : ""}`;
 }
@@ -1728,6 +1778,12 @@ app.addEventListener("click", (e) => {
   if (filter) {
     saveSearchFilter(filter as SearchFilter);
     applySearchFilter(filter as SearchFilter);
+    return;
+  }
+
+  const action = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-card-action]");
+  if (action) {
+    cardAction(action);
     return;
   }
 

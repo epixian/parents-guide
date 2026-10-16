@@ -1502,3 +1502,61 @@ a.audience:hover {
   visibility: visible;
   opacity: 1;
 }
+
+/* Buttons over a card's poster (recommended titles). Shown on hover or
+   keyboard focus; always shown on touch screens, which have no hover. */
+.cards li {
+  position: relative;
+}
+
+.card-actions {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.cards li:hover .card-actions,
+.cards li:focus-within .card-actions {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .card-actions {
+    opacity: 1;
+  }
+}
+
+.card-action {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.65);
+  color: #fff;
+}
+
+.card-action:hover,
+.card-action:focus-visible {
+  background: rgb(0 0 0 / 0.85);
+}
+
+.card-action:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 1px;
+}
+
+.card-action svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

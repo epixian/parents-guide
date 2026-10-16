@@ -114,3 +114,10 @@ export const saveWatchlist = (list: Record<string, WatchlistEntry>) => saveRecor
 
 export const loadThumbs = () => loadRecord(THUMBS_KEY, (v): v is Thumb => v === "up" || v === "down");
 export const saveThumbs = (thumbs: Record<string, Thumb>) => saveRecord(THUMBS_KEY, thumbs);
+
+// Titles the user marked "Not interested": left out of the recommendations.
+// Title id → ISO time. They do not change the thumbs or the tag weights.
+const NOT_INTERESTED_KEY = "pairents.notInterested";
+
+export const loadNotInterested = () => loadRecord(NOT_INTERESTED_KEY, (v): v is string => typeof v === "string");
+export const saveNotInterested = (ids: Record<string, string>) => saveRecord(NOT_INTERESTED_KEY, ids);

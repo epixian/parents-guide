@@ -1,9 +1,38 @@
 import { CATEGORIES, type CategoryId } from "../shared/categories.js";
 import type { MediaKind } from "../shared/types.js";
 
+// Keys before the rename to parents-guide (old name → new name). The copy runs
+// once per browser, on the first page load. Remove it when old visitors are
+// unlikely to come back.
+const RENAMED_KEYS: Record<string, string> = {
+  "pairents.hiddenCategories": "hiddenCategories",
+  "pairents.concernsTipSeen": "concernsTipSeen",
+  "pairents.hiddenProviders": "hiddenProviders",
+  "pairents.watchlist": "watchlist",
+  "pairents.thumbs": "thumbs",
+  "pairents.notInterested": "notInterested",
+  "pairents.searchFilter": "searchFilter",
+};
+
+/** Copy each old key to its new name (unless the new one is set), then remove the old key. */
+export function migrateKeys(storage: Pick<Storage, "getItem" | "setItem" | "removeItem">): void {
+  for (const [from, to] of Object.entries(RENAMED_KEYS)) {
+    const value = storage.getItem(from);
+    if (value === null) continue;
+    if (storage.getItem(to) === null) storage.setItem(to, value);
+    storage.removeItem(from);
+  }
+}
+
+try {
+  migrateKeys(localStorage);
+} catch {
+  // Storage blocked: nothing to copy.
+}
+
 // Categories the user marked as non-concern. Stored in localStorage so the
 // choice persists across visits. The server never sees it.
-const KEY = "pairents.hiddenCategories";
+const KEY = "hiddenCategories";
 
 export function loadHidden(): Set<CategoryId> {
   try {
@@ -29,7 +58,7 @@ export function visibleCategories(hidden: Set<CategoryId>) {
 }
 
 // Set when the visitor dismisses the "My concerns" tip, so it shows only once.
-const TIP_KEY = "pairents.concernsTipSeen";
+const TIP_KEY = "concernsTipSeen";
 
 export function tipSeen(): boolean {
   try {
@@ -49,7 +78,7 @@ export function markTipSeen(): void {
 
 // Streaming services the user does not have (TMDB provider ids). Stored like
 // the hidden categories. Empty means every service shows.
-const PROVIDERS_KEY = "pairents.hiddenProviders";
+const PROVIDERS_KEY = "hiddenProviders";
 
 export function loadHiddenProviders(): Set<number> {
   try {
@@ -71,8 +100,8 @@ export function saveHiddenProviders(hidden: Set<number>): void {
 
 // The user's watchlist and own thumbs up or down, per title id (a TV series,
 // not a season). Stored in the browser only, like the choices above.
-const WATCHLIST_KEY = "pairents.watchlist";
-const THUMBS_KEY = "pairents.thumbs";
+const WATCHLIST_KEY = "watchlist";
+const THUMBS_KEY = "thumbs";
 
 export type Thumb = "up" | "down";
 
@@ -117,7 +146,7 @@ export const saveThumbs = (thumbs: Record<string, Thumb>) => saveRecord(THUMBS_K
 
 // Titles the user marked "Not interested": left out of the recommendations.
 // Title id → ISO time. They do not change the thumbs or the tag weights.
-const NOT_INTERESTED_KEY = "pairents.notInterested";
+const NOT_INTERESTED_KEY = "notInterested";
 
 export const loadNotInterested = () => loadRecord(NOT_INTERESTED_KEY, (v): v is string => typeof v === "string");
 export const saveNotInterested = (ids: Record<string, string>) => saveRecord(NOT_INTERESTED_KEY, ids);

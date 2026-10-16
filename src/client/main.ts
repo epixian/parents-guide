@@ -953,7 +953,7 @@ const SEARCH_KINDS: { kind: SearchResult["kind"]; label: string }[] = [
 ];
 
 type SearchFilter = SearchResult["kind"] | "all";
-const SEARCH_FILTER_KEY = "pairents.searchFilter";
+const SEARCH_FILTER_KEY = "searchFilter";
 
 function loadSearchFilter(): SearchFilter {
   try {

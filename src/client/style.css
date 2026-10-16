@@ -1585,3 +1585,22 @@ a.audience:hover {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+/* Poster animation between a poster card and the title page (see morphPoster in main.ts). */
+::view-transition-group(poster) {
+  animation-duration: 350ms;
+  animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+::view-transition-old(poster),
+::view-transition-new(poster) {
+  /* Card and title posters have the same 2:3 shape: scale the image, do not fade it. */
+  animation: none;
+  height: 100%;
+  object-fit: cover;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 200ms;
+}

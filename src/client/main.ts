@@ -726,8 +726,22 @@ function detailsBox(info: WorkInfo | undefined, themes: string[] = []): string {
     </section>`;
 }
 
+/** Delay before the loading message replaces the page; route() cancels it when the view is ready. */
+const LOADING_DELAY_MS = 400;
+let loadingTimer: ReturnType<typeof setTimeout> | undefined;
+
+/**
+ * Show a loading message if the view takes longer than LOADING_DELAY_MS. A fast
+ * view (most saved titles) replaces the old page directly, which avoids a
+ * flash and keeps the clicked poster on the page for the poster animation.
+ */
 function setLoading(message: string): void {
-  app.innerHTML = `<p class="status"><span class="spinner" aria-hidden="true"></span>${esc(message)}</p>`;
+  clearTimeout(loadingTimer);
+  const seq = navSeq;
+  loadingTimer = setTimeout(() => {
+    if (seq !== navSeq) return;
+    app.innerHTML = `<p class="status"><span class="spinner" aria-hidden="true"></span>${esc(message)}</p>`;
+  }, LOADING_DELAY_MS);
 }
 
 function errorHtml(err: unknown): string {
@@ -1609,21 +1623,92 @@ async function route(): Promise<void> {
     html = errorHtml(err);
   }
   if (seq !== navSeq) return;
-  app.innerHTML = html;
-  watchMore();
-  // The cast undoes TypeScript's narrowing to null: the awaited view above may have set it.
-  const after = afterRender as (() => void) | null;
-  afterRender = null;
-  after?.();
-  if (watchId) {
-    loadWatch(watchId, seq);
-    loadSimilar(watchId, seq);
+  clearTimeout(loadingTimer);
+  const fromHash = currentHash;
+  currentHash = hash;
+
+  const render = async (): Promise<void> => {
+    app.innerHTML = html;
+    watchMore();
+    // The cast undoes TypeScript's narrowing to null: the awaited view above may have set it.
+    const after = afterRender as (() => void) | null;
+    afterRender = null;
+    after?.();
+    if (watchId) {
+      loadWatch(watchId, seq);
+      loadSimilar(watchId, seq);
+    }
+    pageMetaEl.textContent = pageMeta;
+    pageMetaEl.hidden = !pageMeta;
+    footerEl.hidden = false;
+    document.title = pageTitle ? `${SITE_TITLE} - ${pageTitle}` : SITE_TITLE;
+    await restoreScroll(saved, seq);
+  };
+  await morphPoster(fromHash, hash, render);
+}
+
+// ---------- Poster animation ----------
+
+// Opening a title from a poster card moves the poster to its place on the
+// title page, and Back moves it to the card again. It uses the View
+// Transitions API; without it, or with reduced motion, pages change at once.
+
+/** Route of the page on screen, e.g. "/r/tmdb-movie-603". */
+let currentHash = "";
+/** The poster image of the last clicked link, to prefer it when a title shows in two lists. */
+let clickedPoster: HTMLImageElement | null = null;
+
+document.addEventListener(
+  "click",
+  (e) => {
+    clickedPoster = (e.target as HTMLElement).closest("a")?.querySelector("img") ?? null;
+  },
+  true,
+);
+
+const isTitlePage = (hash: string) => /^\/(r|tv)\//.test(hash);
+
+/** A visible poster in a link to the given route, preferring the clicked one. */
+function listPoster(hash: string): HTMLImageElement | null {
+  const href = `#${hash}`;
+  if (clickedPoster?.isConnected && clickedPoster.closest("a")?.getAttribute("href") === href) return clickedPoster;
+  for (const img of app.querySelectorAll<HTMLImageElement>(`a[href="${CSS.escape(href)}"] img`)) {
+    const box = img.getBoundingClientRect();
+    if (box.bottom > 0 && box.top < window.innerHeight && box.width) return img;
   }
-  pageMetaEl.textContent = pageMeta;
-  pageMetaEl.hidden = !pageMeta;
-  footerEl.hidden = false;
-  document.title = pageTitle ? `${SITE_TITLE} - ${pageTitle}` : SITE_TITLE;
-  void restoreScroll(saved, seq);
+  return null;
+}
+
+const titlePoster = () => app.querySelector<HTMLImageElement>(".title-area .poster");
+
+/** Wait for an image to be ready to draw, but not for long. */
+const imageReady = (img: HTMLImageElement) =>
+  Promise.race([img.decode().catch(() => {}), new Promise((resolve) => setTimeout(resolve, 300))]);
+
+/** Run render(), animating the poster from the old page to the new one when both pages have it. */
+async function morphPoster(fromHash: string, toHash: string, render: () => Promise<void>): Promise<void> {
+  const forward = isTitlePage(toHash) && !isTitlePage(fromHash);
+  const back = isTitlePage(fromHash) && !isTitlePage(toHash);
+  const source = forward ? listPoster(toHash) : back ? titlePoster() : null;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!source || reduce || !document.startViewTransition) {
+    await render();
+    return;
+  }
+  source.style.viewTransitionName = "poster";
+  let target: HTMLImageElement | null = null;
+  const transition = document.startViewTransition(async () => {
+    await render();
+    target = forward ? titlePoster() : listPoster(fromHash);
+    if (!target) return; // No poster on the new page: the pages cross-fade.
+    target.style.viewTransitionName = "poster";
+    await imageReady(target);
+  });
+  await transition.updateCallbackDone.catch(() => {});
+  // Clear the name, so the next animation can give it to another image.
+  void transition.finished.finally(() => {
+    if (target) target.style.viewTransitionName = "";
+  });
 }
 
 // ---------- Scroll position ----------

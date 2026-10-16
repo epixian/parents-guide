@@ -42,6 +42,8 @@ export function startDebugLog(): void {
   };
 
   log(`debug on, active: ${describe(document.activeElement)}`);
+  // Page code can add lines with debugLog() in main.ts.
+  (window as unknown as { pgDebugLog?: (text: string) => void }).pgDebugLog = log;
   document.addEventListener("focusin", (e) => log(`focusin ${describe(e.target)}`), true);
   document.addEventListener(
     "focusout",

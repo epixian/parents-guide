@@ -2187,18 +2187,27 @@ searchInput.addEventListener("blur", () => closeSuggestions());
  */
 let refocusSearch = false;
 
+/** A line in the ?debug event log (debug.ts); nothing without ?debug. */
+const debugLog = (text: string) => (window as unknown as { pgDebugLog?: (t: string) => void }).pgDebugLog?.(text);
+
 // The window, not the page, took focus while the box was active (on Android,
 // e.g. the keyboard's language chooser, a system dialog). The box's own blur
 // event comes first, while the window still has focus, so check here.
 window.addEventListener("blur", () => {
   refocusSearch = document.activeElement === searchInput;
+  debugLog(`refocus: flag ${refocusSearch}`);
 });
 
 window.addEventListener("focus", () => {
+  const active = document.activeElement;
+  debugLog(
+    `refocus: flag ${refocusSearch}, coarse ${window.matchMedia("(pointer: coarse)").matches}, ` +
+      `active ${active === searchInput ? "search" : active === document.body ? "body" : (active?.tagName ?? "null")}`,
+  );
   if (!refocusSearch) return;
   refocusSearch = false;
   if (!window.matchMedia("(pointer: coarse)").matches) return;
-  if (document.activeElement !== searchInput && document.activeElement !== document.body) return;
+  if (active !== searchInput && active !== document.body) return;
   const { selectionStart, selectionEnd } = searchInput;
   if (document.activeElement === searchInput) searchInput.blur();
   searchInput.focus({ preventScroll: true });

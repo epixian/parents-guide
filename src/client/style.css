@@ -793,6 +793,10 @@ a.audience:hover {
   font-size: 0.9rem;
 }
 
+.row-head h2 {
+  margin: 0;
+}
+
 .recent-row h3 {
   margin: 0;
   font-size: 1rem;
@@ -1116,7 +1120,7 @@ a.audience:hover {
   margin-bottom: 24px;
 }
 
-/* Header link to the browse page */
+/* Header links to the browse and watchlist pages */
 .nav-link {
   font-weight: 600;
 }

@@ -1089,19 +1089,49 @@ function trendingHtml(items: RecentItem[]): string {
 }
 
 /** The user's watchlist, most recently added first. Empty when the list is empty. index: rated titles, for the bars. */
+/** Watchlist titles shown on the home page; the rest are on the watchlist page. */
+const WATCHLIST_HOME = 8;
+
+/** Watchlist cards, most recently added first. index: rated titles, for the bars. */
+function watchlistCards(index: Map<string, IndexEntry> | null, limit = Infinity): string[] {
+  return Object.entries(watchlist)
+    .sort((a, b) => b[1].addedAt.localeCompare(a[1].addedAt))
+    .slice(0, limit)
+    .map(([id, e]) => {
+      const rated = index?.get(id);
+      const item: RecentItem = { id, ...e, scores: rated?.scores ?? {} };
+      return cardHtml(item, true, rated ? miniComposites(item) : "");
+    });
+}
+
+/** The home page row: the newest few, with "Show all" when there are more. Empty when the list is empty. */
 function watchlistHtml(index: Map<string, IndexEntry> | null): string {
-  const entries = Object.entries(watchlist).sort((a, b) => b[1].addedAt.localeCompare(a[1].addedAt));
-  if (!entries.length) return "";
-  const cards = entries.map(([id, e]) => {
-    const rated = index?.get(id);
-    const item: RecentItem = { id, ...e, scores: rated?.scores ?? {} };
-    return cardHtml(item, true, rated ? miniComposites(item) : "");
-  });
+  const total = Object.keys(watchlist).length;
+  if (!total) return "";
   return `
     <section class="recent watchlist">
-      <h2>My watchlist</h2>
-      <ul class="cards">${cards.join("")}</ul>
+      <div class="row-head">
+        <h2>My watchlist</h2>
+        ${total > WATCHLIST_HOME ? `<a href="#/watchlist">Show all ${total} →</a>` : ""}
+      </div>
+      <ul class="cards">${watchlistCards(index, WATCHLIST_HOME).join("")}</ul>
     </section>`;
+}
+
+/** Every watchlist title, most recently added first. */
+async function showWatchlist(): Promise<string> {
+  searchInput.value = "";
+  pageTitle = "My watchlist";
+  const total = Object.keys(watchlist).length;
+  const index = total ? await titlesById().catch(() => null) : null;
+  return `
+    <h1>My watchlist</h1>
+    ${
+      total
+        ? `<p class="muted">${total} title${total === 1 ? "" : "s"}, most recently added first.</p>
+           <ul class="cards grid">${watchlistCards(index).join("")}</ul>`
+        : `<p class="muted">Your watchlist is empty. Select the bookmark on a title's page to add it.</p>`
+    }`;
 }
 
 /**
@@ -1463,6 +1493,7 @@ async function route(): Promise<void> {
     else if ((m = /^\/r\/([\w-]+)$/.exec(hash))) html = await showReport(m[1]!);
     else if ((m = /^\/tv\/(\d+)$/.exec(hash))) html = await showSeries(m[1]!);
     else if ((m = /^\/browse(?:\?(.*))?$/.exec(hash))) html = await showBrowse(m[1] ?? "");
+    else if (hash === "/watchlist") html = await showWatchlist();
     else html = await showHome();
   } catch (err) {
     html = errorHtml(err);

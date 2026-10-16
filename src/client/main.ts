@@ -1480,6 +1480,10 @@ function withYears(title: string, info: WorkInfo | undefined): string {
 
 async function route(): Promise<void> {
   const seq = ++navSeq;
+  // Read before the view replaces the page: the loading message makes the
+  // page short, and the browser then moves the scroll position.
+  const saved = history.state as PageState | null;
+  routing = true;
   closeSuggestions();
   pageMeta = "";
   pageTitle = "";
@@ -1513,6 +1517,77 @@ async function route(): Promise<void> {
   pageMetaEl.hidden = !pageMeta;
   footerEl.hidden = false;
   document.title = pageTitle ? `${SITE_TITLE} - ${pageTitle}` : SITE_TITLE;
+  void restoreScroll(saved, seq);
+}
+
+// ---------- Scroll position ----------
+
+// Pages render after an await, so the browser's own scroll restore runs
+// before the content is there. Instead, each history entry keeps its scroll
+// position in history.state, and the browse page also keeps how many cards
+// were loaded. Back and Forward return there; a new page starts at the top.
+if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+
+interface PageState {
+  scrollY: number;
+  /** Browse cards on the page, so that many load again before the scroll. */
+  cards?: number;
+}
+
+/** True from the start of route() until the scroll position is set, so no wrong position is saved. */
+let routing = false;
+let scrollTimer: ReturnType<typeof setTimeout> | undefined;
+
+const browseCardCount = () => app.querySelectorAll("#browse-results .cards > li").length;
+
+function saveScroll(): void {
+  if (routing) return;
+  const state: PageState = { scrollY: Math.round(window.scrollY) };
+  const cards = browseCardCount();
+  if (cards) state.cards = cards;
+  try {
+    history.replaceState(state, "");
+  } catch {
+    // Safari limits how often replaceState may run; the next scroll saves it.
+  }
+}
+
+window.addEventListener(
+  "scroll",
+  () => {
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(saveScroll, 150);
+  },
+  { passive: true },
+);
+
+// Save at once when a link opens another page, in case the last scroll is not saved yet.
+document.addEventListener(
+  "click",
+  (e) => {
+    if (!(e.target as HTMLElement).closest('a[href^="#"]')) return;
+    clearTimeout(scrollTimer);
+    saveScroll();
+  },
+  true,
+);
+
+/** Load browse pages until the page has `count` cards (or all of them). */
+async function loadBrowseCards(count: number, seq: number): Promise<void> {
+  while (seq === navSeq && browseCardCount() < count) {
+    const button = app.querySelector<HTMLButtonElement>("#browse-results button[data-more]");
+    if (!button) break; // All loaded, or an error.
+    // The scroll observer may have started a page already: wait for it.
+    if (button.disabled) await new Promise((resolve) => setTimeout(resolve, 50));
+    else await showMoreBrowse(button);
+  }
+}
+
+async function restoreScroll(saved: PageState | null, seq: number): Promise<void> {
+  if (saved?.cards) await loadBrowseCards(saved.cards, seq);
+  if (seq !== navSeq) return;
+  window.scrollTo({ top: saved?.scrollY ?? 0, behavior: "instant" });
+  routing = false;
 }
 
 // ---------- Search suggestions ----------

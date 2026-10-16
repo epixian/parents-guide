@@ -12,6 +12,8 @@ AI summaries of parental concerns for movies, TV shows, and books. A user search
 5. `GET /api/browse` and `GET /api/suggest?q=` do the same filtering on the server, with the same code. The browser uses them when the visitor turned on data saver, or when the list does not load. None of these endpoints call the catalogs or the AI.
 6. `GET /api/mood/:id` returns the mood of a saved result: tone (1 bleak to 5 uplifting; shown as "Outlook"), feeling (1 low-key to 5 powerful; shown as "Pull"), and depth (1 silly to 5 profound), shown as three bars in the Summary section. A result saved before moods existed gets one from a light AI prompt (about $0.001) on the first request, and the result is saved. `npm run backfill:mood` adds the rest at batch prices.
 
+7. `GET /api/watch/:id` returns the US streaming services for a movie or TV series (`tmdb-movie-603`, `tmdb-tv-1399`; a season id gets the series' services). It keeps subscription, free, and free-with-ads services, and leaves out rent and buy. TMDB lists some brands many times (Starz, Starz Amazon Channel, Starz Apple TV channel); the server groups them into one entry, and puts the top 10 US services first (`TOP` in `src/server/watchProviders.ts`). A title page shows up to 3 logos and a "+N more" link. `GET /api/providers` returns every US service, for the "My services" panel. TMDB has this data from JustWatch; the site footer credits JustWatch. Users uncheck the services they do not have, and that choice stays in the browser (`localStorage`), like the hidden categories.
+
 The AI prompt always covers every category, so one cached result serves every user. Filtering happens in the browser.
 
 ### Cache and refresh policy
@@ -37,6 +39,8 @@ Results refresh only when someone requests them, based on the title's age (see `
 | 2 years or more | never |
 
 Catalog facts (credits, poster, and the audience score from TMDB or Open Library) are reloaded on the next view when they are more than 30 days old. This is a catalog call only, with no AI cost. A book keeps the publisher that the AI gave.
+
+Streaming services are kept for one day in `<CACHE_DIR>/watch/`. The first request after that day gets them from TMDB again and replaces the file. If TMDB fails, the server uses the older file for up to one week. Files older than one week are deleted.
 
 No AI lookup happens before the release date. A TV season's age comes from its most recent aired episode. A book with only a publication year uses January 1 of that year.
 

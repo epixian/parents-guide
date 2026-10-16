@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 92 92">
+  <!-- YouTube TV as a square icon: the play button over "TV". TMDB's logo is a wide word mark. -->
+  <rect width="92" height="92" fill="#fff"/>
+  <rect x="21" y="16" width="50" height="35" rx="9" fill="#f00"/>
+  <path d="M40 24.5v18l15.5-9z" fill="#fff"/>
+  <text x="46" y="78" fill="#282828" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" text-anchor="middle">TV</text>
+</svg>

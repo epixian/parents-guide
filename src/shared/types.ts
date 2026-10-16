@@ -196,6 +196,36 @@ export interface BrowseResponse {
   tags: { tag: ThemeTag; count: number }[];
 }
 
+/** How a title streams on a service: in a subscription (or free), or free with ads. Rent and buy are never shown. */
+export type WatchOffer = "subscription" | "ads";
+
+/**
+ * One streaming brand, from TMDB (data by JustWatch). TMDB lists some brands
+ * many times (Starz, Starz Amazon Channel, Starz Apple TV channel); the
+ * server groups them into one entry.
+ */
+export interface WatchProvider {
+  /** TMDB provider id of the main service in the group. */
+  id: number;
+  name: string;
+  logoUrl: string | null;
+  /** TMDB provider ids of every service in the group. These ids do not change when a name changes. */
+  ids: number[];
+  /** 0-9 for the top 10 US services (0 is the most used), else null. */
+  rank: number | null;
+  /** How the title streams there: "ads" when any service in the group has it free with ads. Titles only; "My services" has none. */
+  offer?: WatchOffer;
+}
+
+/** Where a movie or TV series streams (subscription, free, or with ads; never rent or buy). */
+export interface WatchResponse {
+  /** Country code, e.g. "US". */
+  region: string;
+  providers: WatchProvider[];
+  /** ISO timestamp of the TMDB lookup. */
+  fetchedAt: string;
+}
+
 export interface ApiError {
   error: string;
 }

@@ -9,6 +9,7 @@ import { config } from "./config.js";
 import { HttpError } from "./http.js";
 import type { ReportService } from "./reports.js";
 import type { SearchCache } from "./searchCache.js";
+import type { WatchService } from "./watchProviders.js";
 
 /**
  * The visitor's address, for the AI limit and trending. Behind nginx, use
@@ -35,7 +36,12 @@ function clientKey(c: Context): string {
   return clientAddress((name) => c.req.header(name), getConnInfo(c).remote.address, config.trustProxy);
 }
 
-export function createApi(reports: ReportService, searchCache: SearchCache, titlesBrotli = new BrotliCache()): Hono {
+export function createApi(
+  reports: ReportService,
+  searchCache: SearchCache,
+  watch: WatchService,
+  titlesBrotli = new BrotliCache(),
+): Hono {
   const api = new Hono();
   /** The title list as JSON text for one version, so each version is converted only once. */
   let titlesJson: { tag: string; text: string } | null = null;
@@ -125,6 +131,12 @@ export function createApi(reports: ReportService, searchCache: SearchCache, titl
     reports.recordView(series.id, clientKey(c));
     return c.json(series);
   });
+
+  // Streaming services for a title, and every service for the "My services" choices.
+  // The server keeps each answer for one day (see WatchService).
+  api.get("/watch/:id", async (c) => c.json(await watch.title(c.req.param("id"))));
+
+  api.get("/providers", async (c) => c.json(await watch.catalog()));
 
   api.notFound((c) => c.json<ApiError>({ error: "Not found" }, 404));
 

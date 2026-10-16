@@ -8,6 +8,8 @@ import type {
   SearchResult,
   SeriesResponse,
   Suggestion,
+  WatchProvider,
+  WatchResponse,
 } from "../shared/types.js";
 
 async function get<T>(url: string): Promise<T> {
@@ -30,5 +32,9 @@ export const api = {
   titles: () => get<IndexEntry[]>("/api/titles"),
   /** query: the browse filters as a query string (see src/shared/browse.ts). */
   browse: (query: string) => get<BrowseResponse>(`/api/browse?${query}`),
+  /** Streaming services for a movie, TV series, or season (the series' services). */
+  watch: (id: string) => get<WatchResponse>(`/api/watch/${encodeURIComponent(id)}`),
+  /** Every streaming service, for "My services". */
+  providers: () => get<WatchProvider[]>("/api/providers"),
   series: (tmdbId: string) => get<SeriesResponse>(`/api/tv/${encodeURIComponent(tmdbId)}`),
 };

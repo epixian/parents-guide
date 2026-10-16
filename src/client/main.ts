@@ -25,11 +25,21 @@ import type {
   SearchResult,
   SeriesResponse,
   Suggestion,
+  WatchOffer,
+  WatchProvider,
   WorkInfo,
 } from "../shared/types.js";
 import { api } from "./api.js";
 import { browse, prefetchTitles, preloadTitles, suggest, titlesReady } from "./titles.js";
-import { loadHidden, markTipSeen, saveHidden, tipSeen, visibleCategories } from "./prefs.js";
+import {
+  loadHidden,
+  loadHiddenProviders,
+  markTipSeen,
+  saveHidden,
+  saveHiddenProviders,
+  tipSeen,
+  visibleCategories,
+} from "./prefs.js";
 
 const app = document.querySelector<HTMLElement>("#app")!;
 const searchForm = document.querySelector<HTMLFormElement>("#search-form")!;
@@ -37,6 +47,7 @@ const searchInput = document.querySelector<HTMLInputElement>("#search-input")!;
 const prefsBody = document.querySelector<HTMLElement>("#prefs-body")!;
 
 let hidden = loadHidden();
+let hiddenProviders = loadHiddenProviders();
 
 const esc = (s: string | number | null | undefined): string =>
   String(s ?? "").replace(/[&<>"']/g, (ch) => `&#${ch.charCodeAt(0)};`);
@@ -119,6 +130,167 @@ prefsDetails.addEventListener("toggle", () => {
   if (prefsDetails.open) dismissTip();
 });
 
+// ---------- Streaming services ----------
+
+const servicesDetails = document.querySelector<HTMLDetailsElement>("#services")!;
+const servicesBody = document.querySelector<HTMLElement>("#services-body")!;
+/** Every service, loaded the first time "My services" opens. */
+let catalog: WatchProvider[] | null = null;
+
+/** A service's logo. In "My services" the name follows it, so the logo has no alt text there. */
+function serviceLogo(p: WatchProvider, size: number, alt = ""): string {
+  return p.logoUrl
+    ? `<img class="service-logo" src="${esc(p.logoUrl)}" alt="${esc(alt)}" width="${size}" height="${size}" loading="lazy" decoding="async" />`
+    : `<span class="service-logo noimg" aria-hidden="true" style="width:${size}px;height:${size}px"></span>`;
+}
+
+function serviceChoice(p: WatchProvider): string {
+  return `
+      <label class="pref" data-name="${esc(p.name.toLowerCase())}">
+        <input type="checkbox" value="${p.ids.join(",")}" ${providerShown(p) ? "checked" : ""} />
+        ${serviceLogo(p, 24)}
+        <span>${esc(p.name)}</span>
+      </label>`;
+}
+
+function renderServices(): void {
+  if (!catalog) return;
+  const others = catalog.filter((p) => p.rank === null);
+  servicesBody.innerHTML = `
+    <p class="muted">Uncheck the services you do not have. Titles show only the checked services.</p>
+    <p class="pref-actions">
+      <button type="button" data-all="show">Show all</button>
+      <button type="button" data-all="hide">Hide all</button>
+    </p>
+    <input type="search" class="service-find" placeholder="Find a service" aria-label="Find a service" />
+    <div class="service-list">
+      ${catalog.filter((p) => p.rank !== null).map(serviceChoice).join("")}
+      <details class="other-services">
+        <summary>Other services (${others.length})</summary>
+        ${others.map(serviceChoice).join("")}
+      </details>
+    </div>`;
+}
+
+servicesDetails.addEventListener("toggle", () => {
+  if (!servicesDetails.open || catalog) return;
+  servicesBody.innerHTML = `<p class="status"><span class="spinner" aria-hidden="true"></span>Loading services…</p>`;
+  api
+    .providers()
+    .then((list) => {
+      catalog = list;
+      renderServices();
+    })
+    .catch((err: unknown) => {
+      servicesBody.innerHTML = errorHtml(err);
+    });
+});
+
+servicesBody.addEventListener("change", (e) => {
+  const box = e.target as HTMLInputElement;
+  if (box.type !== "checkbox") return;
+  for (const id of box.value.split(",").map(Number)) {
+    if (box.checked) hiddenProviders.delete(id);
+    else hiddenProviders.add(id);
+  }
+  saveHiddenProviders(hiddenProviders);
+  renderWatch();
+});
+
+servicesBody.addEventListener("input", (e) => {
+  const find = e.target as HTMLInputElement;
+  if (!find.classList.contains("service-find")) return;
+  const text = find.value.trim().toLowerCase();
+  // Search every service, not only the major ones.
+  const other = servicesBody.querySelector<HTMLDetailsElement>(".other-services");
+  if (other && text) other.open = true;
+  for (const label of servicesBody.querySelectorAll<HTMLElement>(".service-list .pref")) {
+    label.hidden = Boolean(text) && !label.dataset.name!.includes(text);
+  }
+});
+
+servicesBody.addEventListener("click", (e) => {
+  const action = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-all]")?.dataset.all;
+  if (!action || !catalog) return;
+  hiddenProviders = action === "hide" ? new Set(catalog.flatMap((p) => p.ids)) : new Set();
+  saveHiddenProviders(hiddenProviders);
+  renderServices();
+  renderWatch();
+});
+
+/** Services per title id, kept for one hour so a re-render does not ask again. The server keeps them for a day. */
+const watchCache = new Map<string, { at: number; providers: WatchProvider[] }>();
+/** Services of the title on the current page, or null while they load (or for books). */
+let pageProviders: WatchProvider[] | null = null;
+
+function cachedWatch(id: string): WatchProvider[] | null {
+  const hit = watchCache.get(id);
+  return hit && Date.now() - hit.at < 60 * 60 * 1000 ? hit.providers : null;
+}
+
+/** A brand shows unless the user hid every service in it. */
+const providerShown = (p: WatchProvider) => p.ids.some((id) => !hiddenProviders.has(id));
+
+/** Added to the tooltip after the service name. */
+const OFFER_NOTE: Record<WatchOffer, string> = { subscription: "", ads: " (free with ads)" };
+
+/** Logos on the streaming line before the "more" link. */
+const WATCH_FIRST = 3;
+/** Title id whose streaming line the user expanded with "more". Kept when the page is drawn again. */
+let watchExpandedFor: string | null = null;
+
+/** Inner HTML of the streaming line: logos of the services the user has not hidden. Empty when there are none. */
+function watchHtml(providers: WatchProvider[]): string {
+  const shown = providers.filter(providerShown);
+  if (!shown.length) return "";
+  const visible = watchExpandedFor === watchId ? shown : shown.slice(0, WATCH_FIRST);
+  const items = visible.map((p) => {
+    const tip = `Streaming on ${p.name}${OFFER_NOTE[p.offer ?? "subscription"]}`;
+    return p.logoUrl
+      ? `<li title="${esc(tip)}">${serviceLogo(p, 32, tip)}</li>`
+      : `<li class="watch-name" title="${esc(tip)}">${esc(p.name)}</li>`;
+  });
+  const more = shown.length - visible.length;
+  return `<ul class="watch-list" aria-label="Streaming on">${items.join("")}</ul>${
+    more ? `<button type="button" class="watch-more" data-watch-more>+${more} more</button>` : ""
+  }`;
+}
+
+/** The streaming line, filled when the services arrive. Hidden when no service shows. */
+function watchLine(): string {
+  const ready = pageProviders !== null;
+  const html = pageProviders ? watchHtml(pageProviders) : "";
+  // A div, not a p: a p cannot hold the list.
+  return `<div class="watch" id="watch-slot"${html ? "" : " hidden"}${ready ? "" : ` aria-busy="true"`}>${html}</div>`;
+}
+
+/** Show the current page's services again, e.g. after the user changes "My services". */
+function renderWatch(): void {
+  const slot = document.querySelector<HTMLElement>("#watch-slot");
+  if (!slot || pageProviders === null) return;
+  slot.removeAttribute("aria-busy");
+  const html = watchHtml(pageProviders);
+  slot.hidden = !html;
+  slot.innerHTML = html;
+}
+
+/** Load the services for the title on the page; no-op when they came from the cache. */
+function loadWatch(id: string, seq: number): void {
+  if (pageProviders !== null) return;
+  api
+    .watch(id)
+    .then((w) => {
+      watchCache.set(id, { at: Date.now(), providers: w.providers });
+      if (seq !== navSeq) return;
+      pageProviders = w.providers;
+      renderWatch();
+    })
+    .catch(() => {
+      // Streaming services are extra: on an error, the line stays hidden.
+      document.querySelector("#watch-slot")?.removeAttribute("aria-busy");
+    });
+}
+
 // ---------- Rendering helpers ----------
 
 function scoreBar(score: number): string {
@@ -200,6 +372,7 @@ function titleHeader(title: string, subtitle: string | null, info: WorkInfo | un
         <h1>${esc(title)}${subtitle ? ` <span class="muted">— ${esc(subtitle)}</span>` : ""}</h1>
         ${byline ? `<p class="byline">by ${byline}</p>` : ""}
         ${facts.length ? `<p class="facts">${facts.join("")}</p>` : ""}
+        ${watchId ? watchLine() : ""}
       </div>
       ${composites}
     </section>`;
@@ -589,6 +762,7 @@ async function showSearch(q: string): Promise<string> {
 }
 
 async function showReport(id: string): Promise<string> {
+  const seq = navSeq;
   setLoading("Getting the rating. A new title can take up to a minute…");
   const res = await api.report(id);
   const seriesMatch = /^tmdb-tv-(\d+)-s\d+$/.exec(id);
@@ -599,11 +773,11 @@ async function showReport(id: string): Promise<string> {
       <p class="status">Not yet released${res.releaseDate ? ` (expected ${esc(res.releaseDate)})` : ""}. Ratings are available after release.</p>`;
   }
   const r = res.report;
+  setWatchId(r.id.startsWith("tmdb-") ? r.id : null, seq);
   pageTitle = withYears(r.kind === "tv-season" && r.subtitle ? `${r.title} — ${r.subtitle}` : r.title, r.info);
   pageMeta = `Rated ${new Date(r.refreshedAt).toLocaleDateString()} by ${r.model} · confidence: ${r.confidence}`;
   // A result saved before moods existed: the server rates the mood now, and the tiles fill in.
   if (!hasMood(r)) {
-    const seq = navSeq;
     afterRender = () => {
       void api
         .mood(r.id)
@@ -636,8 +810,10 @@ function seriesThemes(s: SeriesResponse): string[] {
 }
 
 async function showSeries(tmdbId: string): Promise<string> {
+  const seq = navSeq;
   setLoading("Loading series…");
   const s: SeriesResponse = await api.series(tmdbId);
+  setWatchId(`tmdb-tv-${tmdbId}`, seq);
   pageTitle = withYears(s.title, s.info);
   const agg = s.aggregate;
   const aggRows = sectionRows((c) => {
@@ -669,7 +845,6 @@ async function showSeries(tmdbId: string): Promise<string> {
   const missingMoods = ratedSeasons.filter((season) => !(season.report && hasMood(season.report))).map((season) => season.reportId);
   const seriesMood = (moods: Mood[]) => moodHtml(moods);
   if (missingMoods.length) {
-    const seq = navSeq;
     afterRender = () => {
       void Promise.allSettled(missingMoods.map((id) => api.mood(id))).then((results) => {
         const added = results.flatMap((res) => (res.status === "fulfilled" ? [res.value] : []));
@@ -1034,6 +1209,16 @@ let navSeq = 0;
 /** Work a view needs after its HTML is on the page (e.g. filling in a slow part). Views set it. */
 let afterRender: (() => void) | null = null;
 
+/** Title id for the streaming line on the current page (movies and TV), or null. Views set it with setWatchId. */
+let watchId: string | null = null;
+
+/** seq: the view's navSeq. A view that the user already left changes nothing. */
+function setWatchId(id: string | null, seq = navSeq): void {
+  if (seq !== navSeq) return;
+  watchId = id;
+  pageProviders = id ? cachedWatch(id) : null;
+}
+
 /** Line for the site footer about the current page (e.g. the rating date). Views set it. */
 let pageMeta = "";
 const pageMetaEl = document.querySelector<HTMLElement>("#page-meta")!;
@@ -1054,6 +1239,7 @@ async function route(): Promise<void> {
   pageMeta = "";
   pageTitle = "";
   afterRender = null;
+  setWatchId(null);
   const hash = location.hash.replace(/^#/, "") || "/";
   let html: string;
   try {
@@ -1073,6 +1259,7 @@ async function route(): Promise<void> {
   const after = afterRender as (() => void) | null;
   afterRender = null;
   after?.();
+  if (watchId) loadWatch(watchId, seq);
   pageMetaEl.textContent = pageMeta;
   pageMetaEl.hidden = !pageMeta;
   footerEl.hidden = false;
@@ -1217,6 +1404,12 @@ app.addEventListener("click", (e) => {
   if (filter) {
     saveSearchFilter(filter as SearchFilter);
     applySearchFilter(filter as SearchFilter);
+    return;
+  }
+
+  if ((e.target as HTMLElement).closest("button[data-watch-more]")) {
+    watchExpandedFor = watchId;
+    renderWatch();
     return;
   }
 

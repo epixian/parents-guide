@@ -275,7 +275,7 @@ button,
   user-select: none;
 }
 
-.prefs[open] #prefs-body {
+.prefs[open] > .prefs-body {
   position: absolute;
   right: 0;
   z-index: 10;
@@ -288,7 +288,7 @@ button,
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.15);
 }
 
-.prefs[open] #prefs-body {
+.prefs[open] > .prefs-body {
   max-height: min(70vh, 560px);
   overflow-y: auto;
 }
@@ -316,7 +316,7 @@ button,
     display: none;
   }
 
-  .prefs[open] #prefs-body {
+  .prefs[open] > .prefs-body {
     top: 100%;
     left: 16px;
     right: 16px;
@@ -1299,4 +1299,81 @@ a.audience:hover {
 
 .tip-note {
   grid-column: 1 / -1;
+}
+
+/* Streaming line below the title facts, and the "My services" list */
+.title-area .watch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 10px;
+}
+
+.title-area .watch[hidden] {
+  display: none;
+}
+
+.watch-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.watch-list li {
+  display: flex;
+}
+
+.watch-list .watch-name {
+  align-items: center;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.service-logo {
+  display: block;
+  flex: none;
+  border-radius: 6px;
+}
+
+.watch-list .service-logo {
+  border-radius: 8px;
+}
+
+.service-find {
+  width: 100%;
+  margin: 0 0 8px;
+}
+
+.service-list .pref[hidden] {
+  display: none;
+}
+
+.other-services {
+  margin-top: 6px;
+}
+
+.other-services summary {
+  padding: 4px 0;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.watch-more {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.watch-more:hover {
+  text-decoration: underline;
 }

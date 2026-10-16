@@ -5,6 +5,7 @@ import { clientAddress, createApi } from "../src/server/app.js";
 import { acceptsBrotli, BrotliCache } from "../src/server/brotliCache.js";
 import type { ReportService } from "../src/server/reports.js";
 import type { SearchCache } from "../src/server/searchCache.js";
+import type { WatchService } from "../src/server/watchProviders.js";
 import type { IndexEntry } from "../src/shared/types.js";
 
 const TITLE: IndexEntry = {
@@ -25,7 +26,7 @@ function apiWith(tag: { value: string }, brotli = new BrotliCache()) {
     titles: async () => ({ tag: tag.value, titles: [TITLE] }),
     browse: async () => ({ total: 0, offset: 0, items: [], tags: [] }),
   } as unknown as ReportService;
-  return createApi(reports, {} as SearchCache, brotli);
+  return createApi(reports, {} as SearchCache, {} as WatchService, brotli);
 }
 
 test("GET /titles sends the list with an ETag, then 304 until the list changes", async () => {

@@ -45,3 +45,25 @@ export function markTipSeen(): void {
     // Storage blocked: the tip shows again on the next visit.
   }
 }
+
+// Streaming services the user does not have (TMDB provider ids). Stored like
+// the hidden categories. Empty means every service shows.
+const PROVIDERS_KEY = "pairents.hiddenProviders";
+
+export function loadHiddenProviders(): Set<number> {
+  try {
+    const raw = localStorage.getItem(PROVIDERS_KEY);
+    const ids = raw ? (JSON.parse(raw) as unknown[]) : [];
+    return new Set(ids.filter((id): id is number => Number.isInteger(id)));
+  } catch {
+    return new Set();
+  }
+}
+
+export function saveHiddenProviders(hidden: Set<number>): void {
+  try {
+    localStorage.setItem(PROVIDERS_KEY, JSON.stringify([...hidden]));
+  } catch {
+    // Storage blocked: the choice lasts for this page view only.
+  }
+}

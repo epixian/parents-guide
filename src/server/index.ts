@@ -11,6 +11,7 @@ import { Popularity } from "./popularity.js";
 import { RateLimiter } from "./rateLimit.js";
 import { ReportService } from "./reports.js";
 import { SearchCache } from "./searchCache.js";
+import { WatchService } from "./watchProviders.js";
 
 fs.mkdirSync(config.cacheDir, { recursive: true });
 
@@ -36,7 +37,12 @@ const searchCache = new SearchCache(config.cacheDir);
 setInterval(() => void searchCache.prune(), 60 * 60 * 1000).unref();
 void searchCache.prune();
 
-app.route("/api", createApi(reports, searchCache));
+const watch = new WatchService(config.cacheDir);
+// Streaming answers are refetched after one day; files are deleted after a week.
+setInterval(() => void watch.prune(), 60 * 60 * 1000).unref();
+void watch.prune();
+
+app.route("/api", createApi(reports, searchCache, watch));
 
 // Production: serve the built client. In development, Vite serves it instead.
 const clientDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../client");

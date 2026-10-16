@@ -1,7 +1,7 @@
 import { config } from "../config.js";
 import { HttpError, fetchJson } from "../http.js";
 import { isReleased } from "../refreshPolicy.js";
-import type { CreditEntry, SearchResult, WorkInfo } from "../../shared/types.js";
+import type { CreditEntry, SearchResult, WatchOffer, WorkInfo } from "../../shared/types.js";
 import { audienceScore, creditLines, credits, truncate, type WorkDetails } from "./types.js";
 
 const BASE = "https://api.themoviedb.org/3";
@@ -285,4 +285,77 @@ export async function getTvSeason(tmdbId: string, seasonNumber: number, now: Dat
     context,
     info,
   };
+}
+
+// ---------- Where to watch ----------
+
+/** Country for streaming availability. Same as the MPA and TV ratings. */
+export const WATCH_REGION = "US";
+const LOGO_BASE = "https://image.tmdb.org/t/p/w92";
+
+interface ProviderItem {
+  provider_id: number;
+  provider_name: string;
+  logo_path?: string | null;
+  display_priority?: number;
+  display_priorities?: Record<string, number>;
+}
+
+/** One TMDB service, before services of one brand are grouped (see groupProviders). */
+export interface ProviderEntry {
+  id: number;
+  name: string;
+  logoUrl: string | null;
+  /** How the title streams there. Titles only; the catalog has none. */
+  offer?: WatchOffer;
+}
+
+/** One country's offers. TMDB has these lists from JustWatch. */
+export type RegionOffers = Partial<Record<"flatrate" | "free" | "ads" | "rent" | "buy", ProviderItem[]>>;
+
+const toProvider = (p: ProviderItem, offer?: WatchOffer): ProviderEntry => ({
+  id: p.provider_id,
+  name: p.provider_name,
+  logoUrl: p.logo_path ? `${LOGO_BASE}${p.logo_path}` : null,
+  ...(offer ? { offer } : {}),
+});
+
+/**
+ * Subscription, free, and free-with-ads services, one entry per service, in
+ * TMDB's display order. Rent and buy offers are left out. TMDB's "free" counts
+ * as a subscription: the site does not tell them apart. A service with both
+ * offers keeps "free with ads".
+ */
+export function streamingProviders(offers: RegionOffers | undefined): ProviderEntry[] {
+  const seen = new Map<number, { p: ProviderItem; offer: WatchOffer }>();
+  const lists: [WatchOffer, ProviderItem[] | undefined][] = [
+    ["ads", offers?.ads],
+    ["subscription", offers?.flatrate],
+    ["subscription", offers?.free],
+  ];
+  for (const [offer, list] of lists) {
+    for (const p of list ?? []) if (!seen.has(p.provider_id)) seen.set(p.provider_id, { p, offer });
+  }
+  return [...seen.values()]
+    .sort((a, b) => (a.p.display_priority ?? 999) - (b.p.display_priority ?? 999))
+    .map(({ p, offer }) => toProvider(p, offer));
+}
+
+/** Streaming services for a movie or a whole TV series in WATCH_REGION. Empty when there are none. */
+export async function getWatchProviders(kind: "movie" | "tv", tmdbId: string): Promise<ProviderEntry[]> {
+  const data = await tmdb<{ results?: Record<string, RegionOffers> }>(`/${kind}/${tmdbId}/watch/providers`);
+  return streamingProviders(data.results?.[WATCH_REGION]);
+}
+
+/** Every service TMDB knows in WATCH_REGION (movie and TV lists merged), most common first. */
+export async function getProviderCatalog(): Promise<ProviderEntry[]> {
+  const lists = await Promise.all(
+    (["movie", "tv"] as const).map((kind) =>
+      tmdb<{ results: ProviderItem[] }>(`/watch/providers/${kind}?watch_region=${WATCH_REGION}&language=en-US`),
+    ),
+  );
+  const byId = new Map<number, ProviderItem>();
+  for (const p of lists.flatMap((l) => l.results)) if (!byId.has(p.provider_id)) byId.set(p.provider_id, p);
+  const rank = (p: ProviderItem) => p.display_priorities?.[WATCH_REGION] ?? p.display_priority ?? 999;
+  return [...byId.values()].sort((a, b) => rank(a) - rank(b) || a.provider_name.localeCompare(b.provider_name)).map((p) => toProvider(p));
 }

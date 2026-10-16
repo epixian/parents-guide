@@ -14,15 +14,21 @@ export default defineConfig(({ mode }) => {
   // Read PORT from .env so the proxy targets the same port as the API server.
   const env = loadEnv(mode, process.cwd(), "");
   const apiPort = env.PORT || "8787";
+  const commit = gitCommit();
 
   return {
     root: "src/client",
     // Commit and build time, shown in the ?debug event log, to see which version a phone runs.
     define: {
-      __BUILD_COMMIT__: JSON.stringify(gitCommit()),
+      __BUILD_COMMIT__: JSON.stringify(commit),
       __BUILD_TIME__: JSON.stringify(new Date().toISOString().slice(0, 16).replace("T", " ")),
     },
     plugins: [
+      {
+        // The footer shows the build commit, with a link to it on GitHub.
+        name: "build-commit-html",
+        transformIndexHtml: (html) => html.replaceAll("{{BUILD_COMMIT}}", commit),
+      },
       {
         // The comments in index.html are notes for developers. Keep them out of the built page.
         name: "strip-html-comments",

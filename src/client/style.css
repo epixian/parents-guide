@@ -1046,6 +1046,23 @@ a.audience:hover {
   font-size: 0.8rem;
 }
 
+/* GitHub icon and build commit at the end of the footer */
+.site-footer .source-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.site-footer .source-link a {
+  display: inline-flex;
+  align-items: center;
+}
+
+.site-footer .source-link .commit {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
 /* Category sections: heading rows in tables, groups in preferences */
 .ratings .section-row th {
   padding-top: 18px;

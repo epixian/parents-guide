@@ -103,7 +103,7 @@ test("clientAddress cannot be set by the client behind nginx", () => {
   assert.equal(clientAddress(headers({}), undefined, false), "unknown");
 });
 
-test("GET /similar/:id answers with the rated titles only, in TMDB's order, up to 12", async () => {
+test("GET /similar/:id answers with the rated titles only, in TMDB's order", async () => {
   const rated = new Set(["tmdb-movie-1", "tmdb-movie-3", ...Array.from({ length: 20 }, (_, i) => `tmdb-movie-${100 + i}`)]);
   const reports = {
     items: async (ids: string[]) => ids.filter((id) => rated.has(id)).map((id) => ({ ...TITLE, id })),
@@ -114,6 +114,6 @@ test("GET /similar/:id answers with the rated titles only, in TMDB's order, up t
   const api = createApi(reports, {} as SearchCache, {} as WatchService, similar);
   const res = await api.request("/similar/tmdb-movie-329");
   const ids = ((await res.json()) as IndexEntry[]).map((t) => t.id);
-  assert.equal(ids.length, 12);
+  assert.equal(ids.length, 22);
   assert.deepEqual(ids.slice(0, 3), ["tmdb-movie-3", "tmdb-movie-1", "tmdb-movie-100"]);
 });

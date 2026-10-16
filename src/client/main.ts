@@ -30,6 +30,7 @@ import type {
   WorkInfo,
 } from "../shared/types.js";
 import { api } from "./api.js";
+import { rankSimilar } from "../shared/similar.js";
 import { browse, prefetchTitles, preloadTitles, suggest, titlesById, titlesReady } from "./titles.js";
 import {
   loadHidden,
@@ -299,8 +300,13 @@ function loadWatch(id: string, seq: number): void {
 
 // ---------- Similar titles ----------
 
-/** Similar rated titles per title id, kept for one hour. */
+/** Cards in the "Similar titles" section. */
+const SIMILAR_LIMIT = 12;
+
+/** Similar rated titles per title id, in TMDB's order, kept for one hour. */
 const similarCache = new Map<string, { at: number; items: RecentItem[] }>();
+/** Rated titles by id, for the theme tags of liked and similar titles. Null until loaded (or with data saver). */
+let similarIndex: Map<string, IndexEntry> | null = null;
 
 function cachedSimilar(): RecentItem[] | null {
   const hit = watchId ? similarCache.get(watchId) : undefined;
@@ -310,8 +316,18 @@ function cachedSimilar(): RecentItem[] | null {
 /** True when the page gets a "Similar titles" section: movies and TV, unless the list is known to be empty. */
 const hasSimilar = () => Boolean(watchId) && cachedSimilar()?.length !== 0;
 
+/** The first cards, after titles like the ones the user liked (see rankSimilar). */
 function similarCardsHtml(items: RecentItem[]): string {
-  return `<ul class="cards">${items.map((item) => cardHtml(item, false, miniComposites(item))).join("")}</ul>`;
+  const liked = Object.keys(thumbs).filter((id) => thumbs[id] === "up");
+  const ranked = rankSimilar(items, liked, (id) => similarIndex?.get(id)?.themeTags).slice(0, SIMILAR_LIMIT);
+  return `<ul class="cards">${ranked.map((item) => cardHtml(item, false, miniComposites(item))).join("")}</ul>`;
+}
+
+/** Order the similar titles on the page again, after the thumbs change. */
+function rerankSimilar(): void {
+  const box = document.querySelector<HTMLElement>("#similar-slot");
+  const items = cachedSimilar();
+  if (box && items?.length && !box.hasAttribute("aria-busy")) box.innerHTML = similarCardsHtml(items);
 }
 
 /** The "Similar titles" section, filled when the list arrives. Only rated titles show. */
@@ -344,9 +360,10 @@ function loadSimilar(id: string, seq: number): void {
     document.querySelector("#sec-similar")?.remove();
     document.querySelector('[data-jump="sec-similar"]')?.remove();
   };
-  api
-    .similar(id)
-    .then((items) => {
+  // The catalog gives the theme tags for the order; without it, TMDB's order stays.
+  Promise.all([api.similar(id), titlesById().catch(() => null)])
+    .then(([items, index]) => {
+      similarIndex = index ?? similarIndex;
       similarCache.set(id, { at: Date.now(), items });
       fill(items);
     })
@@ -411,6 +428,7 @@ function toggleMark(button: HTMLButtonElement): void {
     if (thumbs[id] === thumb) delete thumbs[id];
     else thumbs[id] = thumb;
     saveThumbs(thumbs);
+    rerankSimilar();
   }
   box.outerHTML = marksHtml(id, title);
   // Keep focus on the button the user selected; it is drawn again.
@@ -423,6 +441,7 @@ window.addEventListener("storage", () => {
   thumbs = loadThumbs();
   const box = document.querySelector<HTMLElement>("#marks");
   if (box) box.outerHTML = marksHtml(box.dataset.id!, JSON.parse(box.dataset.title!) as MarkTitle);
+  rerankSimilar();
 });
 
 // ---------- Rendering helpers ----------

@@ -37,9 +37,6 @@ function clientKey(c: Context): string {
   return clientAddress((name) => c.req.header(name), getConnInfo(c).remote.address, config.trustProxy);
 }
 
-/** Cards in the "Similar titles" section. */
-const SIMILAR_LIMIT = 12;
-
 export function createApi(
   reports: ReportService,
   searchCache: SearchCache,
@@ -143,11 +140,9 @@ export function createApi(
 
   api.get("/providers", async (c) => c.json(await watch.catalog()));
 
-  // Rated titles that TMDB recommends for a movie or TV series, best first.
-  api.get("/similar/:id", async (c) => {
-    const ids = await similar.title(c.req.param("id"));
-    return c.json((await reports.items(ids)).slice(0, SIMILAR_LIMIT));
-  });
+  // Every rated title that TMDB recommends for a movie or TV series, best first.
+  // The browser orders them by the user's thumbs up and shows the first few.
+  api.get("/similar/:id", async (c) => c.json(await reports.items(await similar.title(c.req.param("id")))));
 
   api.notFound((c) => c.json<ApiError>({ error: "Not found" }, 404));
 

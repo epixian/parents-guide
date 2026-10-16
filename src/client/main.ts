@@ -2255,6 +2255,11 @@ app.addEventListener("click", (e) => {
   document.getElementById(id)?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
 });
 
+// Phone testing: ?debug in the URL (before the #) shows an event log. See debug.ts.
+if (new URLSearchParams(location.search).has("debug")) {
+  void import("./debug.js").then((m) => m.startDebugLog());
+}
+
 window.addEventListener("hashchange", () => void route());
 renderPrefs();
 void route();

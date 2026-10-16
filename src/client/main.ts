@@ -249,7 +249,7 @@ function compositesHtml(scoreOf: (id: CategoryId) => number | undefined, opts: {
 // ---------- Mood ----------
 // A block in the Summary section with three titled bars: Outlook (the tone
 // field, 1-5, bleak to uplifting: purple, grey, gold), Pull (the feeling
-// field, 1-3, low-key to strong: pale to deep rose), and Depth (1-5, silly to
+// field, 1-5, low-key to powerful: pale to deep rose), and Depth (1-5, silly to
 // profound: light to deep blue).
 // Like the concern bars, the width shows the value and the whole bar takes
 // the value's color. Each scale is a tile, and the tile's tooltip explains

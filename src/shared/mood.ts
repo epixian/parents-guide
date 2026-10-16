@@ -1,14 +1,21 @@
 // Mood: the feel of the whole work, shown as three bars in the Summary
 // section. Tone (1-5, shown as "Outlook") runs from bleak to uplifting,
-// feeling (1-3, shown as "Pull") from low-key to strong, and depth (1-5)
+// feeling (1-5, shown as "Pull") from low-key to powerful, and depth (1-5)
 // from silly to profound. Both the full rating prompt and the light
 // backfill prompt use MOOD_RULES, so they cannot drift apart.
 
 import type { Mood } from "./types.js";
 
 export const TONE_MAX = 5;
-export const FEELING_MAX = 3;
+export const FEELING_MAX = 5;
 export const DEPTH_MAX = 5;
+
+/**
+ * Version of the mood scales, saved with each mood. Raise it when a scale
+ * changes: moods with another version count as missing and are rated again.
+ * 1 (no version saved): feeling 1-3. 2: feeling 1-5.
+ */
+export const MOOD_VERSION = 2;
 
 export const TONE_LABELS: Record<number, string> = {
   1: "Bleak",
@@ -20,8 +27,10 @@ export const TONE_LABELS: Record<number, string> = {
 
 export const FEELING_LABELS: Record<number, string> = {
   1: "Low-key",
-  2: "Moderate",
-  3: "Strong",
+  2: "Mild",
+  3: "Moderate",
+  4: "Strong",
+  5: "Powerful",
 };
 
 export const DEPTH_LABELS: Record<number, string> = {
@@ -32,9 +41,9 @@ export const DEPTH_LABELS: Record<number, string> = {
   5: "Profound",
 };
 
-/** True when the result has a complete mood. Moods saved before depth existed have no depth. */
+/** True when the result has a mood on the current scales (see MOOD_VERSION). */
 export function hasMood(r: { mood?: Mood }): r is { mood: Mood } {
-  return typeof r.mood?.depth === "number";
+  return r.mood?.version === MOOD_VERSION;
 }
 
 export const MOOD_RULES = `mood describes the feel of the work as a whole, on three separate integer scales.
@@ -48,8 +57,10 @@ tone (1 to ${TONE_MAX}): where the work leaves the audience overall. Weigh the e
 
 feeling (1 to ${FEELING_MAX}): how strongly the work is likely to stir the audience's emotions, such as sadness, tenderness, joy, or grief. It is not excitement, suspense, action, or fear: a tense thriller or a jump-scare horror film can be low on feeling.
 - 1 low-key: little emotional pull (e.g. a light sitcom, a heist caper, a reference book).
-- 2 moderate: some moving moments, but not the focus.
-- 3 strong: deeply affecting; likely to move many people to tears (e.g. Up, The Fault in Our Stars).
+- 2 mild: a few touching moments (e.g. Paddington, Shrek).
+- 3 moderate: some moving moments, but not the focus (e.g. Finding Nemo, Harry Potter and the Sorcerer's Stone).
+- 4 strong: emotional moments are a main part of the work (e.g. Toy Story 3, Wonder).
+- 5 powerful: deeply affecting; likely to move many people to tears (e.g. Up, The Fault in Our Stars).
 
 depth (1 to ${DEPTH_MAX}): how much the work gives the audience to think about: ideas, questions, and meaning. It is not emotion: a tearjerker romance can be lighthearted, and a calm documentary can be profound.
 - 1 silly: pure fun; nothing to think about afterwards (e.g. Minions, a slapstick comedy). Nonfiction is never 1.
@@ -58,5 +69,5 @@ depth (1 to ${DEPTH_MAX}): how much the work gives the audience to think about: 
 - 4 thoughtful: real ideas about people or the world are a main part of the work (e.g. Wonder, Zootopia).
 - 5 profound: serious ideas about life, morality, or society are central (e.g. To Kill a Mockingbird, Schindler's List).
 
-A bittersweet work is tone 3 with feeling 3. Rate the three scales independently.
+A bittersweet work is tone 3 with feeling 4 or 5. Rate the three scales independently.
 note: one short sentence that explains the values.`;

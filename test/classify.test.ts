@@ -57,7 +57,7 @@ test("reportFromMessage builds a normalized report", () => {
   assert.equal(report.categories.lgbtq.treatment, "critical");
   assert.equal(report.categories.violence.treatment, null);
   assert.deepEqual(report.themeTags, ["friendship"]);
-  assert.deepEqual(report.mood, { tone: 4, feeling: 3, depth: 2, note: "Warm and gentle." });
+  assert.deepEqual(report.mood, { tone: 4, feeling: 5, depth: 2, note: "Warm and gentle.", version: 2 });
   assert.equal(report.refreshedAt, "2026-10-14T00:00:00.000Z");
 });
 
@@ -76,14 +76,15 @@ test("estimateCost uses Haiku prices and halves batch requests", () => {
   assert.equal(estimateCost({ id: "x", mode: "live", model: "other-model", usage }), null);
 });
 
-test("normalizeMood rounds and clamps tone and depth to 1-5 and feeling to 1-3, and keeps a missing mood missing", () => {
-  assert.deepEqual(normalizeMood({ tone: 0, feeling: 1.6, depth: 0, note: "x" }), { tone: 1, feeling: 2, depth: 1, note: "x" });
-  assert.deepEqual(normalizeMood({ tone: 9, feeling: 7, depth: 9, note: "" }), { tone: 5, feeling: 3, depth: 5, note: "" });
+test("normalizeMood rounds and clamps each scale to 1-5, adds the version, and keeps a missing mood missing", () => {
+  assert.deepEqual(normalizeMood({ tone: 0, feeling: 1.6, depth: 0, note: "x" }), { tone: 1, feeling: 2, depth: 1, note: "x", version: 2 });
+  assert.deepEqual(normalizeMood({ tone: 9, feeling: 7, depth: 9, note: "" }), { tone: 5, feeling: 5, depth: 5, note: "", version: 2 });
   assert.deepEqual(normalizeMood({ tone: Number.NaN, feeling: Number.NaN, depth: Number.NaN, note: "" }), {
     tone: 3,
-    feeling: 2,
+    feeling: 3,
     depth: 3,
     note: "",
+    version: 2,
   });
   assert.equal(normalizeMood(undefined), undefined);
   assert.equal(normalizeMood(null), undefined);
@@ -95,7 +96,7 @@ test("buildMoodRequest sends the saved summary and themes, with a small JSON sch
   assert.equal(req.model, "claude-haiku-4-5");
   assert.ok(req.max_tokens <= 500);
   assert.match(String(req.system), /tone \(1 to 5\)/);
-  assert.match(String(req.system), /feeling \(1 to 3\)/);
+  assert.match(String(req.system), /feeling \(1 to 5\)/);
   const user = String(req.messages[0]?.content);
   assert.match(user, /Title: Test Movie \(Season 2\)/);
   assert.match(user, /Type: TV season/);
@@ -108,18 +109,21 @@ test("buildMoodRequest sends the saved summary and themes, with a small JSON sch
 });
 
 test("moodFromMessage normalizes the mood and rejects bad output", () => {
-  assert.deepEqual(moodFromMessage(message(JSON.stringify({ tone: 2, feeling: 3.2, depth: 3, note: "Sad but warm." }))), {
+  assert.deepEqual(moodFromMessage(message(JSON.stringify({ tone: 2, feeling: 4.2, depth: 3, note: "Sad but warm." }))), {
     tone: 2,
-    feeling: 3,
+    feeling: 4,
     depth: 3,
     note: "Sad but warm.",
+    version: 2,
   });
   assert.throws(() => moodFromMessage(message("{}", "refusal")), /declined/);
   assert.throws(() => moodFromMessage(message(JSON.stringify({ tone: 2 }))), /not valid/);
 });
 
-test("hasMood needs a depth, so moods saved before depth existed are rated again", () => {
-  assert.equal(hasMood({ mood: { tone: 4, feeling: 3, depth: 2, note: "" } }), true);
+test("hasMood needs the current version, so moods on older scales are rated again", () => {
+  assert.equal(hasMood({ mood: { tone: 4, feeling: 3, depth: 2, note: "", version: 2 } }), true);
+  // Version 1 (feeling 1-3) saved no version.
+  assert.equal(hasMood({ mood: { tone: 4, feeling: 3, depth: 2, note: "" } }), false);
   assert.equal(hasMood({ mood: { tone: 4, feeling: 3, note: "" } as unknown as Mood }), false);
   assert.equal(hasMood({}), false);
 });

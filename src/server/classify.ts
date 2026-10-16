@@ -10,7 +10,7 @@ import {
   type CategoryId,
   type TreatmentId,
 } from "../shared/categories.js";
-import { DEPTH_MAX, FEELING_MAX, MOOD_RULES, TONE_MAX } from "../shared/mood.js";
+import { DEPTH_MAX, FEELING_MAX, MOOD_RULES, MOOD_VERSION, TONE_MAX } from "../shared/mood.js";
 import { THEME_TAGS, normalizeThemeTags } from "../shared/themes.js";
 import { SCHEMA_VERSION, type CategoryRating, type Mood, type Report, type WorkInfo } from "../shared/types.js";
 import type { WorkDetails } from "./catalog/types.js";
@@ -133,6 +133,7 @@ export function normalizeMood(
     feeling: clamp(raw.feeling, FEELING_MAX),
     depth: clamp(raw.depth, DEPTH_MAX),
     note: String(raw.note ?? "").trim(),
+    version: MOOD_VERSION,
   };
 }
 

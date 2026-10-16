@@ -54,12 +54,14 @@ export interface AudienceScore {
 export interface Mood {
   /** 1 bleak, 2 somber, 3 even, 4 hopeful, 5 uplifting. Shown as "Outlook". */
   tone: number;
-  /** 1 low-key, 2 moderate, 3 strong: how strongly the work stirs emotions. Shown as "Pull". */
+  /** 1 low-key, 2 mild, 3 moderate, 4 strong, 5 powerful: how strongly the work stirs emotions. Shown as "Pull". */
   feeling: number;
-  /** 1 silly, 2 lighthearted, 3 moderate, 4 thoughtful, 5 profound: how much the work gives to think about. Missing in moods saved before depth existed. */
+  /** 1 silly, 2 lighthearted, 3 moderate, 4 thoughtful, 5 profound: how much the work gives to think about. */
   depth: number;
-  /** One sentence from the AI that explains both values. */
+  /** One sentence from the AI that explains the values. Saved, not shown. */
   note: string;
+  /** Scale version (MOOD_VERSION in src/shared/mood.ts). Older moods have none and are rated again. */
+  version?: number;
 }
 
 export interface CategoryRating {

@@ -57,7 +57,7 @@ npm install
 cp .env.example .env   # then add ANTHROPIC_API_KEY and TMDB_API_KEY
 ```
 
-Run with Solo (`solo.yml`) or by hand in two terminals:
+Run the API and the web app in two terminals:
 
 ```sh
 npm run dev:api      # API on http://localhost:8787 (restarts on change)

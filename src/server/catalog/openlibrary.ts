@@ -1,3 +1,4 @@
+import { config } from "../config.js";
 import { HttpError, fetchJson } from "../http.js";
 import { isReleased } from "../refreshPolicy.js";
 import type { SearchResult, WorkInfo } from "../../shared/types.js";
@@ -5,11 +6,15 @@ import { audienceScore, credits, truncate, type WorkDetails } from "./types.js";
 
 const BASE = "https://openlibrary.org";
 // Open Library allows about 1 request per second, or 3 with a User-Agent that
-// names the app and a contact. https://openlibrary.org/developers/api
-const HEADERS = { "user-agent": "epixian/pairents-guide/0.1 (+https://example.com)", accept: "application/json" };
+// names the app and a contact (OPENLIBRARY_CONTACT). https://openlibrary.org/developers/api
+const CONTACT = config.openLibraryContact;
+const HEADERS = {
+  "user-agent": CONTACT ? `pairents-guide/0.1 (+${CONTACT})` : "pairents-guide/0.1",
+  accept: "application/json",
+};
 
-/** Space request starts this far apart: just under 3 per second for this process. */
-const MIN_GAP_MS = 350;
+/** Space request starts this far apart: just under 3 per second with a contact, 1 without. */
+const MIN_GAP_MS = CONTACT ? 350 : 1_000;
 /** Waits before each retry of a 429 or 503 answer. */
 const RETRY_WAITS_MS = [2_000, 5_000];
 

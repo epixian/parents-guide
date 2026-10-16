@@ -2,6 +2,8 @@
   "name": "pairents-guide",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
+  "author": "Erich Oelschlegel",
   "description": "AI summaries of parental concerns for movies, TV shows, and books",
   "type": "module",
   "engines": {

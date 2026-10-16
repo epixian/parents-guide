@@ -25,5 +25,8 @@ export const config = {
   tmdbApiKey: process.env.TMDB_API_KEY || "",
   aiLookupsPerIpPerHour: intEnv("AI_LOOKUPS_PER_IP_PER_HOUR", 30),
   trustProxy: process.env.TRUST_PROXY === "1",
+  // Contact URL or email for the Open Library User-Agent. With a contact,
+  // Open Library allows about 3 requests per second; without one, about 1.
+  openLibraryContact: process.env.OPENLIBRARY_CONTACT || "",
   model: "claude-haiku-4-5",
 };

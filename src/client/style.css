@@ -1503,9 +1503,11 @@ a.audience:hover {
   opacity: 1;
 }
 
-/* Buttons over a card's poster (recommended titles). Shown on hover or
+/* Buttons over a poster: the watchlist toggle on every card and search
+   result, and "Not interested" on recommended cards. Shown on hover or
    keyboard focus; always shown on touch screens, which have no hover. */
-.cards li {
+.cards li,
+.results li {
   position: relative;
 }
 
@@ -1521,8 +1523,27 @@ a.audience:hover {
 }
 
 .cards li:hover .card-actions,
-.cards li:focus-within .card-actions {
+.cards li:focus-within .card-actions,
+.results li:hover .card-actions,
+.results li:focus-within .card-actions {
   opacity: 1;
+}
+
+/* Search results: a smaller button on the top left of the 46px thumbnail. */
+.card-actions.small {
+  top: 12px;
+  right: auto;
+  left: 12px;
+}
+
+.card-actions.small .card-action {
+  width: 22px;
+  height: 22px;
+}
+
+.card-actions.small svg {
+  width: 13px;
+  height: 13px;
 }
 
 @media (hover: none) {
@@ -1551,6 +1572,10 @@ a.audience:hover {
 .card-action:focus-visible {
   outline: 2px solid #fff;
   outline-offset: 1px;
+}
+
+.card-action[aria-pressed="true"] svg {
+  fill: currentColor;
 }
 
 .card-action svg {

@@ -807,8 +807,10 @@ function saveSearchFilter(f: SearchFilter): void {
 
 /** One search result row. rated: the saved rating, for the badge and the composite bars. */
 function resultItem(r: SearchResult, rated?: IndexEntry): string {
+  const card = { id: r.id, kind: r.kind, title: r.title, years: r.year ? String(r.year) : null, imageUrl: r.imageUrl };
   return `
     <li>
+      ${cardActions(rated ?? card, { small: true })}
       <a href="${pageHref(r)}">
         ${r.imageUrl ? `<img src="${esc(r.imageUrl)}" alt="" width="110" height="165" loading="lazy" decoding="async" />` : `<span class="noimg" aria-hidden="true"></span>`}
         <span class="result-text">
@@ -1069,11 +1071,50 @@ function pageHref(item: Pick<RecentItem, "id" | "kind">): string {
   return item.kind === "tv" ? `#/tv/${item.id.replace("tmdb-tv-", "")}` : `#/r/${item.id}`;
 }
 
-/** extra: HTML between the poster and the title (the composite bars). overlay: buttons over the poster. */
-function cardHtml(item: RecentItem, showKind: boolean, extra = "", overlay = ""): string {
+// Feather icons (MIT): bookmark and eye-off.
+const ACTION_ICONS = {
+  list: MARK_ICONS.list,
+  hide: "M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22",
+};
+
+function watchlistButton(id: string, title: string): string {
+  const on = id in watchlist;
+  return `
+    <button type="button" class="card-action" data-card-action="list" aria-pressed="${on}" aria-label="${esc(`${title}: on my watchlist`)}" title="${on ? "Remove from watchlist" : "Add to watchlist"}">
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="${ACTION_ICONS.list}" /></svg>
+    </button>`;
+}
+
+/**
+ * Buttons over a poster: the watchlist toggle, and "Not interested" for
+ * recommended titles. small: for the search result thumbnails.
+ */
+function cardActions(item: Pick<RecentItem, "id" | "kind" | "title" | "years" | "imageUrl">, opts: { notInterested?: boolean; small?: boolean } = {}): string {
+  const id = markId(item.id);
+  const title: MarkTitle = { kind: item.kind, title: item.title, years: item.years, imageUrl: item.imageUrl };
+  return `
+    <div class="card-actions${opts.small ? " small" : ""}" data-id="${esc(id)}" data-title="${esc(JSON.stringify(title))}">
+      ${watchlistButton(id, item.title)}
+      ${
+        opts.notInterested
+          ? `<button type="button" class="card-action" data-card-action="hide" aria-label="${esc(`Not interested in ${item.title}`)}" title="Not interested">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="${ACTION_ICONS.hide}" /></svg>
+            </button>`
+          : ""
+      }
+    </div>`;
+}
+
+/** Search results have small posters; the watchlist card gets the larger size. */
+function largerPoster(url: string | null): string | null {
+  return url?.replace("/t/p/w92/", "/t/p/w185/").replace(/-S\.jpg$/, "-M.jpg") ?? null;
+}
+
+/** extra: HTML between the poster and the title (the composite bars). notInterested: recommended titles only. */
+function cardHtml(item: RecentItem, showKind: boolean, extra = "", opts: { notInterested?: boolean } = {}): string {
   return `
     <li>
-      ${overlay}
+      ${cardActions(item, opts)}
       <a href="${pageHref(item)}">
         ${item.imageUrl ? `<img src="${esc(item.imageUrl)}" alt="" width="110" height="165" loading="lazy" decoding="async" />` : `<span class="noimg" aria-hidden="true"></span>`}
         ${extra}
@@ -1133,8 +1174,8 @@ async function showWatchlist(): Promise<string> {
     <h1>My watchlist</h1>
     ${
       total
-        ? `<p class="muted">${total} title${total === 1 ? "" : "s"}, most recently added first.</p>
-           <ul class="cards grid">${watchlistCards(index).join("")}</ul>`
+        ? `<p class="muted" id="watchlist-count">${total} title${total === 1 ? "" : "s"}, most recently added first.</p>
+           <ul class="cards grid" id="watchlist-grid">${watchlistCards(index).join("")}</ul>`
         : `<p class="muted">Your watchlist is empty. Select the bookmark on a title's page to add it.</p>`
     }`;
 }
@@ -1162,28 +1203,8 @@ function recommendedHtml(index: Map<string, IndexEntry> | null): string {
           <span class="info-tip" id="recommend-info" role="tooltip">Recommendations are automatically generated based on titles you liked/disliked and never leave the browser.</span>
         </span>
       </h2>
-      <ul class="cards">${picks.map((t) => cardHtml(t, true, miniComposites(t), recommendActions(t))).join("")}</ul>
+      <ul class="cards">${picks.map((t) => cardHtml(t, true, miniComposites(t), { notInterested: true })).join("")}</ul>
     </section>`;
-}
-
-// Feather icons (MIT): bookmark and eye-off.
-const ACTION_ICONS = {
-  list: MARK_ICONS.list,
-  hide: "M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22",
-};
-
-/** "Add to watchlist" and "Not interested" buttons over a recommended card's poster. */
-function recommendActions(t: IndexEntry): string {
-  const button = (action: keyof typeof ACTION_ICONS, label: string, tip: string) => `
-    <button type="button" class="card-action" data-card-action="${action}" aria-label="${esc(label)}" title="${esc(tip)}">
-      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="${ACTION_ICONS[action]}" /></svg>
-    </button>`;
-  const title: MarkTitle = { kind: t.kind, title: t.title, years: t.years, imageUrl: t.imageUrl };
-  return `
-    <div class="card-actions" data-id="${esc(t.id)}" data-title="${esc(JSON.stringify(title))}">
-      ${button("list", `Add ${t.title} to watchlist`, "Add to watchlist")}
-      ${button("hide", `Not interested in ${t.title}`, "Not interested")}
-    </div>`;
 }
 
 /** Rated titles from the last home page render, to draw its watchlist and recommendations again. */
@@ -1197,18 +1218,53 @@ function personalHtml(): string {
 function cardAction(button: HTMLButtonElement): void {
   const box = button.closest<HTMLElement>(".card-actions")!;
   const id = box.dataset.id!;
-  const position = [...document.querySelectorAll("#home-personal .recommended .card-actions")].indexOf(box);
+  const removed = button.dataset.cardAction === "list" && id in watchlist;
   if (button.dataset.cardAction === "list") {
-    watchlist[id] = { ...(JSON.parse(box.dataset.title!) as MarkTitle), addedAt: new Date().toISOString() };
+    if (removed) delete watchlist[id];
+    else {
+      const title = JSON.parse(box.dataset.title!) as MarkTitle;
+      watchlist[id] = { ...title, imageUrl: largerPoster(title.imageUrl), addedAt: new Date().toISOString() };
+    }
     saveWatchlist(watchlist);
   } else {
     notInterested[id] = new Date().toISOString();
     saveNotInterested(notInterested);
   }
-  // The card leaves the recommendations; the next one moves into its place.
-  document.querySelector("#home-personal")!.outerHTML = personalHtml();
-  const cards = document.querySelectorAll<HTMLElement>("#home-personal .recommended .cards > li");
-  (cards[position] ?? cards[cards.length - 1])?.querySelector<HTMLElement>("a")?.focus({ preventScroll: true });
+
+  // Every card of this title on the page shows the new state.
+  for (const other of document.querySelectorAll<HTMLButtonElement>(`.card-actions[data-id="${CSS.escape(id)}"] [data-card-action="list"]`)) {
+    const title = JSON.parse(other.closest<HTMLElement>(".card-actions")!.dataset.title!) as MarkTitle;
+    other.outerHTML = watchlistButton(id, title.title);
+  }
+
+  // Watchlist page: a removed title leaves the grid.
+  const grid = document.querySelector("#watchlist-grid");
+  if (grid && removed) {
+    box.closest("li")?.remove();
+    const total = Object.keys(watchlist).length;
+    document.querySelector("#watchlist-count")!.textContent = total
+      ? `${total} title${total === 1 ? "" : "s"}, most recently added first.`
+      : "Your watchlist is empty.";
+  }
+
+  // Home page: the watchlist row and the recommendations change.
+  const personal = document.querySelector("#home-personal");
+  if (personal) {
+    const section = box.closest("#home-personal section");
+    const kind = section?.classList.contains("recommended") ? "recommended" : section ? "watchlist" : null;
+    const position = kind ? [...section!.querySelectorAll(".card-actions")].indexOf(box) : -1;
+    personal.outerHTML = personalHtml();
+    if (kind) {
+      // The card may have left its row: focus the card now in its place.
+      const cards = document.querySelectorAll<HTMLElement>(`#home-personal .${kind} .cards > li`);
+      const card = cards[position] ?? cards[cards.length - 1];
+      card?.querySelector<HTMLElement>(`[data-card-action="${button.dataset.cardAction}"]`)?.focus({ preventScroll: true }) ??
+        card?.querySelector<HTMLElement>("a")?.focus({ preventScroll: true });
+    }
+  } else {
+    // The button was drawn again: put focus back on it.
+    document.querySelector<HTMLElement>(`.card-actions[data-id="${CSS.escape(id)}"] [data-card-action="list"]`)?.focus({ preventScroll: true });
+  }
 }
 
 /** One row of poster cards per media kind. A kind with no saved titles is left out. */

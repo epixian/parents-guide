@@ -1,5 +1,6 @@
 import type {
   BrowseResponse,
+  IndexEntry,
   Mood,
   RecentItem,
   RecentResponse,
@@ -25,7 +26,9 @@ export const api = {
   report: (id: string) => get<ReportResponse>(`/api/report/${encodeURIComponent(id)}`),
   recent: () => get<RecentResponse>("/api/recent"),
   trending: () => get<RecentItem[]>("/api/trending"),
-  /** query: the browse filters as a query string (see src/server/browse.ts). */
+  /** Every rated title, for browse and suggestions in the browser. Use src/client/titles.ts, not this. */
+  titles: () => get<IndexEntry[]>("/api/titles"),
+  /** query: the browse filters as a query string (see src/shared/browse.ts). */
   browse: (query: string) => get<BrowseResponse>(`/api/browse?${query}`),
   series: (tmdbId: string) => get<SeriesResponse>(`/api/tv/${encodeURIComponent(tmdbId)}`),
 };

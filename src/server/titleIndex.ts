@@ -84,8 +84,8 @@ function toItem(t: IndexEntry): RecentItem {
 }
 
 /**
- * In-memory index of every saved result, for the home page and (later)
- * browsing and filtering. Built from the cache folder once at startup, then
+ * In-memory index of every saved result, for the home page, browsing, and
+ * search suggestions. Built from the cache folder once at startup, then
  * updated on every save. The cache files stay the source of truth.
  *
  * Filtering a few thousand entries in memory takes well under a millisecond.
@@ -94,13 +94,27 @@ function toItem(t: IndexEntry): RecentItem {
  */
 export class TitleIndex {
   private readonly results = new Map<string, ResultEntry>();
+  /** Goes up on every add, so clients can tell when their copy is out of date. */
+  private changes = 0;
+  private merged: { changes: number; titles: IndexEntry[] } | null = null;
 
   add(report: Report): void {
     this.results.set(report.id, toEntry(report));
+    this.changes++;
   }
 
-  /** One entry per title; TV seasons merged by series. */
-  titles(): IndexEntry[] {
+  /** Changes since startup. Part of the ETag for GET /api/titles. */
+  get version(): number {
+    return this.changes;
+  }
+
+  /** One entry per title; TV seasons merged by series. Callers must not change the array. */
+  titles(): readonly IndexEntry[] {
+    if (this.merged?.changes !== this.changes) this.merged = { changes: this.changes, titles: this.merge() };
+    return this.merged.titles;
+  }
+
+  private merge(): IndexEntry[] {
     const groups = new Map<string, ResultEntry[]>();
     for (const r of this.results.values()) {
       const list = groups.get(r.titleId);
@@ -121,7 +135,7 @@ export class TitleIndex {
 
   recent(limit: number): RecentResponse {
     const out: RecentResponse = { movie: [], tv: [], book: [] };
-    const sorted = this.titles().sort((a, b) => b.addedAt.localeCompare(a.addedAt));
+    const sorted = [...this.titles()].sort((a, b) => b.addedAt.localeCompare(a.addedAt));
     for (const t of sorted) {
       if (out[t.kind].length >= limit) continue;
       out[t.kind].push(toItem(t));

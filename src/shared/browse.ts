@@ -1,10 +1,12 @@
-import { CATEGORIES, SCORE_MAX, SCORE_MIN, TREATMENTS, type CategoryId, type TreatmentId } from "../shared/categories.js";
-import { THEME_TAGS, type ThemeTag } from "../shared/themes.js";
-import type { BrowseResponse, BrowseSort, IndexEntry, MediaKind, Suggestion } from "../shared/types.js";
-import { HttpError } from "./http.js";
+import { CATEGORIES, SCORE_MAX, SCORE_MIN, TREATMENTS, type CategoryId, type TreatmentId } from "./categories.js";
+import { THEME_TAGS, type ThemeTag } from "./themes.js";
+import type { BrowseResponse, BrowseSort, IndexEntry, MediaKind, Suggestion } from "./types.js";
 
 // Browse filters, read from the query string. The client keeps the same
 // query string in its URL, so a filtered list can be bookmarked or shared.
+// The client filters the list from GET /api/titles with this code. The server
+// uses it too, for GET /api/browse and GET /api/suggest (the fallback when the
+// browser asks to save data).
 //
 //   kind=movie                  movie | tv | book
 //   q=star                      title contains this text
@@ -28,6 +30,9 @@ export interface BrowseFilters {
   limit: number;
 }
 
+/** A bad filter value. The server answers 400 with the message. */
+export class BrowseQueryError extends Error {}
+
 export const DEFAULT_LIMIT = 24;
 const MAX_LIMIT = 60;
 
@@ -40,26 +45,26 @@ const TREATMENT_IDS = new Set<string>(TREATMENTS.map((t) => t.id));
 function intParam(name: string, value: string | undefined, min: number, max: number, fallback: number): number {
   if (value === undefined || value === "") return fallback;
   const n = Number(value);
-  if (!Number.isInteger(n) || n < min || n > max) throw new HttpError(400, `${name} must be an integer from ${min} to ${max}`);
+  if (!Number.isInteger(n) || n < min || n > max) throw new BrowseQueryError(`${name} must be an integer from ${min} to ${max}`);
   return n;
 }
 
 function category(key: string, prefix: string): (typeof CATEGORIES)[number] {
   const c = CATEGORY_BY_ID.get(key.slice(prefix.length));
-  if (!c) throw new HttpError(400, `Unknown topic in ${key}`);
+  if (!c) throw new BrowseQueryError(`Unknown topic in ${key}`);
   return c;
 }
 
-/** Read and check the filters. Throws a 400 HttpError for a bad value. */
+/** Read and check the filters. Throws a BrowseQueryError for a bad value. */
 export function parseBrowseQuery(params: URLSearchParams): BrowseFilters {
   const kind = params.get("kind") || null;
-  if (kind && !KINDS.has(kind)) throw new HttpError(400, "kind must be movie, tv, or book");
+  if (kind && !KINDS.has(kind)) throw new BrowseQueryError("kind must be movie, tv, or book");
   const sort = params.get("sort") || "added";
-  if (!SORTS.has(sort)) throw new HttpError(400, "sort must be added, title, or year");
+  if (!SORTS.has(sort)) throw new BrowseQueryError("sort must be added, title, or year");
 
   const tags = [...new Set(params.getAll("tag").filter(Boolean))];
   const unknownTag = tags.find((t) => !TAGS.has(t));
-  if (unknownTag) throw new HttpError(400, `Unknown theme tag: ${unknownTag}`);
+  if (unknownTag) throw new BrowseQueryError(`Unknown theme tag: ${unknownTag}`);
 
   const max: BrowseFilters["max"] = {};
   const hide: BrowseFilters["hide"] = {};
@@ -69,10 +74,10 @@ export function parseBrowseQuery(params: URLSearchParams): BrowseFilters {
       max[c.id] = intParam(key, value, SCORE_MIN, SCORE_MAX, SCORE_MAX);
     } else if (key.startsWith("hide.")) {
       const c = category(key, "hide.");
-      if (!c.hasTreatment) throw new HttpError(400, `${c.id} has no treatment`);
+      if (!c.hasTreatment) throw new BrowseQueryError(`${c.id} has no treatment`);
       const ids = value.split(",").filter(Boolean);
       const bad = ids.find((t) => !TREATMENT_IDS.has(t) || t === "not_present");
-      if (bad) throw new HttpError(400, `Unknown treatment in ${key}: ${bad}`);
+      if (bad) throw new BrowseQueryError(`Unknown treatment in ${key}: ${bad}`);
       // A form sends one key per checkbox; a hand-written URL can use commas.
       if (ids.length) hide[c.id] = [...new Set([...(hide[c.id] ?? []), ...(ids as TreatmentId[])])];
     }
@@ -116,7 +121,7 @@ const SORTERS: Record<BrowseSort, (a: IndexEntry, b: IndexEntry) => number> = {
 };
 
 /** Filter, sort, and page the titles. Tag counts cover every match, not only the current page. */
-export function browseTitles(titles: IndexEntry[], f: BrowseFilters): BrowseResponse {
+export function browseTitles(titles: readonly IndexEntry[], f: BrowseFilters): BrowseResponse {
   const q = fold(f.q);
   const found = titles.filter((t) => matches(t, f, q)).sort(SORTERS[f.sort]);
   const counts = new Map<ThemeTag, number>();
@@ -144,7 +149,7 @@ function suggestRank(title: string, q: string): number | null {
 }
 
 /** Rated titles for the search box as the visitor types: best matches first, then shorter titles. */
-export function suggestTitles(titles: IndexEntry[], q: string, limit: number): Suggestion[] {
+export function suggestTitles(titles: readonly IndexEntry[], q: string, limit: number): Suggestion[] {
   const query = words(q);
   if (!query) return [];
   return titles

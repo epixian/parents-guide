@@ -79,3 +79,17 @@ test("normalizeThemeTags keeps known tags and fixes spelling", () => {
     "found-family",
   ]);
 });
+
+test("version goes up on each add, and titles() is reused until then", () => {
+  const index = new TitleIndex();
+  index.add(report("tmdb-movie-1", "movie", "2026-10-01T00:00:00Z"));
+  const v = index.version;
+  const first = index.titles();
+  assert.equal(index.titles(), first);
+  index.recent(5); // Sorts a copy, not the shared list.
+  assert.equal(index.titles(), first);
+  index.add(report("tmdb-movie-2", "movie", "2026-10-02T00:00:00Z"));
+  assert.equal(index.version, v + 1);
+  assert.notEqual(index.titles(), first);
+  assert.equal(index.titles().length, 2);
+});

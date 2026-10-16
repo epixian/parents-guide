@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { IndexEntry } from "../src/shared/types.js";
-import { browseTitles, parseBrowseQuery, suggestTitles } from "../src/server/browse.js";
+import { browseTitles, parseBrowseQuery, suggestTitles } from "../src/shared/browse.js";
 
 function entry(id: string, extra: Partial<IndexEntry> = {}): IndexEntry {
   return {

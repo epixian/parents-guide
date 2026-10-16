@@ -1,7 +1,7 @@
 import { getConnInfo } from "@hono/node-server/conninfo";
 import { Hono, type Context } from "hono";
 import type { ApiError, SearchResult } from "../shared/types.js";
-import { parseBrowseQuery } from "./browse.js";
+import { BrowseQueryError, parseBrowseQuery } from "../shared/browse.js";
 import { searchOpenLibrary } from "./catalog/openlibrary.js";
 import { searchTmdb } from "./catalog/tmdb.js";
 import { config } from "./config.js";
@@ -55,6 +55,19 @@ export function createApi(reports: ReportService, searchCache: SearchCache): Hon
 
   api.get("/trending", async (c) => c.json(await reports.getTrending(8)));
 
+  // Every saved title in one list. The browser filters it with src/shared/browse.ts.
+  // "no-cache" with an ETag: the browser keeps its copy and asks again on each
+  // use, and the answer is an empty 304 until a title is added or changed.
+  api.get("/titles", async (c) => {
+    const { tag, titles } = await reports.titles();
+    const etag = `W/"${tag}"`;
+    c.header("ETag", etag);
+    c.header("Cache-Control", "no-cache");
+    if (c.req.header("if-none-match")?.split(",").some((t) => t.trim() === etag)) return c.body(null, 304);
+    return c.json(titles);
+  });
+
+  // Browse and suggest on the server: the fallback when the browser asks to save data.
   api.get("/browse", async (c) => {
     const filters = parseBrowseQuery(new URL(c.req.url).searchParams);
     return c.json(await reports.browse(filters));
@@ -79,6 +92,7 @@ export function createApi(reports: ReportService, searchCache: SearchCache): Hon
 
   api.onError((err, c) => {
     if (err instanceof HttpError) return c.json<ApiError>({ error: err.message }, err.status);
+    if (err instanceof BrowseQueryError) return c.json<ApiError>({ error: err.message }, 400);
     console.error(err);
     return c.json<ApiError>({ error: "Internal error" }, 500);
   });

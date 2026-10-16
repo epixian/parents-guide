@@ -2,6 +2,7 @@ import { CATEGORIES } from "../shared/categories.js";
 import { hasMood } from "../shared/mood.js";
 import type {
   BrowseResponse,
+  IndexEntry,
   Mood,
   RecentItem,
   RecentResponse,
@@ -11,7 +12,7 @@ import type {
   Suggestion,
   WorkInfo,
 } from "../shared/types.js";
-import { browseTitles, suggestTitles, type BrowseFilters } from "./browse.js";
+import { browseTitles, suggestTitles, type BrowseFilters } from "../shared/browse.js";
 import { cachePathFor, type ReportCache } from "./cache.js";
 import { getBook } from "./catalog/openlibrary.js";
 import { getMovie, getTvSeason, getTvSeries } from "./catalog/tmdb.js";
@@ -70,6 +71,8 @@ export class ReportService {
   private readonly index = new TitleIndex();
   /** Loads the title index from the cache folder on first use. */
   private indexReady: Promise<void> | null = null;
+  /** Start time, so an ETag from before a restart never matches. */
+  private readonly started = Date.now().toString(36);
 
   constructor(
     private readonly cache: ReportCache,
@@ -106,6 +109,12 @@ export class ReportService {
   async suggest(q: string, limit: number): Promise<Suggestion[]> {
     await this.loadIndex();
     return suggestTitles(this.index.titles(), q, limit);
+  }
+
+  /** Every saved title, for browsing and suggestions in the browser. The tag changes when the list changes. */
+  async titles(): Promise<{ tag: string; titles: readonly IndexEntry[] }> {
+    await this.loadIndex();
+    return { tag: `${this.started}-${this.index.version}`, titles: this.index.titles() };
   }
 
   /** Build the index from the cache folder one time. Call at startup to avoid a slow first request. */

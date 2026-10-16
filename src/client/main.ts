@@ -28,6 +28,7 @@ import type {
   WorkInfo,
 } from "../shared/types.js";
 import { api } from "./api.js";
+import { browse, preloadTitles, suggest, titlesReady } from "./titles.js";
 import { loadHidden, markTipSeen, saveHidden, tipSeen, visibleCategories } from "./prefs.js";
 
 const app = document.querySelector<HTMLElement>("#app")!;
@@ -547,7 +548,7 @@ function searchResultsHtml(rows: SearchRow[], warnings: string[], pending: boole
 const RATED_LIMIT = 60;
 
 /**
- * Search: titles that are already rated show at once (from the server's index).
+ * Search: titles that are already rated show at once (from the list of rated titles).
  * The slower catalog search then adds its results to the same list, without
  * the titles that are already shown.
  */
@@ -556,7 +557,7 @@ async function showSearch(q: string): Promise<string> {
   setLoading(`Searching for "${q}"…`);
   const catalog = api.search(q);
   catalog.catch(() => {}); // Handled in afterRender; avoids an unhandled rejection meanwhile.
-  const rated = await api.browse(new URLSearchParams({ q, limit: String(RATED_LIMIT) }).toString()).catch(() => null);
+  const rated = await browse(new URLSearchParams({ q, limit: String(RATED_LIMIT) }).toString(), true).catch(() => null);
   const ratedRows: SearchRow[] = (rated?.items ?? []).map((t) => ({ r: ratedResult(t), rated: t }));
   const ratedIds = new Set(ratedRows.map((row) => row.r.id));
   const moreRated =
@@ -781,8 +782,8 @@ async function showHome(): Promise<string> {
 // ---------- Browse ----------
 
 // The filters live in the URL (#/browse?kind=movie&max.violence=2...), so a
-// filtered list can be bookmarked or shared. The server reads the same query
-// string; see src/server/browse.ts.
+// filtered list can be bookmarked or shared. The browser filters the list of
+// rated titles with that query string; see src/client/titles.ts.
 
 const MAX_OPTIONS: [value: string, label: string][] = [
   ["", "Any level"],
@@ -890,7 +891,7 @@ async function showBrowse(query: string): Promise<string> {
   searchInput.value = "";
   setLoading("Loading titles…");
   const params = new URLSearchParams(query);
-  const res = await api.browse(params.toString());
+  const res = await browse(params.toString(), true);
   const kind = params.get("kind") ?? "";
   const sort = params.get("sort") ?? "added";
   const selectedTags = new Set(params.getAll("tag").filter((t) => (THEME_TAGS as readonly string[]).includes(t)));
@@ -945,7 +946,7 @@ async function updateBrowse(form: HTMLFormElement): Promise<void> {
   const results = document.querySelector<HTMLElement>("#browse-results")!;
   results.setAttribute("aria-busy", "true");
   try {
-    const res = await api.browse(params.toString());
+    const res = await browse(params.toString());
     if (seq !== browseSeq) return;
     results.innerHTML = browseResultsHtml(res);
     watchMore();
@@ -986,7 +987,7 @@ async function showMoreBrowse(button: HTMLButtonElement): Promise<void> {
   params.set("offset", button.dataset.more!);
   button.disabled = true;
   try {
-    const res = await api.browse(params.toString());
+    const res = await browse(params.toString());
     document.querySelector("#browse-results .cards")?.insertAdjacentHTML("beforeend", browseCards(res.items));
     const shown = res.offset + res.items.length;
     if (shown < res.total) {
@@ -1125,7 +1126,7 @@ function showSuggestions(items: Suggestion[]): void {
 
 async function loadSuggestions(q: string): Promise<void> {
   const seq = ++suggestSeq;
-  const items = await api.suggest(q).catch(() => [] as Suggestion[]);
+  const items = await suggest(q).catch(() => [] as Suggestion[]);
   // Skip the answer if the text changed, the list was closed, or the box lost focus meanwhile.
   if (seq !== suggestSeq || document.activeElement !== searchInput) return;
   showSuggestions(items);
@@ -1156,8 +1157,12 @@ searchInput.addEventListener("input", () => {
   const q = searchInput.value.trim();
   clearTimeout(suggestTimer);
   if (q.length < 2) return closeSuggestions();
-  suggestTimer = setTimeout(() => void loadSuggestions(q), 150);
+  // A loaded list answers at once; the server fallback waits for a pause in typing.
+  if (titlesReady()) void loadSuggestions(q);
+  else suggestTimer = setTimeout(() => void loadSuggestions(q), 150);
 });
+
+searchInput.addEventListener("focus", preloadTitles);
 
 searchInput.addEventListener("keydown", (e) => {
   const open = !suggestBox.hidden;

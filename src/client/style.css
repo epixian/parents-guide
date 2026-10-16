@@ -655,6 +655,11 @@ main {
   font-variant-numeric: tabular-nums;
 }
 
+/* Text form of the TMDB score; only the title rail shows it. */
+.audience-text {
+  display: none;
+}
+
 /* TMDB-style user score ring */
 .score-ring {
   width: 36px;
@@ -701,12 +706,12 @@ a.audience:hover {
   text-decoration: underline;
 }
 
-.title-area .byline {
+.title-text .byline {
   margin: 0 0 6px;
   font-size: 1.05rem;
 }
 
-.title-area .facts {
+.title-text .facts {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -883,7 +888,7 @@ a.audience:hover {
   min-width: 0;
 }
 
-.title-area h1 {
+.title-text h1 {
   margin: 0 0 6px;
 }
 
@@ -980,6 +985,15 @@ a.audience:hover {
   padding: 4px 12px;
   border-radius: var(--radius);
   font-size: 0.9rem;
+}
+
+/* The section being read (see updateJumps in main.ts). */
+.jumps button[aria-current="true"],
+.rail-jumps button[aria-current="true"] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  color: var(--text);
+  font-weight: 600;
 }
 
 .jumps button:hover {
@@ -1308,7 +1322,7 @@ a.audience:hover {
 }
 
 /* Streaming line below the title facts, and the "My services" list */
-.title-area .watch {
+.title-text .watch {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -1316,7 +1330,7 @@ a.audience:hover {
   margin: 0 0 10px;
 }
 
-.title-area .watch[hidden] {
+.title-text .watch[hidden] {
   display: none;
 }
 
@@ -1385,7 +1399,7 @@ a.audience:hover {
 }
 
 /* Watchlist and thumbs, below the streaming line. Hollow when off, filled when on. */
-.title-area .marks {
+.title-text .marks {
   display: flex;
   gap: 4px;
   align-items: center;
@@ -1600,7 +1614,219 @@ a.audience:hover {
   object-fit: cover;
 }
 
+/* The card around the poster (bars, title, type and year), when both ends are
+   cards: it moves with the poster and cross-fades, as the two cards differ a
+   little in size. The poster is its own part on top. */
+::view-transition-group(card) {
+  animation-duration: 350ms;
+  animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+::view-transition-old(card),
+::view-transition-new(card) {
+  height: 100%;
+  width: auto;
+  animation-duration: 350ms;
+}
+
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: 200ms;
+}
+
+/* Title rail: the title's card and the jump links, always in the left margin
+   of title pages on wide screens (a 144px rail beside the 960px column needs
+   1320px; keep the width in step with wideScreen in main.ts). The title
+   area then drops its own poster and the top jump links. updateRail in
+   main.ts sets top and max-height. */
+.title-rail {
+  display: none;
+}
+
+@media (min-width: 1320px) {
+  .title-rail {
+    /* One vertical gap between every part of the rail. */
+    --rail-gap: 8px;
+    position: fixed;
+    top: 16px;
+    /* 960px column centered; 144px rail, 16px from the column. */
+    left: calc(50% - 480px - 160px);
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: var(--rail-gap);
+    width: 144px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    /* Room for focus rings and the scrollbar. */
+    padding: 2px 4px 2px 2px;
+    margin-left: -2px;
+  }
+
+  .jumps {
+    display: none;
+  }
+
+  /* The rail has the poster, the header, and the composite bars: the title
+     area (and its composite tiles) is not needed. */
+  .title-area {
+    display: none;
+  }
+
+  /* The space above the first card belongs to the site header, so the first
+     card and the rail start at the same height. */
+  body:has(.title-rail) .site-header {
+    margin-bottom: 16px;
+  }
+
+  .title-rail ~ .card:not(.title-rail ~ .card ~ .card) {
+    margin-top: 0;
+  }
+
+  .rail-info .title-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--rail-gap);
+    font-size: 0.85rem;
+  }
+
+  /* The card shows the year, and the vote count does not fit: keep the source name. */
+  .rail-info .fact-year,
+  .rail-info .audience-source,
+  .rail-info .score-ring {
+    display: none;
+  }
+
+  .rail-info .audience-text {
+    display: inline;
+  }
+
+  /* The score is muted until hover or focus; its tooltip names the source. */
+  .rail-info .audience {
+    color: var(--muted);
+  }
+
+  .rail-info a.audience:hover,
+  .rail-info a.audience:focus-visible {
+    color: var(--text);
+  }
+
+  /* The card above shows the title; the heading stays for screen readers. */
+  .rail-info h1 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .rail-info .byline,
+  .rail-info .facts {
+    margin: 0;
+  }
+
+  /* Rating badge, score text, and source name on one text baseline (the
+     ring, centered in the normal header, is hidden here). */
+  .rail-info .facts,
+  .rail-info .audience {
+    align-items: baseline;
+  }
+
+  .rail-info .facts {
+    flex-wrap: wrap;
+    gap: var(--rail-gap);
+  }
+
+  /* Streaming icons and the watchlist and thumbs buttons wrap in the narrow rail. */
+  .rail-info .watch,
+  .rail-info .marks {
+    flex-wrap: wrap;
+    margin: 0;
+  }
+
+  .title-rail:hover .card-actions,
+  .title-rail:focus-within .card-actions {
+    opacity: 1;
+  }
+
+  /* Buttons do not wrap by default (see button above): the title and the jump
+     labels must, in the narrow rail. */
+  .rail-link,
+  .rail-jumps button {
+    white-space: normal;
+  }
+
+  .rail-link {
+    display: flex;
+    flex-direction: column;
+    gap: var(--rail-gap);
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+  }
+
+  /* As wide as the rail's content box (inside its padding), so nothing scrolls sideways. */
+  .rail-poster {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    border-radius: 6px;
+  }
+
+  .rail-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+
+  .rail-link:hover .rail-title,
+  .rail-link:focus-visible .rail-title {
+    text-decoration: underline;
+  }
+
+  .rail-jumps {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--rail-gap);
+  }
+
+  /* The rail scrolls and would cut off the tooltip: fix it to the window,
+     placed beside the rail by placeRailTip in main.ts. */
+  .title-rail .minibars-tip {
+    position: fixed;
+    bottom: auto;
+  }
+
+  .rail-link:focus-visible .minibars-tip {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    gap: 2px 8px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Composite bars as wide as the poster. */
+  .rail-link .minibars {
+    align-self: stretch;
+    padding: 0;
+  }
+
+  .rail-link .minibars-icon .bar {
+    width: 100%;
+  }
+
+  .rail-jumps button {
+    padding: 4px 10px;
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    text-align: left;
+  }
 }

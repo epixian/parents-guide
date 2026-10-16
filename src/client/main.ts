@@ -361,7 +361,7 @@ function loadSimilar(id: string, seq: number): void {
     }
     // No rated similar titles (or an error): remove the section and its jump link.
     document.querySelector("#sec-similar")?.remove();
-    document.querySelector('[data-jump="sec-similar"]')?.remove();
+    document.querySelectorAll('[data-jump="sec-similar"]').forEach((el) => el.remove());
   };
   // The catalog gives the theme tags for the order; without it, TMDB's order stays.
   Promise.all([api.similar(id), titlesById().catch(() => null)])
@@ -435,6 +435,7 @@ function toggleMark(button: HTMLButtonElement): void {
     rerankSimilar();
   }
   box.outerHTML = marksHtml(id, title);
+  if (mark === "list") refreshListButtons(id);
   // Keep focus on the button the user selected; it is drawn again.
   document.querySelector<HTMLButtonElement>(`#marks [data-mark="${mark}"]`)?.focus();
 }
@@ -445,7 +446,10 @@ window.addEventListener("storage", () => {
   thumbs = loadThumbs();
   notInterested = loadNotInterested();
   const box = document.querySelector<HTMLElement>("#marks");
-  if (box) box.outerHTML = marksHtml(box.dataset.id!, JSON.parse(box.dataset.title!) as MarkTitle);
+  if (box) {
+    box.outerHTML = marksHtml(box.dataset.id!, JSON.parse(box.dataset.title!) as MarkTitle);
+    refreshListButtons(box.dataset.id!);
+  }
   rerankSimilar();
 });
 
@@ -503,9 +507,13 @@ function scoreRing(percent: number): string {
 function audienceHtml(a: AudienceScore | null | undefined, sourceUrl: string | undefined): string {
   if (!a) return "";
   const tip = `Average user score on ${a.source}: ${a.average.toFixed(1)} of ${a.scale}, from ${a.count.toLocaleString("en")} votes`;
+  // TMDB: the percent ring, plus the same score as text ("8.0/10") for the title rail, which shows only the text.
   const score =
-    a.scale === 10 ? scoreRing(Math.round(a.average * 10)) : esc(`★ ${a.average.toFixed(1)}/${a.scale}`);
-  const inner = `${score} <span class="muted small">${esc(a.source)} · ${esc(compactCount(a.count))} votes</span>`;
+    a.scale === 10
+      ? `${scoreRing(Math.round(a.average * 10))}<span class="audience-text">${esc(`${a.average.toFixed(1)}/10`)}</span>`
+      : esc(`★ ${a.average.toFixed(1)}/${a.scale}`);
+  // Source and vote count are separate spans, so the narrow title rail can hide them (the tooltip names the source).
+  const inner = `${score} <span class="audience-source muted small">${esc(a.source)}<span class="audience-votes"> · ${esc(compactCount(a.count))} votes</span></span>`;
   return sourceUrl && /^https:\/\//.test(sourceUrl)
     ? `<a class="audience" href="${esc(sourceUrl)}" target="_blank" rel="noopener" title="${esc(tip)}">${inner}</a>`
     : `<span class="audience" title="${esc(tip)}">${inner}</span>`;
@@ -519,9 +527,11 @@ function titleHeader(
   info: WorkInfo | undefined,
   composites: string,
   markFor: string,
+  scores: Partial<Record<CategoryId, number>>,
 ): string {
   const facts = [
-    info?.years ? `<span>${esc(info.years)}</span>` : "",
+    // The title rail hides this year: its card shows it already.
+    info?.years ? `<span class="fact-year">${esc(info.years)}</span>` : "",
     info?.rating
       ? `<span class="rating" title="${esc(info.rating.system)} rating">${esc(info.rating.value)}</span>`
       : "",
@@ -541,8 +551,151 @@ function titleHeader(
         ${marksHtml(markId(markFor), markTitle(markFor, title, info))}
       </div>
       ${composites}
-    </section>`;
+    </section>
+    ${titleRail(title, subtitle, info, markFor, scores)}`;
 }
+
+/**
+ * Wide screens: the title's card (poster, composite bars, title, type and
+ * year, watchlist toggle) and the page's jump links, always in the left margin
+ * (see updateRail). The title area then has no poster of its own, so the
+ * poster animation moves a whole card between a list and the rail. The card
+ * scrolls to the top; the jump links are copied in by fillRailJumps after the
+ * page renders.
+ */
+function titleRail(
+  title: string,
+  subtitle: string | null,
+  info: WorkInfo | undefined,
+  markFor: string,
+  scores: Partial<Record<CategoryId, number>>,
+): string {
+  const card = { ...markTitle(markFor, title, info), id: markFor };
+  // A series shows its highest score per topic ("up to"); one season does not.
+  const bars = miniComposites({ kind: markFor.startsWith("tmdb-tv-") && !subtitle ? "tv" : "movie", scores });
+  const meta = [KIND_LABEL[card.kind], subtitle, info?.years].filter(Boolean).map((t) => esc(t!)).join(" · ");
+  return `
+    <aside class="title-rail" data-rail aria-label="${esc(title)}">
+      ${cardActions(card)}
+      <button type="button" class="rail-link" data-top aria-label="${esc(`Back to the top of ${title}`)}">
+        ${info?.imageUrl ? `<img class="rail-poster" src="${esc(info.imageUrl)}" alt="" width="144" height="216" />` : ""}
+        ${bars}
+        <span class="rail-title">${esc(title)}</span>
+        <span class="muted small">${meta}</span>
+      </button>
+      <div class="rail-info" data-rail-info></div>
+      <nav class="rail-jumps" data-rail-jumps aria-label="On this page"></nav>
+    </aside>`;
+}
+
+/** Same width as the title rail's media query in style.css. */
+const wideScreen = window.matchMedia("(min-width: 1320px)");
+
+/**
+ * Wide screens: move the title header (heading, byline, facts, streaming,
+ * watchlist and thumbs) from the title area into the rail, below the card.
+ * Narrower screens: put it back. Moving keeps one copy, so its ids and
+ * handlers stay as they are.
+ */
+function placeTitleText(): void {
+  const text = app.querySelector<HTMLElement>(".title-text");
+  const slot = app.querySelector<HTMLElement>("[data-rail-info]");
+  const area = app.querySelector<HTMLElement>(".title-area");
+  if (!text || !slot || !area) return;
+  if (wideScreen.matches) {
+    if (text.parentElement !== slot) slot.append(text);
+  } else if (text.parentElement !== area) {
+    area.insertBefore(text, area.querySelector(".composites"));
+  }
+}
+
+wideScreen.addEventListener("change", () => {
+  placeTitleText();
+  updateRail();
+});
+
+/** Copy the page's jump links into the rail, in the same order. */
+function fillRailJumps(): void {
+  const slot = app.querySelector<HTMLElement>("[data-rail-jumps]");
+  const jumps = app.querySelector(".jumps");
+  if (!slot) return;
+  slot.innerHTML = jumps ? jumps.innerHTML : "";
+  slot.hidden = !jumps;
+}
+
+/**
+ * Wide screens show the rail on every title page (CSS hides it on narrow
+ * ones). It starts level with the first card, below the site header, and
+ * stays 16px from the top of the window when the page scrolls.
+ */
+function updateRail(): void {
+  const rail = app.querySelector<HTMLElement>("[data-rail]");
+  if (!rail) return;
+  const shown = getComputedStyle(rail).display !== "none";
+  rail.classList.toggle("shown", shown);
+  rail.inert = !shown;
+  if (!shown) return;
+  // Level with the first card: the top of the column plus its 16px padding.
+  const top = Math.max(16, app.getBoundingClientRect().top + 16);
+  rail.style.top = `${top}px`;
+  rail.style.maxHeight = `calc(100vh - ${top + 16}px)`;
+}
+
+window.addEventListener("resize", () => updateRail());
+
+/**
+ * The rail scrolls, so it would cut off the composite tooltip. In the rail the
+ * tooltip is position: fixed (see style.css); this puts it to the right of the
+ * rail, level with the bars, when they are hovered or the card is focused.
+ */
+function placeRailTip(e: Event): void {
+  const bars = (e.target as HTMLElement).closest(".title-rail")?.querySelector<HTMLElement>(".minibars");
+  const tip = bars?.querySelector<HTMLElement>(".minibars-tip");
+  if (!bars || !tip) return;
+  const box = bars.getBoundingClientRect();
+  const rail = bars.closest(".title-rail")!.getBoundingClientRect();
+  tip.style.left = `${rail.right + 8}px`;
+  tip.style.top = `${box.top}px`;
+}
+app.addEventListener("mouseover", (e) => {
+  if ((e.target as HTMLElement).closest(".title-rail .minibars")) placeRailTip(e);
+});
+app.addEventListener("focusin", (e) => {
+  if ((e.target as HTMLElement).closest(".title-rail .rail-link")) placeRailTip(e);
+});
+
+/**
+ * Mark the jump link of the section being read: the last one whose top is
+ * above a line 30% down the window, or the last section at the page bottom.
+ */
+function updateJumps(): void {
+  const buttons = [...app.querySelectorAll<HTMLButtonElement>(".jumps button[data-jump], .rail-jumps button[data-jump]")];
+  if (!buttons.length) return;
+  const ids = [...new Set(buttons.map((b) => b.dataset.jump!))];
+  const sections = ids.map((id) => document.getElementById(id)).filter((el): el is HTMLElement => !!el);
+  const line = window.innerHeight * 0.3;
+  let current = sections[0]?.id;
+  for (const el of sections) if (el.getBoundingClientRect().top <= line) current = el.id;
+  const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+  if (atBottom && sections.length) current = sections[sections.length - 1]!.id;
+  for (const b of buttons) {
+    if (b.dataset.jump === current) b.setAttribute("aria-current", "true");
+    else b.removeAttribute("aria-current");
+  }
+}
+
+let railFrame = 0;
+window.addEventListener(
+  "scroll",
+  () => {
+    cancelAnimationFrame(railFrame);
+    railFrame = requestAnimationFrame(() => {
+      updateRail();
+      updateJumps();
+    });
+  },
+  { passive: true },
+);
 
 /** Average and highest of the given scores, or null if there are none. */
 function summarize(scores: (number | undefined)[]): { avg: number; max: number } | null {
@@ -969,7 +1122,14 @@ async function showReport(id: string): Promise<string> {
   }
   const mood = hasMood(r) ? moodHtml([r.mood]) : MOOD_PENDING;
   return `${back}
-    ${titleHeader(r.title, r.kind === "tv-season" ? r.subtitle : null, r.info, compositesHtml((id) => r.categories[id]?.score), r.id)}
+    ${titleHeader(
+      r.title,
+      r.kind === "tv-season" ? r.subtitle : null,
+      r.info,
+      compositesHtml((id) => r.categories[id]?.score),
+      r.id,
+      Object.fromEntries(CATEGORIES.map((c) => [c.id, r.categories[c.id]?.score])),
+    )}
     ${r.confidence === "low" ? `<p class="notice">The AI knows this work only a little. Details can be wrong.</p>` : ""}
     ${res.stale ? `<p class="notice">This result could not be refreshed just now. It may be out of date.</p>` : ""}
     ${jumpLinks([
@@ -1049,7 +1209,14 @@ async function showSeries(tmdbId: string): Promise<string> {
   ];
 
   return `
-    ${titleHeader(s.title, null, s.info, compositesHtml((id) => agg.categories[id]?.max, { upTo: true }), s.id)}
+    ${titleHeader(
+      s.title,
+      null,
+      s.info,
+      compositesHtml((id) => agg.categories[id]?.max, { upTo: true }),
+      s.id,
+      Object.fromEntries(CATEGORIES.map((c) => [c.id, agg.categories[c.id]?.max])),
+    )}
     ${jumpLinks(sections)}
     <section class="card section" id="sec-ratings">
       ${sectionHead("Ratings for the whole series")}
@@ -1229,6 +1396,14 @@ function personalHtml(): string {
   return `<div id="home-personal">${watchlistHtml(homeIndex)}${recommendedHtml(homeIndex)}</div>`;
 }
 
+/** Draw every card's watchlist toggle for this title again, with the current state. */
+function refreshListButtons(id: string): void {
+  for (const other of document.querySelectorAll<HTMLButtonElement>(`.card-actions[data-id="${CSS.escape(id)}"] [data-card-action="list"]`)) {
+    const title = JSON.parse(other.closest<HTMLElement>(".card-actions")!.dataset.title!) as MarkTitle;
+    other.outerHTML = watchlistButton(id, title.title);
+  }
+}
+
 function cardAction(button: HTMLButtonElement): void {
   const box = button.closest<HTMLElement>(".card-actions")!;
   const id = box.dataset.id!;
@@ -1245,11 +1420,11 @@ function cardAction(button: HTMLButtonElement): void {
     saveNotInterested(notInterested);
   }
 
-  // Every card of this title on the page shows the new state.
-  for (const other of document.querySelectorAll<HTMLButtonElement>(`.card-actions[data-id="${CSS.escape(id)}"] [data-card-action="list"]`)) {
-    const title = JSON.parse(other.closest<HTMLElement>(".card-actions")!.dataset.title!) as MarkTitle;
-    other.outerHTML = watchlistButton(id, title.title);
-  }
+  // Every card of this title on the page shows the new state, and so does the
+  // title page's own button (the rail card is on the title page).
+  refreshListButtons(id);
+  const marks = document.querySelector<HTMLElement>("#marks");
+  if (marks?.dataset.id === id) marks.outerHTML = marksHtml(id, JSON.parse(marks.dataset.title!) as MarkTitle);
 
   // Watchlist page: a removed title leaves the grid.
   const grid = document.querySelector("#watchlist-grid");
@@ -1629,6 +1804,10 @@ async function route(): Promise<void> {
 
   const render = async (): Promise<void> => {
     app.innerHTML = html;
+    fillRailJumps();
+    placeTitleText();
+    updateRail();
+    updateJumps();
     watchMore();
     // The cast undoes TypeScript's narrowing to null: the awaited view above may have set it.
     const after = afterRender as (() => void) | null;
@@ -1701,7 +1880,22 @@ function listPoster(hash: string): HTMLImageElement | null {
   return null;
 }
 
-const titlePoster = () => app.querySelector<HTMLImageElement>(".title-area .poster");
+/**
+ * The title page's poster: the one in the title area, or the rail copy when
+ * the page is scrolled down and the rail is on screen.
+ */
+function titlePoster(): HTMLImageElement | null {
+  updateRail();
+  const main = app.querySelector<HTMLImageElement>(".title-area .poster");
+  const rail = app.querySelector<HTMLImageElement>(".title-rail.shown .rail-poster");
+  if (rail?.getBoundingClientRect().width && !(main && isOnScreen(main))) return rail;
+  return main;
+}
+
+const isOnScreen = (el: Element) => {
+  const box = el.getBoundingClientRect();
+  return box.bottom > 0 && box.top < window.innerHeight && box.width > 0;
+};
 
 /**
  * A poster that leaves the page before the next page is ready (a search
@@ -1736,6 +1930,23 @@ function holdPoster(img: HTMLImageElement | null, hash: string): void {
   }, 1000);
 }
 
+/**
+ * The card around a poster, when it has the card layout (poster, bars, title,
+ * type and year): a poster card's link, or the title rail. It moves as a
+ * whole with the poster when both ends have one.
+ */
+function cardOf(img: HTMLImageElement): HTMLElement | null {
+  return img.closest<HTMLElement>(".cards a, .title-rail.shown .rail-link");
+}
+
+/** Give the poster and its card their view-transition names, or clear them. */
+function nameMorph(img: HTMLImageElement | null, on: boolean): void {
+  if (!img) return;
+  img.style.viewTransitionName = on ? "poster" : "";
+  const card = cardOf(img);
+  if (card) card.style.viewTransitionName = on ? "card" : "";
+}
+
 /** Wait for an image to be ready to draw, but not for long. */
 const imageReady = (img: HTMLImageElement) =>
   Promise.race([img.decode().catch(() => {}), new Promise((resolve) => setTimeout(resolve, 300))]);
@@ -1765,7 +1976,7 @@ async function morphPoster(fromHash: string, toHash: string, render: () => Promi
     await render();
     return;
   }
-  source.style.viewTransitionName = "poster";
+  nameMorph(source, true);
   let target: HTMLImageElement | null = null;
   const transition = document.startViewTransition(async () => {
     held?.remove();
@@ -1775,14 +1986,12 @@ async function morphPoster(fromHash: string, toHash: string, render: () => Promi
     // season): poster to poster.
     if (!target && isTitlePage(fromHash) && isTitlePage(toHash)) target = titlePoster();
     if (!target) return; // No poster on the new page: the pages cross-fade.
-    target.style.viewTransitionName = "poster";
+    nameMorph(target, true);
     await imageReady(target);
   });
   await transition.updateCallbackDone.catch(() => {});
-  // Clear the name, so the next animation can give it to another image.
-  void transition.finished.finally(() => {
-    if (target) target.style.viewTransitionName = "";
-  });
+  // Clear the names, so the next animation can give them to other elements.
+  void transition.finished.finally(() => nameMorph(target, false));
 }
 
 // ---------- Scroll position ----------
@@ -2034,8 +2243,10 @@ app.addEventListener("click", (e) => {
 
   if ((e.target as HTMLElement).closest("button[data-top]")) {
     window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
-    // Keyboard users continue from the jump links at the top, not from the button they left.
-    app.querySelector<HTMLElement>(".jumps button")?.focus({ preventScroll: true });
+    // Keyboard users continue from the jump links (at the top, or in the rail on wide screens).
+    [...app.querySelectorAll<HTMLElement>(".jumps button, .rail-jumps button")]
+      .find((b) => b.offsetParent !== null)
+      ?.focus({ preventScroll: true });
     return;
   }
 

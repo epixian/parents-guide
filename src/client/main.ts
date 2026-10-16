@@ -2177,12 +2177,7 @@ searchInput.addEventListener("keydown", (e) => {
   }
 });
 
-searchInput.addEventListener("blur", () => {
-  closeSuggestions();
-  // The window, not the page, took focus (on Android, e.g. the keyboard's
-  // language chooser, a system dialog): give the box focus back on return.
-  refocusSearch = !document.hasFocus();
-});
+searchInput.addEventListener("blur", () => closeSuggestions());
 
 /**
  * Touch screens: when the window gets focus back after a system dialog, the
@@ -2191,6 +2186,14 @@ searchInput.addEventListener("blur", () => {
  * nothing), with the caret where it was.
  */
 let refocusSearch = false;
+
+// The window, not the page, took focus while the box was active (on Android,
+// e.g. the keyboard's language chooser, a system dialog). The box's own blur
+// event comes first, while the window still has focus, so check here.
+window.addEventListener("blur", () => {
+  refocusSearch = document.activeElement === searchInput;
+});
+
 window.addEventListener("focus", () => {
   if (!refocusSearch) return;
   refocusSearch = false;
@@ -2198,7 +2201,6 @@ window.addEventListener("focus", () => {
   if (document.activeElement !== searchInput && document.activeElement !== document.body) return;
   const { selectionStart, selectionEnd } = searchInput;
   if (document.activeElement === searchInput) searchInput.blur();
-  refocusSearch = false; // The blur above is ours.
   searchInput.focus({ preventScroll: true });
   if (selectionStart !== null) searchInput.setSelectionRange(selectionStart, selectionEnd);
 });

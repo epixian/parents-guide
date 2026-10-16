@@ -1,4 +1,12 @@
-import type { BrowseResponse, RecentItem, RecentResponse, ReportResponse, SearchResult, SeriesResponse } from "../shared/types.js";
+import type {
+  BrowseResponse,
+  RecentItem,
+  RecentResponse,
+  ReportResponse,
+  SearchResult,
+  SeriesResponse,
+  Suggestion,
+} from "../shared/types.js";
 
 async function get<T>(url: string): Promise<T> {
   const res = await fetch(url, { headers: { accept: "application/json" } });
@@ -9,6 +17,8 @@ async function get<T>(url: string): Promise<T> {
 
 export const api = {
   search: (q: string) => get<{ results: SearchResult[]; warnings: string[] }>(`/api/search?q=${encodeURIComponent(q)}`),
+  /** Rated titles that match q, for the search box as the visitor types. */
+  suggest: (q: string) => get<Suggestion[]>(`/api/suggest?q=${encodeURIComponent(q)}`),
   report: (id: string) => get<ReportResponse>(`/api/report/${encodeURIComponent(id)}`),
   recent: () => get<RecentResponse>("/api/recent"),
   trending: () => get<RecentItem[]>("/api/trending"),

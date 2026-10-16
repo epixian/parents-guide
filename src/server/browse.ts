@@ -1,6 +1,6 @@
 import { CATEGORIES, SCORE_MAX, SCORE_MIN, TREATMENTS, type CategoryId, type TreatmentId } from "../shared/categories.js";
 import { THEME_TAGS, type ThemeTag } from "../shared/themes.js";
-import type { BrowseResponse, BrowseSort, IndexEntry, MediaKind } from "../shared/types.js";
+import type { BrowseResponse, BrowseSort, IndexEntry, MediaKind, Suggestion } from "../shared/types.js";
 import { HttpError } from "./http.js";
 
 // Browse filters, read from the query string. The client keeps the same
@@ -129,4 +129,31 @@ export function browseTitles(titles: IndexEntry[], f: BrowseFilters): BrowseResp
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
       .map(([tag, count]) => ({ tag, count })),
   };
+}
+
+/** Folded, with punctuation as spaces, so "spider man" matches "Spider-Man". */
+const words = (s: string) => fold(s).replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+
+/** 0 exact, 1 starts with q, 2 a word starts with q, 3 contains q, null no match. */
+function suggestRank(title: string, q: string): number | null {
+  if (title === q) return 0;
+  if (title.startsWith(q)) return 1;
+  if (` ${title}`.includes(` ${q}`)) return 2;
+  if (title.includes(q)) return 3;
+  return null;
+}
+
+/** Rated titles for the search box as the visitor types: best matches first, then shorter titles. */
+export function suggestTitles(titles: IndexEntry[], q: string, limit: number): Suggestion[] {
+  const query = words(q);
+  if (!query) return [];
+  return titles
+    .flatMap((t) => {
+      const title = words(t.title);
+      const rank = suggestRank(title, query);
+      return rank === null ? [] : [{ t, rank, length: title.length }];
+    })
+    .sort((a, b) => a.rank - b.rank || a.length - b.length || a.t.title.localeCompare(b.t.title))
+    .slice(0, limit)
+    .map(({ t }) => ({ id: t.id, kind: t.kind, title: t.title, years: t.years, imageUrl: t.imageUrl }));
 }

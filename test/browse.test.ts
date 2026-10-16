@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { IndexEntry } from "../src/shared/types.js";
-import { browseTitles, parseBrowseQuery } from "../src/server/browse.js";
+import { browseTitles, parseBrowseQuery, suggestTitles } from "../src/server/browse.js";
 
 function entry(id: string, extra: Partial<IndexEntry> = {}): IndexEntry {
   return {
@@ -72,4 +72,40 @@ test("rejects bad values", () => {
   assert.throws(() => parse("hide.violence=approving"), /no treatment/);
   assert.throws(() => parse("hide.lgbtq=not_present"), /treatment/);
   assert.throws(() => parse("limit=500"), /limit/);
+});
+
+test("suggestTitles ranks exact, then starts-with, then word-start, then contains", () => {
+  const titles = [
+    entry("contains", { title: "Backstory Blues" }),
+    entry("word", { title: "The Story of Us" }),
+    entry("long-start", { title: "Story of a Girl Who Was Very Long" }),
+    entry("start", { title: "Story Time" }),
+    entry("exact", { title: "Story" }),
+    entry("none", { title: "Braveheart" }),
+  ];
+  assert.deepEqual(
+    suggestTitles(titles, "story", 10).map((s) => s.id),
+    ["exact", "start", "long-start", "word", "contains"],
+  );
+  assert.deepEqual(
+    // Inside a word everywhere: shorter titles first, then by name.
+    suggestTitles(titles, "ory", 10).map((s) => s.id),
+    ["exact", "start", "contains", "word", "long-start"],
+  );
+});
+
+test("suggestTitles ignores case, accents, and punctuation", () => {
+  const titles = [entry("a", { title: "Amélie" }), entry("s", { title: "Spider-Man: No Way Home" })];
+  assert.deepEqual(suggestTitles(titles, "AMEL", 10).map((s) => s.id), ["a"]);
+  assert.deepEqual(suggestTitles(titles, "spider man", 10).map((s) => s.id), ["s"]);
+  assert.deepEqual(suggestTitles(titles, "spiderman", 10).map((s) => s.id), []);
+  assert.deepEqual(suggestTitles(titles, "!!", 10), []);
+});
+
+test("suggestTitles keeps the limit and returns only the card fields", () => {
+  const titles = ["Cars", "Cars 2", "Cars 3"].map((t) => entry(t, { title: t, imageUrl: "x.jpg" }));
+  assert.deepEqual(suggestTitles(titles, "cars", 2), [
+    { id: "Cars", kind: "movie", title: "Cars", years: "2000", imageUrl: "x.jpg" },
+    { id: "Cars 2", kind: "movie", title: "Cars 2", years: "2000", imageUrl: "x.jpg" },
+  ]);
 });

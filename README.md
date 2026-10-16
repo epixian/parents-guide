@@ -9,6 +9,7 @@ AI summaries of parental concerns for movies, TV shows, and books. A user search
    - Ids: `tmdb-movie-603`, `tmdb-tv-1399-s01` (one TV season), `ol-OL27482W`.
 3. `GET /api/tv/:tmdbId` returns the season list, the cached season results, and the series range (min-max per category). It never calls the AI.
 4. `GET /api/browse` filters the saved titles by type, title text, theme tags, the highest allowed score per category (`max.violence=2`), and treatments to leave out (`hide.lgbtq=approving`). It never calls the AI. The browse page keeps the same query in its URL (`#/browse?...`), so a filtered list can be bookmarked or shared. See `src/server/browse.ts`.
+5. `GET /api/suggest?q=` returns up to 8 saved titles that match the text, for the suggestions below the search box as the visitor types. Exact matches come first, then titles that start with the text, then titles with a word that starts with it. It never calls the catalogs or the AI.
 
 The AI prompt always covers every category, so one cached result serves every user. Filtering happens in the browser.
 

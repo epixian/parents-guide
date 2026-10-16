@@ -48,8 +48,24 @@
         </svg>
       </a>
       <form id="search-form" class="search" role="search">
-        <input id="search-input" type="search" name="q" placeholder="Movie, TV show, or book title" autocomplete="off" required minlength="2" />
+        <input
+          id="search-input"
+          type="search"
+          name="q"
+          placeholder="Movie, TV show, or book title"
+          autocomplete="off"
+          required
+          minlength="2"
+          role="combobox"
+          aria-label="Search titles"
+          aria-autocomplete="list"
+          aria-expanded="false"
+          aria-controls="suggestions"
+          aria-keyshortcuts="/ Control+K Meta+K"
+        />
         <button type="submit">Search</button>
+        <!-- Rated titles that match the text, filled by main.ts as the visitor types. -->
+        <ul id="suggestions" class="suggestions" role="listbox" aria-label="Rated titles" hidden></ul>
       </form>
       <a href="#/browse" class="nav-link">Browse</a>
       <div class="prefs-anchor">

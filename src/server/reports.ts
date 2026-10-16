@@ -6,9 +6,10 @@ import type {
   Report,
   ReportResponse,
   SeriesResponse,
+  Suggestion,
   WorkInfo,
 } from "../shared/types.js";
-import { browseTitles, type BrowseFilters } from "./browse.js";
+import { browseTitles, suggestTitles, type BrowseFilters } from "./browse.js";
 import { cachePathFor, type ReportCache } from "./cache.js";
 import { getBook } from "./catalog/openlibrary.js";
 import { getMovie, getTvSeason, getTvSeries } from "./catalog/tmdb.js";
@@ -96,6 +97,12 @@ export class ReportService {
   async browse(filters: BrowseFilters): Promise<BrowseResponse> {
     await this.loadIndex();
     return browseTitles(this.index.titles(), filters);
+  }
+
+  /** Saved titles for the search box as the visitor types. No catalog or AI calls. */
+  async suggest(q: string, limit: number): Promise<Suggestion[]> {
+    await this.loadIndex();
+    return suggestTitles(this.index.titles(), q, limit);
   }
 
   /** Build the index from the cache folder one time. Call at startup to avoid a slow first request. */

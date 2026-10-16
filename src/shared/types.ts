@@ -140,6 +140,16 @@ export interface RecentItem {
 
 export type RecentResponse = Record<MediaKind, RecentItem[]>;
 
+/** One search suggestion: a rated title that matches what the visitor is typing. */
+export interface Suggestion {
+  /** Page to open: a report id, or a series id (tmdb-tv-1399) for TV. */
+  id: string;
+  kind: MediaKind;
+  title: string;
+  years: string | null;
+  imageUrl: string | null;
+}
+
 /** One title in the browse index. TV series merge their rated seasons. */
 export interface IndexEntry {
   /** Report id, or series id (tmdb-tv-1399) for TV. */

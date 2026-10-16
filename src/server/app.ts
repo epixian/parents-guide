@@ -44,6 +44,13 @@ export function createApi(reports: ReportService, searchCache: SearchCache): Hon
     return c.json({ results, warnings });
   });
 
+  // Rated titles only: instant, and every suggestion opens a page that already exists.
+  api.get("/suggest", async (c) => {
+    const q = (c.req.query("q") ?? "").trim();
+    if (q.length < 2 || q.length > 200) throw new HttpError(400, "Query must be 2-200 characters");
+    return c.json(await reports.suggest(q, 8));
+  });
+
   api.get("/recent", async (c) => c.json(await reports.getRecent(8)));
 
   api.get("/trending", async (c) => c.json(await reports.getTrending(8)));

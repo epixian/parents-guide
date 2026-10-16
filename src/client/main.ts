@@ -22,6 +22,7 @@ import type {
   Report,
   SearchResult,
   SeriesResponse,
+  Suggestion,
   WorkInfo,
 } from "../shared/types.js";
 import { api } from "./api.js";
@@ -357,7 +358,7 @@ function saveSearchFilter(f: SearchFilter): void {
 function resultItem(r: SearchResult, rated?: IndexEntry): string {
   return `
     <li>
-      <a href="${r.kind === "tv" ? `#/tv/${r.id.replace("tmdb-tv-", "")}` : `#/r/${r.id}`}">
+      <a href="${pageHref(r)}">
         ${r.imageUrl ? `<img src="${esc(r.imageUrl)}" alt="" width="110" height="165" loading="lazy" decoding="async" />` : `<span class="noimg" aria-hidden="true"></span>`}
         <span class="result-text">
           <strong>${esc(r.title)}</strong> ${r.year ? `<span class="muted">(${r.year})</span>` : ""}
@@ -569,7 +570,8 @@ async function showSeries(tmdbId: string): Promise<string> {
 
 const RECENT_HEADINGS: Record<RecentItem["kind"], string> = { movie: "Movies", tv: "TV shows", book: "Books" };
 
-function recentHref(item: RecentItem): string {
+/** Page for a title: the series page for TV, the report page otherwise. */
+function pageHref(item: Pick<RecentItem, "id" | "kind">): string {
   return item.kind === "tv" ? `#/tv/${item.id.replace("tmdb-tv-", "")}` : `#/r/${item.id}`;
 }
 
@@ -577,7 +579,7 @@ function recentHref(item: RecentItem): string {
 function cardHtml(item: RecentItem, showKind: boolean, extra = ""): string {
   return `
     <li>
-      <a href="${recentHref(item)}">
+      <a href="${pageHref(item)}">
         ${item.imageUrl ? `<img src="${esc(item.imageUrl)}" alt="" width="110" height="165" loading="lazy" decoding="async" />` : `<span class="noimg" aria-hidden="true"></span>`}
         ${extra}
         <span class="card-title">${esc(item.title)}</span>
@@ -898,6 +900,7 @@ function withYears(title: string, info: WorkInfo | undefined): string {
 
 async function route(): Promise<void> {
   const seq = ++navSeq;
+  closeSuggestions();
   pageMeta = "";
   pageTitle = "";
   afterRender = null;
@@ -926,8 +929,131 @@ async function route(): Promise<void> {
   document.title = pageTitle ? `${SITE_TITLE} - ${pageTitle}` : SITE_TITLE;
 }
 
+// ---------- Search suggestions ----------
+
+/** Rated titles that match the search box, shown below it as the visitor types. */
+const suggestBox = document.querySelector<HTMLUListElement>("#suggestions")!;
+let suggestions: Suggestion[] = [];
+/** Index of the highlighted suggestion, or -1. */
+let activeSuggestion = -1;
+let suggestTimer: ReturnType<typeof setTimeout> | undefined;
+/** Raised for each request and on close, so a late answer for older text is ignored. */
+let suggestSeq = 0;
+
+function closeSuggestions(): void {
+  suggestSeq++;
+  clearTimeout(suggestTimer);
+  suggestions = [];
+  activeSuggestion = -1;
+  suggestBox.hidden = true;
+  suggestBox.innerHTML = "";
+  searchInput.setAttribute("aria-expanded", "false");
+  searchInput.removeAttribute("aria-activedescendant");
+}
+
+/** The smallest poster size each catalog has (TMDB w92, Open Library S), for the 32px thumbnails. */
+const thumbUrl = (url: string) => url.replace("/t/p/w185/", "/t/p/w92/").replace(/-M\.jpg$/, "-S.jpg");
+
+function showSuggestions(items: Suggestion[]): void {
+  if (!items.length) return closeSuggestions();
+  suggestions = items;
+  activeSuggestion = -1;
+  searchInput.removeAttribute("aria-activedescendant");
+  suggestBox.innerHTML = items
+    .map(
+      (s, i) => `
+      <li role="option" id="suggestion-${i}" data-index="${i}" aria-selected="false">
+        ${s.imageUrl ? `<img src="${esc(thumbUrl(s.imageUrl))}" alt="" width="32" height="48" />` : `<span class="noimg" aria-hidden="true"></span>`}
+        <span>
+          ${esc(s.title)}${s.years ? ` <span class="muted">(${esc(s.years)})</span>` : ""}
+          <span class="badge">${KIND_LABEL[s.kind]}</span>
+        </span>
+      </li>`,
+    )
+    .join("");
+  suggestBox.hidden = false;
+  searchInput.setAttribute("aria-expanded", "true");
+}
+
+async function loadSuggestions(q: string): Promise<void> {
+  const seq = ++suggestSeq;
+  const items = await api.suggest(q).catch(() => [] as Suggestion[]);
+  // Skip the answer if the text changed, the list was closed, or the box lost focus meanwhile.
+  if (seq !== suggestSeq || document.activeElement !== searchInput) return;
+  showSuggestions(items);
+}
+
+function highlightSuggestion(i: number): void {
+  activeSuggestion = i;
+  for (const li of suggestBox.querySelectorAll<HTMLElement>("[role=option]")) {
+    li.setAttribute("aria-selected", String(Number(li.dataset.index) === i));
+  }
+  if (i < 0) {
+    searchInput.removeAttribute("aria-activedescendant");
+    return;
+  }
+  searchInput.setAttribute("aria-activedescendant", `suggestion-${i}`);
+  document.getElementById(`suggestion-${i}`)?.scrollIntoView({ block: "nearest" });
+}
+
+function openSuggestion(i: number): void {
+  const s = suggestions[i];
+  if (!s) return;
+  closeSuggestions();
+  searchInput.blur(); // Phones: close the keyboard, so the page is visible.
+  location.hash = pageHref(s);
+}
+
+searchInput.addEventListener("input", () => {
+  const q = searchInput.value.trim();
+  clearTimeout(suggestTimer);
+  if (q.length < 2) return closeSuggestions();
+  suggestTimer = setTimeout(() => void loadSuggestions(q), 150);
+});
+
+searchInput.addEventListener("keydown", (e) => {
+  const open = !suggestBox.hidden;
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    if (!open) return;
+    e.preventDefault();
+    const n = suggestions.length;
+    // Wraps through "none highlighted" (-1), so the visitor can go back to the typed text.
+    const next = e.key === "ArrowDown" ? activeSuggestion + 1 : activeSuggestion - 1;
+    highlightSuggestion(next >= n ? -1 : next < -1 ? n - 1 : next);
+  } else if (e.key === "Enter" && open && activeSuggestion >= 0) {
+    e.preventDefault(); // Open the title instead of searching.
+    openSuggestion(activeSuggestion);
+  } else if (e.key === "Escape" && open) {
+    e.preventDefault(); // Close the list only; keep the typed text.
+    closeSuggestions();
+  }
+});
+
+searchInput.addEventListener("blur", () => closeSuggestions());
+
+// mousedown would move focus off the search box and close the list before the click.
+suggestBox.addEventListener("mousedown", (e) => e.preventDefault());
+suggestBox.addEventListener("click", (e) => {
+  const li = (e.target as HTMLElement).closest<HTMLElement>("[role=option]");
+  if (li) openSuggestion(Number(li.dataset.index));
+});
+
+// "/" or Ctrl+K (Cmd+K on a Mac) moves to the search box from anywhere on the page.
+document.addEventListener("keydown", (e) => {
+  if (e.defaultPrevented || e.isComposing) return;
+  const target = e.target as HTMLElement;
+  const typing = target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
+  const slash = e.key === "/" && !typing && !e.ctrlKey && !e.metaKey && !e.altKey;
+  const ctrlK = e.key.toLowerCase() === "k" && (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey;
+  if (!slash && !ctrlK) return;
+  e.preventDefault();
+  searchInput.focus();
+  searchInput.select();
+});
+
 searchForm.addEventListener("submit", (e) => {
   e.preventDefault();
+  closeSuggestions();
   const q = searchInput.value.trim();
   if (q.length >= 2) location.hash = `#/search?q=${encodeURIComponent(q)}`;
 });

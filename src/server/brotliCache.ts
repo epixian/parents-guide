@@ -15,17 +15,21 @@ const brotliCompress = promisify(zlib.brotliCompress);
  */
 export class BrotliCache {
   private ready: { key: string; body: Buffer } | null = null;
-  private working = false;
+  private working: Promise<void> | null = null;
 
   /** The compressed body for this key, or null when it is not ready. Starts the work if none runs. */
   get(key: string, text: () => string): Buffer | null {
     if (this.ready?.key === key) return this.ready.body;
-    if (!this.working) void this.compress(key, text());
+    this.working ??= this.compress(key, text());
     return null;
   }
 
+  /** Resolves when no compression runs. For tests. */
+  async idle(): Promise<void> {
+    await this.working;
+  }
+
   private async compress(key: string, text: string): Promise<void> {
-    this.working = true;
     try {
       const body = await brotliCompress(text, {
         params: {
@@ -38,7 +42,7 @@ export class BrotliCache {
     } catch (err) {
       console.error("Brotli compression failed:", err);
     } finally {
-      this.working = false;
+      this.working = null;
     }
   }
 }

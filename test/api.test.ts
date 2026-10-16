@@ -2,7 +2,7 @@ import { test } from "node:test";
 import zlib from "node:zlib";
 import assert from "node:assert/strict";
 import { createApi } from "../src/server/app.js";
-import { acceptsBrotli } from "../src/server/brotliCache.js";
+import { acceptsBrotli, BrotliCache } from "../src/server/brotliCache.js";
 import type { ReportService } from "../src/server/reports.js";
 import type { SearchCache } from "../src/server/searchCache.js";
 import type { IndexEntry } from "../src/shared/types.js";
@@ -20,12 +20,12 @@ const TITLE: IndexEntry = {
   treatments: {},
 };
 
-function apiWith(tag: { value: string }) {
+function apiWith(tag: { value: string }, brotli = new BrotliCache()) {
   const reports = {
     titles: async () => ({ tag: tag.value, titles: [TITLE] }),
     browse: async () => ({ total: 0, offset: 0, items: [], tags: [] }),
   } as unknown as ReportService;
-  return createApi(reports, {} as SearchCache);
+  return createApi(reports, {} as SearchCache, brotli);
 }
 
 test("GET /titles sends the list with an ETag, then 304 until the list changes", async () => {
@@ -54,18 +54,16 @@ test("GET /browse answers 400 for a bad filter value", async () => {
 });
 
 test("GET /titles sends plain JSON until the Brotli copy is ready, then Brotli", async () => {
-  const api = apiWith({ value: "b-1" });
+  const brotli = new BrotliCache();
+  const api = apiWith({ value: "b-1" }, brotli);
   const headers = { "accept-encoding": "gzip, br" };
   const first = await api.request("/titles", { headers });
   assert.equal(first.headers.get("content-encoding"), null);
   assert.equal(first.headers.get("vary"), "Accept-Encoding");
   assert.deepEqual(await first.json(), [TITLE]);
 
-  let res = first;
-  for (let i = 0; i < 100 && !res.headers.get("content-encoding"); i++) {
-    await new Promise((r) => setTimeout(r, 10));
-    res = await api.request("/titles", { headers });
-  }
+  await brotli.idle();
+  const res = await api.request("/titles", { headers });
   assert.equal(res.headers.get("content-encoding"), "br");
   assert.equal(res.headers.get("etag"), 'W/"b-1-br"');
   assert.match(res.headers.get("content-type")!, /application\/json/);

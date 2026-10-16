@@ -20,9 +20,8 @@ function clientKey(c: Context): string {
   return getConnInfo(c).remote.address ?? "unknown";
 }
 
-export function createApi(reports: ReportService, searchCache: SearchCache): Hono {
+export function createApi(reports: ReportService, searchCache: SearchCache, titlesBrotli = new BrotliCache()): Hono {
   const api = new Hono();
-  const titlesBrotli = new BrotliCache();
   /** The title list as JSON text for one version, so each version is converted only once. */
   let titlesJson: { tag: string; text: string } | null = null;
 

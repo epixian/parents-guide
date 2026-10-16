@@ -7,6 +7,8 @@ export default defineConfig(({ mode }) => {
 
   return {
     root: "src/client",
+    // Build time, shown in the ?debug event log, to see which version a phone runs.
+    define: { __BUILD_TIME__: JSON.stringify(new Date().toISOString().slice(0, 16).replace("T", " ")) },
     plugins: [
       {
         // The comments in index.html are notes for developers. Keep them out of the built page.

@@ -4,6 +4,9 @@
 
 const MAX_LINES = 40;
 
+/** Set by Vite at build time (vite.config.ts), in UTC. */
+declare const __BUILD_TIME__: string;
+
 export function startDebugLog(): void {
   const box = document.createElement("pre");
   Object.assign(box.style, {
@@ -41,7 +44,7 @@ export function startDebugLog(): void {
     box.scrollTop = box.scrollHeight;
   };
 
-  log(`debug on, active: ${describe(document.activeElement)}`);
+  log(`debug on, build ${__BUILD_TIME__} UTC, active: ${describe(document.activeElement)}`);
   // Page code can add lines with debugLog() in main.ts.
   (window as unknown as { pgDebugLog?: (text: string) => void }).pgDebugLog = log;
   document.addEventListener("focusin", (e) => log(`focusin ${describe(e.target)}`), true);

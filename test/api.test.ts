@@ -1,6 +1,8 @@
 import { test } from "node:test";
+import zlib from "node:zlib";
 import assert from "node:assert/strict";
 import { createApi } from "../src/server/app.js";
+import { acceptsBrotli } from "../src/server/brotliCache.js";
 import type { ReportService } from "../src/server/reports.js";
 import type { SearchCache } from "../src/server/searchCache.js";
 import type { IndexEntry } from "../src/shared/types.js";
@@ -49,4 +51,35 @@ test("GET /browse answers 400 for a bad filter value", async () => {
   const res = await apiWith({ value: "x" }).request("/browse?kind=game");
   assert.equal(res.status, 400);
   assert.match(((await res.json()) as { error: string }).error, /kind/);
+});
+
+test("GET /titles sends plain JSON until the Brotli copy is ready, then Brotli", async () => {
+  const api = apiWith({ value: "b-1" });
+  const headers = { "accept-encoding": "gzip, br" };
+  const first = await api.request("/titles", { headers });
+  assert.equal(first.headers.get("content-encoding"), null);
+  assert.equal(first.headers.get("vary"), "Accept-Encoding");
+  assert.deepEqual(await first.json(), [TITLE]);
+
+  let res = first;
+  for (let i = 0; i < 100 && !res.headers.get("content-encoding"); i++) {
+    await new Promise((r) => setTimeout(r, 10));
+    res = await api.request("/titles", { headers });
+  }
+  assert.equal(res.headers.get("content-encoding"), "br");
+  assert.match(res.headers.get("content-type")!, /application\/json/);
+  const body = zlib.brotliDecompressSync(Buffer.from(await res.arrayBuffer()));
+  assert.deepEqual(JSON.parse(body.toString()), [TITLE]);
+
+  const gzipOnly = await api.request("/titles", { headers: { "accept-encoding": "gzip" } });
+  assert.equal(gzipOnly.headers.get("content-encoding"), null);
+});
+
+test("acceptsBrotli reads Accept-Encoding", () => {
+  assert.equal(acceptsBrotli("gzip, deflate, br, zstd"), true);
+  assert.equal(acceptsBrotli("BR;q=0.5"), true);
+  assert.equal(acceptsBrotli("br;q=0, gzip"), false);
+  assert.equal(acceptsBrotli("gzip"), false);
+  assert.equal(acceptsBrotli("brotli"), false);
+  assert.equal(acceptsBrotli(undefined), false);
 });

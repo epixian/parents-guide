@@ -1,6 +1,7 @@
 import { getConnInfo } from "@hono/node-server/conninfo";
 import { Hono, type Context } from "hono";
 import type { ApiError, SearchResult } from "../shared/types.js";
+import { acceptsBrotli, BrotliCache } from "./brotliCache.js";
 import { BrowseQueryError, parseBrowseQuery } from "../shared/browse.js";
 import { searchOpenLibrary } from "./catalog/openlibrary.js";
 import { searchTmdb } from "./catalog/tmdb.js";
@@ -21,6 +22,7 @@ function clientKey(c: Context): string {
 
 export function createApi(reports: ReportService, searchCache: SearchCache): Hono {
   const api = new Hono();
+  const titlesBrotli = new BrotliCache();
 
   api.get("/health", (c) => c.json({ ok: true }));
 
@@ -58,12 +60,20 @@ export function createApi(reports: ReportService, searchCache: SearchCache): Hon
   // Every saved title in one list. The browser filters it with src/shared/browse.ts.
   // "no-cache" with an ETag: the browser keeps its copy and asks again on each
   // use, and the answer is an empty 304 until a title is added or changed.
+  // Browsers that accept Brotli get a copy compressed once per version (see BrotliCache).
   api.get("/titles", async (c) => {
     const { tag, titles } = await reports.titles();
     const etag = `W/"${tag}"`;
     c.header("ETag", etag);
     c.header("Cache-Control", "no-cache");
+    c.header("Vary", "Accept-Encoding");
     if (c.req.header("if-none-match")?.split(",").some((t) => t.trim() === etag)) return c.body(null, 304);
+    const br = acceptsBrotli(c.req.header("accept-encoding")) ? titlesBrotli.get(tag, () => JSON.stringify(titles)) : null;
+    if (br) {
+      c.header("Content-Type", "application/json; charset=UTF-8");
+      c.header("Content-Encoding", "br");
+      return c.body(new Uint8Array(br));
+    }
     return c.json(titles);
   });
 

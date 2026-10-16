@@ -1,6 +1,6 @@
 # pairents-guide
 
-AI summaries of parental concerns for movies, TV shows, and books. A user searches a title, picks the correct match, and gets a summary plus a 0-5 score for each concern category (violence, language, sexual content, and more). Users hide the categories they do not care about; that choice stays in the browser (`localStorage`). Each title page also has a watchlist button and the user's own thumbs up or down (TV seasons use their series); these also stay in the browser. The home page lists the watchlist above "Trending this week", most recently added first.
+AI summaries of parental concerns for movies, TV shows, and books. A user searches a title, picks the correct match, and gets a summary plus a 0-5 score for each concern category (violence, language, sexual content, and more). Users hide the categories they do not care about; that choice stays in the browser (`localStorage`). Each title page also has a watchlist button and the user's own thumbs up or down (TV seasons use their series); these also stay in the browser. The home page lists the watchlist above "Trending this week", most recently added first. Below it, "Recommended for you" lists rated titles that the browser picks from the thumbs: theme tags of liked titles count for a title and those of disliked titles count against it, and after 3 liked titles, concern scores above the highest among them count against it too (see `src/shared/recommend.ts`). The thumbs never leave the browser.
 
 ## How it works
 

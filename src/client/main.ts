@@ -30,6 +30,7 @@ import type {
   WorkInfo,
 } from "../shared/types.js";
 import { api } from "./api.js";
+import { recommend } from "../shared/recommend.js";
 import { rankSimilar } from "../shared/similar.js";
 import { browse, prefetchTitles, preloadTitles, suggest, titlesById, titlesReady } from "./titles.js";
 import {
@@ -1103,6 +1104,33 @@ function watchlistHtml(index: Map<string, IndexEntry> | null): string {
     </section>`;
 }
 
+/**
+ * Rated titles picked from the user's thumbs (see recommend), not ones on the
+ * watchlist. Empty without a thumbs up or the rated titles.
+ */
+function recommendedHtml(index: Map<string, IndexEntry> | null): string {
+  if (!index) return "";
+  const picks = recommend([...index.values()], thumbs, {
+    exclude: new Set(Object.keys(watchlist)),
+    categories: visibleCategories(hidden).map((c) => c.id),
+    limit: 12,
+  });
+  if (!picks.length) return "";
+  return `
+    <section class="recent recommended">
+      <h2 class="with-info">
+        Recommended for you
+        <span class="info-wrap">
+          <button type="button" class="info-icon" aria-label="About recommendations" aria-describedby="recommend-info">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></svg>
+          </button>
+          <span class="info-tip" id="recommend-info" role="tooltip">Recommendations are automatically generated based on titles you liked/disliked and never leave the browser.</span>
+        </span>
+      </h2>
+      <ul class="cards">${picks.map((t) => cardHtml(t, true, miniComposites(t))).join("")}</ul>
+    </section>`;
+}
+
 /** One row of poster cards per media kind. A kind with no saved titles is left out. */
 function recentHtml(recent: RecentResponse): string {
   const rows = (Object.keys(RECENT_HEADINGS) as RecentItem["kind"][])
@@ -1128,8 +1156,8 @@ async function showHome(): Promise<string> {
   const [trending, recent, index] = await Promise.all([
     api.trending().catch(() => []),
     api.recent().catch(() => null),
-    // The rated titles give watchlist cards their bars. Loaded only for a watchlist.
-    Object.keys(watchlist).length ? titlesById() : null,
+    // The rated titles give watchlist cards their bars and the recommendations. Loaded only when needed.
+    Object.keys(watchlist).length || Object.values(thumbs).includes("up") ? titlesById() : null,
   ]);
   return `
     <section class="hero">
@@ -1137,6 +1165,7 @@ async function showHome(): Promise<string> {
       <p>AI-generated summaries of movies, TV shows, and books for content that parents may want to know about.</p>
     </section>
     ${watchlistHtml(index)}
+    ${recommendedHtml(index)}
     ${trendingHtml(trending)}
     ${recent ? recentHtml(recent) : ""}`;
 }

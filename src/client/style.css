@@ -1111,7 +1111,8 @@ a.audience:hover {
 }
 
 .trending,
-.watchlist {
+.watchlist,
+.recommended {
   margin-bottom: 24px;
 }
 
@@ -1431,4 +1432,69 @@ a.audience:hover {
   color: var(--muted);
   font-size: 1.2rem;
   line-height: 1;
+}
+
+/* "i" button after a heading, with a tooltip on hover or focus. The tooltip
+   lines up with the heading's left edge, so it stays on a narrow screen. */
+.with-info {
+  position: relative;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.info-wrap {
+  display: inline-flex;
+}
+
+.info-icon {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+/* Feather "info" icon (MIT), like the watchlist and thumb icons. */
+.info-icon svg {
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.info-icon:hover,
+.info-icon:focus-visible {
+  color: var(--accent);
+  opacity: 1;
+}
+
+.info-tip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 9;
+  width: max-content;
+  max-width: min(280px, calc(100vw - 32px));
+  padding: 8px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.15);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 400;
+  line-height: 1.4;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.info-wrap:hover .info-tip,
+.info-icon:focus + .info-tip {
+  visibility: visible;
+  opacity: 1;
 }

@@ -1,6 +1,8 @@
 import { CATEGORIES } from "../shared/categories.js";
+import { hasMood } from "../shared/mood.js";
 import type {
   BrowseResponse,
+  Mood,
   RecentItem,
   RecentResponse,
   Report,
@@ -14,7 +16,7 @@ import { cachePathFor, type ReportCache } from "./cache.js";
 import { getBook } from "./catalog/openlibrary.js";
 import { getMovie, getTvSeason, getTvSeries } from "./catalog/tmdb.js";
 import type { WorkDetails } from "./catalog/types.js";
-import { classify } from "./classify.js";
+import { classify, rateMood } from "./classify.js";
 import { HttpError } from "./http.js";
 import type { Popularity } from "./popularity.js";
 import type { RateLimiter } from "./rateLimit.js";
@@ -63,6 +65,7 @@ export function mergeInfo(kind: Report["kind"], old: WorkInfo | undefined, fresh
 export class ReportService {
   /** One AI lookup at a time per id; concurrent requests share the result. */
   private readonly inFlight = new Map<string, Promise<ReportResponse>>();
+  private readonly moodInFlight = new Map<string, Promise<Mood>>();
 
   private readonly index = new TitleIndex();
   /** Loads the title index from the cache folder on first use. */
@@ -193,6 +196,34 @@ export class ReportService {
     } catch (err) {
       return fallback(err);
     }
+  }
+
+  /**
+   * Mood of a saved result. A result saved before moods existed gets one from
+   * the light mood prompt (about $0.001), saved for next time. One call per
+   * title at a time; no rate limit, since each title needs it only once.
+   */
+  async getMood(id: string): Promise<Mood> {
+    if (!cachePathFor(id)) throw new HttpError(400, "Invalid id");
+    const cached = await this.cache.get(id);
+    if (!cached) throw new HttpError(404, "This title has no saved rating");
+    if (hasMood(cached)) return cached.mood;
+
+    let task = this.moodInFlight.get(id);
+    if (!task) {
+      task = rateMood(cached)
+        .then(async (mood) => {
+          // Read the file again: a refresh may have replaced it during the AI call.
+          const latest = (await this.cache.get(id)) ?? cached;
+          if (hasMood(latest)) return latest.mood;
+          await this.save({ ...latest, mood });
+          console.log(`Added mood to ${id} (${latest.title})`);
+          return mood;
+        })
+        .finally(() => this.moodInFlight.delete(id));
+      this.moodInFlight.set(id, task);
+    }
+    return task;
   }
 
   /** Series overview: season list with cached season results and the aggregate range. No AI calls. */

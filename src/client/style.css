@@ -15,6 +15,23 @@
   --level-3: #d9a400;
   --level-4: #e0712c;
   --level-5: #c9302c;
+  /* Mood bars. Tone, bleak to uplifting: purple, grey in the middle, gold.
+     Feeling, low-key to emotional: pale to deep rose. Depth, lighthearted to
+     profound: light to deep blue. Step 1 of feeling and depth is about 2.5:1
+     on --surface, like --level-0; the others are at least 3:1. */
+  --tone-1: #6a3d9a;
+  --tone-2: #9175bd;
+  --tone-3: #868686;
+  --tone-4: #a67c00;
+  --tone-5: #9c6f00;
+  --feeling-1: #d98cb7;
+  --feeling-2: #d16ba5;
+  --feeling-3: #a3306f;
+  --depth-1: #78a9dc;
+  --depth-2: #5a93d0;
+  --depth-3: #3f78bd;
+  --depth-4: #2d5fa3;
+  --depth-5: #1f4e8c;
   --radius: 10px;
   color-scheme: light;
 }
@@ -31,6 +48,19 @@
     --notice-bg: #3a3014;
     --notice-text: #f3dc9b;
     --error: #ff8a80;
+    --tone-1: #b58cf0;
+    --tone-2: #8f78b3;
+    --tone-3: #8c8f96;
+    --tone-4: #c9a227;
+    --tone-5: #f2c230;
+    --feeling-1: #7a5367;
+    --feeling-2: #c0659a;
+    --feeling-3: #f39ccb;
+    --depth-1: #4b6584;
+    --depth-2: #4673ad;
+    --depth-3: #4f8be0;
+    --depth-4: #6ea5f0;
+    --depth-5: #8cbcff;
     color-scheme: dark;
   }
 }
@@ -849,6 +879,47 @@ a.audience:hover {
   margin: 0 0 6px;
 }
 
+/* Mood: three tiles (Outlook, Pull, Depth) side by side, each with a bar and
+   its value below; they wrap on phones. The pending block has the same size, so
+   the page does not move when it fills in. */
+.mood-block {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  max-width: 600px;
+  margin: 12px 0;
+}
+
+/* Each scale is a tile in the composite style (.composite), a little roomier. */
+.composite.mood-scale {
+  gap: 4px;
+}
+
+.mood-title {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.mood-value {
+  font-size: 0.9rem;
+}
+
+/* A concern-style bar at full column width. Each layer takes its value's color (--fill). */
+.mood-bar {
+  width: 100%;
+  margin-top: 2px;
+}
+
+.mood-bar > .bar-fill {
+  background: var(--fill);
+}
+
+/* Series range: the highest value, striped, behind the lowest. */
+.mood-bar > .bar-max {
+  background: repeating-linear-gradient(-45deg, var(--fill) 0 3px, transparent 3px 6px);
+}
+
+
 /* Composite scores: the overall tile first, then one tile per group */
 .composites {
   display: grid;
@@ -899,7 +970,7 @@ a.audience:hover {
 
 .jumps button {
   padding: 4px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius);
   font-size: 0.9rem;
 }
 
@@ -913,6 +984,35 @@ a.audience:hover {
 
 .section h2 {
   margin: 0 0 12px;
+}
+
+/* Section heading with "Back to top" on the right. */
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin: 0 0 12px;
+}
+
+.section .section-head h2 {
+  margin: 0;
+}
+
+/* A plain text link look, not a button. */
+.to-top {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.to-top:hover {
+  text-decoration: underline;
 }
 
 .positives h3 {

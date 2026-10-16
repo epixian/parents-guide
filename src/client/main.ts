@@ -10,6 +10,7 @@ import {
   type CategoryId,
   type TreatmentId,
 } from "../shared/categories.js";
+import { DEPTH_LABELS, DEPTH_MAX, FEELING_LABELS, FEELING_MAX, TONE_LABELS, TONE_MAX, hasMood } from "../shared/mood.js";
 import { THEME_TAGS } from "../shared/themes.js";
 import type {
   AudienceScore,
@@ -17,6 +18,7 @@ import type {
   CategoryRange,
   CreditEntry,
   IndexEntry,
+  Mood,
   RecentItem,
   RecentResponse,
   Report,
@@ -244,6 +246,113 @@ function compositesHtml(scoreOf: (id: CategoryId) => number | undefined, opts: {
   return tiles.length ? `<div class="composites">${tiles.join("")}</div>` : "";
 }
 
+// ---------- Mood ----------
+// A block in the Summary section with three titled bars: Outlook (the tone
+// field, 1-5, bleak to uplifting: purple, grey, gold), Pull (the feeling
+// field, 1-3, low-key to strong: pale to deep rose), and Depth (1-5, silly to
+// profound: light to deep blue).
+// Like the concern bars, the width shows the value and the whole bar takes
+// the value's color. Each scale is a tile, and the tile's tooltip explains
+// the scale. The AI's one-sentence note is saved but not shown.
+
+interface MoodRange {
+  tone: CategoryRange;
+  feeling: CategoryRange;
+  depth: CategoryRange;
+}
+
+/** "Somber", or "Somber–Hopeful" for a range. */
+function spanLabel(range: CategoryRange, labels: Record<number, string>): string {
+  return range.min === range.max ? labels[range.min]! : `${labels[range.min]}–${labels[range.max]}`;
+}
+
+/**
+ * One titled bar, in the style of the concern bars: the bar's width shows the
+ * value, and its color comes from the value (--{scale}-{value} in style.css).
+ * For a range, a solid layer goes to the lowest value and a striped layer
+ * behind it to the highest. The value goes below the bar. Each scale is a
+ * tile, and the tile's tooltip explains the scale.
+ */
+function moodScale(
+  title: string,
+  tip: string,
+  value: string,
+  range: CategoryRange | null,
+  scale: "tone" | "feeling" | "depth",
+  max: number,
+): string {
+  const layer = (cls: string, n: number) =>
+    `<span class="${cls}" style="width: ${Math.round((n / max) * 100)}%; --fill: var(--${scale}-${n})"></span>`;
+  const layers = !range ? "" : (range.max > range.min ? layer("bar-max", range.max) : "") + layer("bar-fill", range.min);
+  return `
+    <div class="composite mood-scale" title="${esc(tip)}">
+      <span class="mood-title">${title}</span>
+      <span class="bar mood-bar" aria-hidden="true">${layers}</span>
+      <span class="mood-value">${value}</span>
+    </div>`;
+}
+
+/** The three tiles. attrs: extra attributes for the block. */
+function moodBlock(r: MoodRange | null, values: [string, string, string], attrs = ""): string {
+  return `
+    <div class="mood-block"${attrs}>
+      ${moodScale("Outlook", "Where the story leaves you, from bleak to uplifting", values[0], r?.tone ?? null, "tone", TONE_MAX)}
+      ${moodScale("Pull", "How strongly it stirs emotions", values[1], r?.feeling ?? null, "feeling", FEELING_MAX)}
+      ${moodScale("Depth", "How much it gives you to think about", values[2], r?.depth ?? null, "depth", DEPTH_MAX)}
+    </div>`;
+}
+
+/** Keep a value on its scale, so a bad saved value cannot fill past the bar. */
+const onScale = (n: number, max: number) => Math.min(max, Math.max(1, Math.round(n) || 1));
+
+/** Lowest and highest of the values, kept on the scale. */
+const scaleRange = (values: number[], max: number): CategoryRange => {
+  const known = values.map((n) => onScale(n, max));
+  return { min: Math.min(...known), max: Math.max(...known) };
+};
+
+/** Range over one mood (min equals max) or the moods of several seasons; null if there are none. */
+function moodRange(moods: Mood[]): MoodRange | null {
+  if (!moods.length) return null;
+  return {
+    tone: scaleRange(moods.map((m) => m.tone), TONE_MAX),
+    feeling: scaleRange(moods.map((m) => m.feeling), FEELING_MAX),
+    depth: scaleRange(moods.map((m) => m.depth), DEPTH_MAX),
+  };
+}
+
+/** The mood block for one mood or several seasons' moods; empty if there are none. */
+function moodHtml(moods: Mood[]): string {
+  const r = moodRange(moods);
+  if (!r) return "";
+  const values = [spanLabel(r.tone, TONE_LABELS), spanLabel(r.feeling, FEELING_LABELS), spanLabel(r.depth, DEPTH_LABELS)];
+  return moodBlock(r, values.map(esc) as [string, string, string]);
+}
+
+/** An empty block of the same size, while the server rates a missing mood. */
+const MOOD_PENDING = moodBlock(
+  null,
+  [`<span class="spinner" aria-hidden="true"></span>Rating…`, "…", "…"],
+  ` id="mood-slot" aria-busy="true"`,
+);
+
+/** Put html in place of the pending block, or remove it when html is empty. */
+function fillMoodSlot(seq: number, html: string): void {
+  const slot = document.querySelector("#mood-slot");
+  if (seq !== navSeq || !slot) return;
+  if (html) slot.outerHTML = html;
+  else slot.remove();
+}
+
+/** A section heading, with a "Back to top" button on the right. */
+function sectionHead(title: string): string {
+  return `
+    <div class="section-head">
+      <h2>${title}</h2>
+      <button type="button" class="to-top" data-top>Back to top <span aria-hidden="true">↑</span></button>
+    </div>`;
+}
+
 /**
  * Jump links to the sections below. Buttons, not #anchors: the page uses the
  * URL hash for routing.
@@ -263,7 +372,7 @@ function detailsBox(info: WorkInfo | undefined, themes: string[] = []): string {
   ];
   return `
     <section class="card section" id="sec-details">
-      <h2>Details</h2>
+      ${sectionHead("Details")}
       <div class="info">
         <div class="info-text">
           ${
@@ -303,7 +412,7 @@ function ratingsSection(report: Report): string {
   }, 3);
   return `
     <section class="card section" id="sec-ratings">
-      <h2>Ratings</h2>
+      ${sectionHead("Ratings")}
       <table class="ratings">
         <thead><tr><th>Topic</th><th>Level</th><th>Details</th></tr></thead>
         <tbody>${rows || `<tr><td colspan="3" class="muted">All topics are hidden. Change "My concerns" to see them.</td></tr>`}</tbody>
@@ -312,12 +421,14 @@ function ratingsSection(report: Report): string {
     </section>`;
 }
 
-function summarySection(report: Report): string {
+/** mood: the mood tiles, or the pending tiles. */
+function summarySection(report: Report, mood: string): string {
   const positives = report.positives ?? [];
   return `
     <section class="card section" id="sec-summary">
-      <h2>Summary</h2>
+      ${sectionHead("Summary")}
       <p class="summary">${esc(report.summary)}</p>
+      ${mood}
       ${
         positives.length
           ? `<div class="positives"><h3>Positive elements</h3><ul>${positives.map((p) => `<li>${esc(p)}</li>`).join("")}</ul></div>`
@@ -489,6 +600,17 @@ async function showReport(id: string): Promise<string> {
   const r = res.report;
   pageTitle = withYears(r.kind === "tv-season" && r.subtitle ? `${r.title} — ${r.subtitle}` : r.title, r.info);
   pageMeta = `Rated ${new Date(r.refreshedAt).toLocaleDateString()} by ${r.model} · confidence: ${r.confidence}`;
+  // A result saved before moods existed: the server rates the mood now, and the tiles fill in.
+  if (!hasMood(r)) {
+    const seq = navSeq;
+    afterRender = () => {
+      void api
+        .mood(r.id)
+        .then((m) => fillMoodSlot(seq, moodHtml([m])))
+        .catch(() => fillMoodSlot(seq, ""));
+    };
+  }
+  const mood = hasMood(r) ? moodHtml([r.mood]) : MOOD_PENDING;
   return `${back}
     ${titleHeader(r.title, r.kind === "tv-season" ? r.subtitle : null, r.info, compositesHtml((id) => r.categories[id]?.score))}
     ${r.confidence === "low" ? `<p class="notice">The AI knows this work only a little. Details can be wrong.</p>` : ""}
@@ -499,7 +621,7 @@ async function showReport(id: string): Promise<string> {
       ["sec-details", "Details"],
     ])}
     ${ratingsSection(r)}
-    ${summarySection(r)}
+    ${summarySection(r, mood)}
     ${detailsBox(r.info, r.themes)}`;
 }
 
@@ -540,10 +662,28 @@ async function showSeries(tmdbId: string): Promise<string> {
     )
     .join("");
 
+  // Mood range across the rated seasons. Seasons saved before moods existed get one from the server first.
+  const ratedSeasons = s.seasons.filter((season) => season.report);
+  const knownMoods = ratedSeasons.flatMap((season) => (season.report && hasMood(season.report) ? [season.report.mood] : []));
+  const missingMoods = ratedSeasons.filter((season) => !(season.report && hasMood(season.report))).map((season) => season.reportId);
+  const seriesMood = (moods: Mood[]) => moodHtml(moods);
+  if (missingMoods.length) {
+    const seq = navSeq;
+    afterRender = () => {
+      void Promise.allSettled(missingMoods.map((id) => api.mood(id))).then((results) => {
+        const added = results.flatMap((res) => (res.status === "fulfilled" ? [res.value] : []));
+        fillMoodSlot(seq, seriesMood([...knownMoods, ...added]));
+      });
+    };
+  }
+  const mood = missingMoods.length ? MOOD_PENDING : seriesMood(knownMoods);
+  // The Summary section holds the overview and the mood tiles; skip it when it has neither.
+  const hasSummary = Boolean(s.overview || mood);
+
   const sections: [string, string][] = [
     ["sec-ratings", "Ratings"],
     ["sec-seasons", "Seasons"],
-    ...(s.overview ? ([["sec-summary", "Summary"]] as [string, string][]) : []),
+    ...(hasSummary ? ([["sec-summary", "Summary"]] as [string, string][]) : []),
     ["sec-details", "Details"],
   ];
 
@@ -551,7 +691,7 @@ async function showSeries(tmdbId: string): Promise<string> {
     ${titleHeader(s.title, null, s.info, compositesHtml((id) => agg.categories[id]?.max, { upTo: true }))}
     ${jumpLinks(sections)}
     <section class="card section" id="sec-ratings">
-      <h2>Ratings for the whole series</h2>
+      ${sectionHead("Ratings for the whole series")}
       ${
         agg.ratedSeasons
           ? `${agg.partial ? `<p class="notice">Partial: based on ${agg.ratedSeasons} of ${agg.releasedSeasons} released seasons. Rate more seasons below to complete it.</p>` : ""}
@@ -561,10 +701,18 @@ async function showSeries(tmdbId: string): Promise<string> {
       }
     </section>
     <section class="card section" id="sec-seasons">
-      <h2>Seasons</h2>
+      ${sectionHead("Seasons")}
       <ul class="seasons">${seasonsList}</ul>
     </section>
-    ${s.overview ? `<section class="card section" id="sec-summary"><h2>Summary</h2><p class="summary">${esc(s.overview)}</p></section>` : ""}
+    ${
+      hasSummary
+        ? `<section class="card section" id="sec-summary">
+            ${sectionHead("Summary")}
+            ${s.overview ? `<p class="summary">${esc(s.overview)}</p>` : ""}
+            ${mood}
+          </section>`
+        : ""
+    }
     ${detailsBox(s.info, seriesThemes(s))}`;
 }
 
@@ -1080,9 +1228,17 @@ app.addEventListener("click", (e) => {
     return;
   }
 
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if ((e.target as HTMLElement).closest("button[data-top]")) {
+    window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+    // Keyboard users continue from the jump links at the top, not from the button they left.
+    app.querySelector<HTMLElement>(".jumps button")?.focus({ preventScroll: true });
+    return;
+  }
+
   const id = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-jump]")?.dataset.jump;
   if (!id) return;
-  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   document.getElementById(id)?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
 });
 

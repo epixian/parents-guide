@@ -50,6 +50,18 @@ export interface AudienceScore {
   count: number;
 }
 
+/** The feel of the whole work. See src/shared/mood.ts. */
+export interface Mood {
+  /** 1 bleak, 2 somber, 3 even, 4 hopeful, 5 uplifting. Shown as "Outlook". */
+  tone: number;
+  /** 1 low-key, 2 moderate, 3 strong: how strongly the work stirs emotions. Shown as "Pull". */
+  feeling: number;
+  /** 1 silly, 2 lighthearted, 3 moderate, 4 thoughtful, 5 profound: how much the work gives to think about. Missing in moods saved before depth existed. */
+  depth: number;
+  /** One sentence from the AI that explains both values. */
+  note: string;
+}
+
 export interface CategoryRating {
   score: number;
   /** How the work presents the content. Null for categories without a treatment. */
@@ -84,6 +96,8 @@ export interface Report {
   themes?: string[];
   /** Theme tags from the fixed list, for filtering. Older files may not have them. */
   themeTags?: ThemeTag[];
+  /** Tone, feeling, and depth. Older files may not have it; GET /api/mood/:id or the backfill script adds it. */
+  mood?: Mood;
   /** Catalog facts. Older cached files may not have it; the server adds it on the next read. */
   info?: WorkInfo;
 }

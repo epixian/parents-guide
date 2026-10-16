@@ -22,12 +22,12 @@ import path from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 import { FileReportCache, cachePathFor } from "./cache.js";
 import type { WorkDetails } from "./catalog/types.js";
+import { waitForBatch } from "./batchApi.js";
 import { buildRequest, getClient, reportFromMessage } from "./classify.js";
 import { config } from "./config.js";
 import { parseId } from "./reports.js";
 import { estimateCost, recordUsage } from "./usage.js";
 
-const POLL_MS = 15_000;
 /** Catalog requests at a time, to stay well under TMDB and Open Library limits. */
 const CATALOG_CONCURRENCY = 4;
 
@@ -106,22 +106,6 @@ async function loadWork(ids: string[], now: Date, fresh: boolean): Promise<Map<s
     }
   });
   return work;
-}
-
-async function waitForBatch(client: Anthropic, batchId: string): Promise<void> {
-  let last = "";
-  for (;;) {
-    const batch = await client.messages.batches.retrieve(batchId);
-    const c = batch.request_counts;
-    const status =
-      `${batch.processing_status}: ` +
-      `${c.processing} processing, ${c.succeeded} succeeded, ${c.errored} errored, ${c.expired} expired`;
-    // Poll often, but print only when something changed.
-    if (status !== last) console.log(`${new Date().toLocaleTimeString()} ${status}`);
-    last = status;
-    if (batch.processing_status === "ended") return;
-    await new Promise((r) => setTimeout(r, POLL_MS));
-  }
 }
 
 /** Save every successful result. Loads metadata again for ids not in `work` (after --resume). */

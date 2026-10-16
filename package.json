@@ -17,7 +17,9 @@
     "start": "node dist/server/index.js",
     "test": "node --import tsx --test \"test/**/*.test.ts\"",
     "batch": "node dist/server/batch.js",
-    "batch:dev": "tsx src/server/batch.ts"
+    "batch:dev": "tsx src/server/batch.ts",
+    "backfill:mood": "node dist/server/backfillMood.js",
+    "backfill:mood:dev": "tsx src/server/backfillMood.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.134.0",

@@ -67,6 +67,8 @@ export function createApi(reports: ReportService, searchCache: SearchCache): Hon
     return c.json(res);
   });
 
+  api.get("/mood/:id", async (c) => c.json(await reports.getMood(c.req.param("id"))));
+
   api.get("/tv/:tmdbId", async (c) => {
     const series = await reports.getSeries(c.req.param("tmdbId"));
     reports.recordView(series.id, clientKey(c));

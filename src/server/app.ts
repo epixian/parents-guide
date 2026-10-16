@@ -23,6 +23,8 @@ function clientKey(c: Context): string {
 export function createApi(reports: ReportService, searchCache: SearchCache): Hono {
   const api = new Hono();
   const titlesBrotli = new BrotliCache();
+  /** The title list as JSON text for one version, so each version is converted only once. */
+  let titlesJson: { tag: string; text: string } | null = null;
 
   api.get("/health", (c) => c.json({ ok: true }));
 
@@ -75,15 +77,18 @@ export function createApi(reports: ReportService, searchCache: SearchCache): Hon
       c.header("ETag", match);
       return c.body(null, 304);
     }
-    const br = acceptsBrotli(c.req.header("accept-encoding")) ? titlesBrotli.get(tag, () => JSON.stringify(titles)) : null;
+    if (titlesJson?.tag !== tag) titlesJson = { tag, text: JSON.stringify(titles) };
+    const text = titlesJson.text;
+    c.header("Content-Type", "application/json; charset=UTF-8");
+    const br = acceptsBrotli(c.req.header("accept-encoding")) ? titlesBrotli.get(tag, () => text) : null;
     if (br) {
       c.header("ETag", brTag);
-      c.header("Content-Type", "application/json; charset=UTF-8");
       c.header("Content-Encoding", "br");
-      return c.body(new Uint8Array(br));
+      // A view of the same memory, not a copy. zlib output is never a SharedArrayBuffer.
+      return c.body(new Uint8Array(br.buffer as ArrayBuffer, br.byteOffset, br.byteLength));
     }
     c.header("ETag", plainTag);
-    return c.json(titles);
+    return c.body(text);
   });
 
   // Browse and suggest on the server: the fallback when the browser asks to save data.

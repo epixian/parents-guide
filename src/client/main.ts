@@ -2190,12 +2190,19 @@ let refocusSearch = false;
 /** A line in the ?debug event log (debug.ts); nothing without ?debug. */
 const debugLog = (text: string) => (window as unknown as { pgDebugLog?: (t: string) => void }).pgDebugLog?.(text);
 
-// The window, not the page, took focus while the box was active (on Android,
-// e.g. the keyboard's language chooser, a system dialog). The box's own blur
-// event comes first, while the window still has focus, so check here.
+/** When the box last lost focus to nothing on the page (focusout with no relatedTarget). */
+let searchLeftAt = -Infinity;
+searchInput.addEventListener("focusout", (e) => {
+  if (!e.relatedTarget) searchLeftAt = performance.now();
+});
+
+// The window, not the page, took focus from the box (on Android, e.g. the
+// keyboard's language chooser, a system dialog). Brave keeps the box active
+// until the window blur; Chrome blurs the box just before it, so a box that
+// lost focus to nothing in the last half second counts too.
 window.addEventListener("blur", () => {
-  refocusSearch = document.activeElement === searchInput;
-  debugLog(`refocus: flag ${refocusSearch}`);
+  refocusSearch = document.activeElement === searchInput || performance.now() - searchLeftAt < 500;
+  debugLog(`refocus: flag ${refocusSearch} (window blur)`);
 });
 
 window.addEventListener("focus", () => {

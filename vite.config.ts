@@ -1,4 +1,14 @@
+import { execSync } from "node:child_process";
 import { defineConfig, loadEnv } from "vite";
+
+/** Short git commit of the build, or "unknown" outside a git checkout. */
+function gitCommit(): string {
+  try {
+    return execSync("git rev-parse --short HEAD", { stdio: ["ignore", "pipe", "ignore"] }).toString().trim();
+  } catch {
+    return "unknown";
+  }
+}
 
 export default defineConfig(({ mode }) => {
   // Read PORT from .env so the proxy targets the same port as the API server.
@@ -7,8 +17,11 @@ export default defineConfig(({ mode }) => {
 
   return {
     root: "src/client",
-    // Build time, shown in the ?debug event log, to see which version a phone runs.
-    define: { __BUILD_TIME__: JSON.stringify(new Date().toISOString().slice(0, 16).replace("T", " ")) },
+    // Commit and build time, shown in the ?debug event log, to see which version a phone runs.
+    define: {
+      __BUILD_COMMIT__: JSON.stringify(gitCommit()),
+      __BUILD_TIME__: JSON.stringify(new Date().toISOString().slice(0, 16).replace("T", " ")),
+    },
     plugins: [
       {
         // The comments in index.html are notes for developers. Keep them out of the built page.

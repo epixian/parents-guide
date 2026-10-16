@@ -4,7 +4,8 @@
 
 const MAX_LINES = 40;
 
-/** Set by Vite at build time (vite.config.ts), in UTC. */
+/** Set by Vite at build time (vite.config.ts): git commit, and time in UTC. */
+declare const __BUILD_COMMIT__: string;
 declare const __BUILD_TIME__: string;
 
 export function startDebugLog(): void {
@@ -25,6 +26,20 @@ export function startDebugLog(): void {
     pointerEvents: "none",
     whiteSpace: "pre-wrap",
   });
+  // The version stays at the top of the panel; the log scrolls below it.
+  const version = document.createElement("div");
+  version.textContent = `build ${__BUILD_COMMIT__} · ${__BUILD_TIME__} UTC`;
+  Object.assign(version.style, {
+    position: "sticky",
+    top: "-4px",
+    margin: "-4px -6px 4px",
+    padding: "2px 6px",
+    background: "#030",
+    color: "#fff",
+    fontWeight: "bold",
+  });
+  const output = document.createElement("div");
+  box.append(version, output);
   document.body.append(box);
   const start = performance.now();
   const lines: string[] = [];
@@ -40,11 +55,11 @@ export function startDebugLog(): void {
   const log = (text: string) => {
     lines.push(`${((performance.now() - start) / 1000).toFixed(2)} ${text}`);
     if (lines.length > MAX_LINES) lines.shift();
-    box.textContent = lines.join("\n");
+    output.textContent = lines.join("\n");
     box.scrollTop = box.scrollHeight;
   };
 
-  log(`debug on, build ${__BUILD_TIME__} UTC, active: ${describe(document.activeElement)}`);
+  log(`debug on, active: ${describe(document.activeElement)}`);
   // Page code can add lines with debugLog() in main.ts.
   (window as unknown as { pgDebugLog?: (text: string) => void }).pgDebugLog = log;
   document.addEventListener("focusin", (e) => log(`focusin ${describe(e.target)}`), true);

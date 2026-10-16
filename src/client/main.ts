@@ -30,15 +30,21 @@ import type {
   WorkInfo,
 } from "../shared/types.js";
 import { api } from "./api.js";
-import { browse, prefetchTitles, preloadTitles, suggest, titlesReady } from "./titles.js";
+import { browse, prefetchTitles, preloadTitles, suggest, titlesById, titlesReady } from "./titles.js";
 import {
   loadHidden,
   loadHiddenProviders,
+  loadThumbs,
+  loadWatchlist,
   markTipSeen,
   saveHidden,
   saveHiddenProviders,
+  saveThumbs,
+  saveWatchlist,
   tipSeen,
   visibleCategories,
+  type Thumb,
+  type WatchlistEntry,
 } from "./prefs.js";
 
 const app = document.querySelector<HTMLElement>("#app")!;
@@ -291,6 +297,78 @@ function loadWatch(id: string, seq: number): void {
     });
 }
 
+// ---------- Watchlist and thumbs ----------
+
+let watchlist = loadWatchlist();
+let thumbs = loadThumbs();
+
+/** Id for the watchlist and thumbs: a TV season uses its series. */
+const markId = (id: string) => id.replace(/^(tmdb-tv-\d+)-s\d+$/, "$1");
+
+/** What a watchlist entry saves about the title, apart from the time. */
+type MarkTitle = Omit<WatchlistEntry, "addedAt">;
+
+function markTitle(id: string, title: string, info: WorkInfo | undefined): MarkTitle {
+  const kind = id.startsWith("ol-") ? "book" : id.startsWith("tmdb-tv-") ? "tv" : "movie";
+  return { kind, title, years: info?.years ?? null, imageUrl: info?.imageUrl ?? null };
+}
+
+// Outlines from Feather icons (MIT). Filled: the same shape with fill.
+const MARK_ICONS = {
+  list: "M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z",
+  up: "M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3",
+  down: "M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17",
+};
+
+function markButton(mark: keyof typeof MARK_ICONS, on: boolean, label: string, tip: string): string {
+  return `
+    <button type="button" class="mark" data-mark="${mark}" aria-pressed="${on}" aria-label="${esc(label)}" title="${esc(tip)}">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="${MARK_ICONS[mark]}" /></svg>
+    </button>`;
+}
+
+/** Watchlist button, then thumbs up and down. Selecting one thumb turns the other off. */
+function marksHtml(id: string, title: MarkTitle): string {
+  const list = id.startsWith("ol-") ? "reading list" : "watchlist";
+  const listed = id in watchlist;
+  const thumb: Thumb | undefined = thumbs[id];
+  return `
+    <div class="marks" id="marks" data-id="${esc(id)}" data-title="${esc(JSON.stringify(title))}">
+      ${markButton("list", listed, `On my ${list}`, listed ? `Remove from your ${list}` : `Add to your ${list}`)}
+      ${markButton("up", thumb === "up", "I liked it", thumb === "up" ? "You liked it. Select to clear." : "I liked it")}
+      <span class="marks-slash" aria-hidden="true">/</span>
+      ${markButton("down", thumb === "down", "I did not like it", thumb === "down" ? "You did not like it. Select to clear." : "I did not like it")}
+    </div>`;
+}
+
+function toggleMark(button: HTMLButtonElement): void {
+  const box = button.closest<HTMLElement>("#marks")!;
+  const id = box.dataset.id!;
+  const title = JSON.parse(box.dataset.title!) as MarkTitle;
+  const mark = button.dataset.mark!;
+  if (mark === "list") {
+    if (id in watchlist) delete watchlist[id];
+    else watchlist[id] = { ...title, addedAt: new Date().toISOString() };
+    saveWatchlist(watchlist);
+  } else {
+    const thumb = mark as Thumb;
+    if (thumbs[id] === thumb) delete thumbs[id];
+    else thumbs[id] = thumb;
+    saveThumbs(thumbs);
+  }
+  box.outerHTML = marksHtml(id, title);
+  // Keep focus on the button the user selected; it is drawn again.
+  document.querySelector<HTMLButtonElement>(`#marks [data-mark="${mark}"]`)?.focus();
+}
+
+// Another tab changed the lists: use its values.
+window.addEventListener("storage", () => {
+  watchlist = loadWatchlist();
+  thumbs = loadThumbs();
+  const box = document.querySelector<HTMLElement>("#marks");
+  if (box) box.outerHTML = marksHtml(box.dataset.id!, JSON.parse(box.dataset.title!) as MarkTitle);
+});
+
 // ---------- Rendering helpers ----------
 
 function scoreBar(score: number): string {
@@ -354,7 +432,14 @@ function audienceHtml(a: AudienceScore | null | undefined, sourceUrl: string | u
 }
 
 /** Title area: poster, title, year, rating, and the composites. Details go lower on the page. */
-function titleHeader(title: string, subtitle: string | null, info: WorkInfo | undefined, composites: string): string {
+/** markFor: the page's report or series id, for the watchlist and thumbs. */
+function titleHeader(
+  title: string,
+  subtitle: string | null,
+  info: WorkInfo | undefined,
+  composites: string,
+  markFor: string,
+): string {
   const facts = [
     info?.years ? `<span>${esc(info.years)}</span>` : "",
     info?.rating
@@ -373,6 +458,7 @@ function titleHeader(title: string, subtitle: string | null, info: WorkInfo | un
         ${byline ? `<p class="byline">by ${byline}</p>` : ""}
         ${facts.length ? `<p class="facts">${facts.join("")}</p>` : ""}
         ${watchId ? watchLine() : ""}
+        ${marksHtml(markId(markFor), markTitle(markFor, title, info))}
       </div>
       ${composites}
     </section>`;
@@ -787,7 +873,7 @@ async function showReport(id: string): Promise<string> {
   }
   const mood = hasMood(r) ? moodHtml([r.mood]) : MOOD_PENDING;
   return `${back}
-    ${titleHeader(r.title, r.kind === "tv-season" ? r.subtitle : null, r.info, compositesHtml((id) => r.categories[id]?.score))}
+    ${titleHeader(r.title, r.kind === "tv-season" ? r.subtitle : null, r.info, compositesHtml((id) => r.categories[id]?.score), r.id)}
     ${r.confidence === "low" ? `<p class="notice">The AI knows this work only a little. Details can be wrong.</p>` : ""}
     ${res.stale ? `<p class="notice">This result could not be refreshed just now. It may be out of date.</p>` : ""}
     ${jumpLinks([
@@ -864,7 +950,7 @@ async function showSeries(tmdbId: string): Promise<string> {
   ];
 
   return `
-    ${titleHeader(s.title, null, s.info, compositesHtml((id) => agg.categories[id]?.max, { upTo: true }))}
+    ${titleHeader(s.title, null, s.info, compositesHtml((id) => agg.categories[id]?.max, { upTo: true }), s.id)}
     ${jumpLinks(sections)}
     <section class="card section" id="sec-ratings">
       ${sectionHead("Ratings for the whole series")}
@@ -922,6 +1008,22 @@ function trendingHtml(items: RecentItem[]): string {
     </section>`;
 }
 
+/** The user's watchlist, most recently added first. Empty when the list is empty. index: rated titles, for the bars. */
+function watchlistHtml(index: Map<string, IndexEntry> | null): string {
+  const entries = Object.entries(watchlist).sort((a, b) => b[1].addedAt.localeCompare(a[1].addedAt));
+  if (!entries.length) return "";
+  const cards = entries.map(([id, e]) => {
+    const rated = index?.get(id);
+    const item: RecentItem = { id, ...e, scores: rated?.scores ?? {} };
+    return cardHtml(item, true, rated ? miniComposites(item) : "");
+  });
+  return `
+    <section class="recent watchlist">
+      <h2>My watchlist</h2>
+      <ul class="cards">${cards.join("")}</ul>
+    </section>`;
+}
+
 /** One row of poster cards per media kind. A kind with no saved titles is left out. */
 function recentHtml(recent: RecentResponse): string {
   const rows = (Object.keys(RECENT_HEADINGS) as RecentItem["kind"][])
@@ -944,13 +1046,19 @@ function recentHtml(recent: RecentResponse): string {
 async function showHome(): Promise<string> {
   searchInput.value = "";
   // These lists are a bonus: if one fails to load, show the home page without it.
-  const [trending, recent] = await Promise.all([api.trending().catch(() => []), api.recent().catch(() => null)]);
+  const [trending, recent, index] = await Promise.all([
+    api.trending().catch(() => []),
+    api.recent().catch(() => null),
+    // The rated titles give watchlist cards their bars. Loaded only for a watchlist.
+    Object.keys(watchlist).length ? titlesById() : null,
+  ]);
   afterRender = prefetchTitles;
   return `
     <section class="hero">
       <h1>Know what is in it before your kids see it.</h1>
       <p>AI-generated summaries of movies, TV shows, and books for content that parents may want to know about.</p>
     </section>
+    ${watchlistHtml(index)}
     ${trendingHtml(trending)}
     ${recent ? recentHtml(recent) : ""}`;
 }
@@ -1404,6 +1512,12 @@ app.addEventListener("click", (e) => {
   if (filter) {
     saveSearchFilter(filter as SearchFilter);
     applySearchFilter(filter as SearchFilter);
+    return;
+  }
+
+  const mark = (e.target as HTMLElement).closest<HTMLButtonElement>("#marks button[data-mark]");
+  if (mark) {
+    toggleMark(mark);
     return;
   }
 

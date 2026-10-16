@@ -72,6 +72,12 @@ export async function browse(query: string, fresh = false): Promise<BrowseRespon
   return titles ? browseTitles(titles, filters) : api.browse(query);
 }
 
+/** Every rated title by id, or null when the list does not load (or with data saver). */
+export async function titlesById(): Promise<Map<string, IndexEntry> | null> {
+  const titles = await load(MAX_AGE_MS)?.catch(() => null);
+  return titles ? new Map(titles.map((t) => [t.id, t])) : null;
+}
+
 /** Rated titles for the search box as the visitor types. */
 export async function suggest(q: string): Promise<Suggestion[]> {
   const titles = await load(MAX_AGE_MS)?.catch(() => null);

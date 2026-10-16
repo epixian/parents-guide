@@ -1110,7 +1110,8 @@ a.audience:hover {
   background: var(--notice-bg);
 }
 
-.trending {
+.trending,
+.watchlist {
   margin-bottom: 24px;
 }
 
@@ -1376,4 +1377,58 @@ a.audience:hover {
 
 .watch-more:hover {
   text-decoration: underline;
+}
+
+/* Watchlist and thumbs, below the streaming line. Hollow when off, filled when on. */
+.title-area .marks {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin: 0 0 10px;
+}
+
+.mark {
+  display: inline-flex;
+  padding: 6px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--muted);
+}
+
+/* A gap between the watchlist button and the thumbs. */
+.mark[data-mark="list"] {
+  margin-right: 8px;
+}
+
+.mark:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.mark:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.mark svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mark[aria-pressed="true"] {
+  color: var(--accent);
+}
+
+.mark[aria-pressed="true"] svg {
+  fill: currentColor;
+}
+
+.marks-slash {
+  color: var(--muted);
+  font-size: 1.2rem;
+  line-height: 1;
 }

@@ -1,4 +1,5 @@
 import { CATEGORIES, type CategoryId } from "../shared/categories.js";
+import type { MediaKind } from "../shared/types.js";
 
 // Categories the user marked as non-concern. Stored in localStorage so the
 // choice persists across visits. The server never sees it.
@@ -67,3 +68,49 @@ export function saveHiddenProviders(hidden: Set<number>): void {
     // Storage blocked: the choice lasts for this page view only.
   }
 }
+
+// The user's watchlist and own thumbs up or down, per title id (a TV series,
+// not a season). Stored in the browser only, like the choices above.
+const WATCHLIST_KEY = "pairents.watchlist";
+const THUMBS_KEY = "pairents.thumbs";
+
+export type Thumb = "up" | "down";
+
+function loadRecord<T>(key: string, valid: (v: unknown) => v is T): Record<string, T> {
+  try {
+    const raw = JSON.parse(localStorage.getItem(key) ?? "{}") as Record<string, unknown>;
+    return Object.fromEntries(Object.entries(raw).filter((e): e is [string, T] => valid(e[1])));
+  } catch {
+    return {};
+  }
+}
+
+function saveRecord(key: string, value: Record<string, unknown>): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Storage blocked: the choice lasts for this page view only.
+  }
+}
+
+/** One watchlist title, with what the home page card needs. */
+export interface WatchlistEntry {
+  /** ISO time the user added it. */
+  addedAt: string;
+  kind: MediaKind;
+  title: string;
+  years: string | null;
+  imageUrl: string | null;
+}
+
+const isEntry = (v: unknown): v is WatchlistEntry => {
+  const e = v as WatchlistEntry | null;
+  return typeof e?.addedAt === "string" && typeof e.title === "string" && ["movie", "tv", "book"].includes(e.kind);
+};
+
+/** Title id → entry. */
+export const loadWatchlist = () => loadRecord(WATCHLIST_KEY, isEntry);
+export const saveWatchlist = (list: Record<string, WatchlistEntry>) => saveRecord(WATCHLIST_KEY, list);
+
+export const loadThumbs = () => loadRecord(THUMBS_KEY, (v): v is Thumb => v === "up" || v === "down");
+export const saveThumbs = (thumbs: Record<string, Thumb>) => saveRecord(THUMBS_KEY, thumbs);

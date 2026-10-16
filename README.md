@@ -1,6 +1,6 @@
 # pairents-guide
 
-AI summaries of parental concerns for movies, TV shows, and books. A user searches a title, picks the correct match, and gets a summary plus a 0-5 score for each concern category (violence, language, sexual content, and more). Users hide the categories they do not care about; that choice stays in the browser (`localStorage`).
+AI summaries of parental concerns for movies, TV shows, and books. A user searches a title, picks the correct match, and gets a summary plus a 0-5 score for each concern category (violence, language, sexual content, and more). Users hide the categories they do not care about; that choice stays in the browser (`localStorage`). Each title page also has a watchlist button and the user's own thumbs up or down (TV seasons use their series); these also stay in the browser. The home page lists the watchlist above "Trending this week", most recently added first.
 
 ## How it works
 

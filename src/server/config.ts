@@ -1,3 +1,5 @@
+import { execSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 
 // Load .env from the working directory if it exists (Node 22+).
@@ -14,7 +16,22 @@ function intEnv(name: string, fallback: number): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
+/** Short git commit of the checkout, or "unknown" outside a git checkout. */
+function gitCommit(): string {
+  try {
+    return execSync("git rev-parse --short HEAD", { stdio: ["ignore", "pipe", "ignore"] }).toString().trim();
+  } catch {
+    return "unknown";
+  }
+}
+
+// package.json is two levels up from both src/server/ and dist/server/.
+const pkg = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8")) as { name: string };
+
 export const config = {
+  // App name and commit, for the User-Agent of catalog requests.
+  appName: pkg.name,
+  appCommit: gitCommit(),
   port: intEnv("PORT", 8787),
   // Localhost only by default: Nginx (or the Vite dev proxy) is the only
   // client. Reached directly, a client could fake X-Forwarded-For and get

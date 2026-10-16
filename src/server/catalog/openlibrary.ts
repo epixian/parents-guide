@@ -8,8 +8,9 @@ const BASE = "https://openlibrary.org";
 // Open Library allows about 1 request per second, or 3 with a User-Agent that
 // names the app and a contact (OPENLIBRARY_CONTACT). https://openlibrary.org/developers/api
 const CONTACT = config.openLibraryContact;
+const APP = `${config.appName}/${config.appCommit}`;
 const HEADERS = {
-  "user-agent": CONTACT ? `pairents-guide/0.1 (+${CONTACT})` : "pairents-guide/0.1",
+  "user-agent": CONTACT ? `${APP} (+${CONTACT})` : APP,
   accept: "application/json",
 };
 

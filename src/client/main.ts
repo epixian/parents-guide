@@ -2075,7 +2075,11 @@ let suggestTimer: ReturnType<typeof setTimeout> | undefined;
 /** Raised for each request and on close, so a late answer for older text is ignored. */
 let suggestSeq = 0;
 
+/** The search text that the suggestion list was last made for. */
+let suggestQuery = "";
+
 function closeSuggestions(): void {
+  suggestQuery = "";
   suggestSeq++;
   clearTimeout(suggestTimer);
   suggestions = [];
@@ -2131,12 +2135,6 @@ function highlightSuggestion(i: number): void {
   document.getElementById(`suggestion-${i}`)?.scrollIntoView({ block: "nearest" });
 }
 
-/** Debug option (see ?debug below): no suggestion list while typing. */
-const debugNoSuggest = (() => {
-  const p = new URLSearchParams(location.search);
-  return p.has("debug") && p.has("nosuggest");
-})();
-
 function openSuggestion(i: number): void {
   const s = suggestions[i];
   if (!s) return;
@@ -2148,10 +2146,14 @@ function openSuggestion(i: number): void {
 }
 
 searchInput.addEventListener("input", () => {
-  if (debugNoSuggest) return;
   const q = searchInput.value.trim();
+  // Same text (e.g. a space at the end, or a keyboard that re-sends its word):
+  // nothing to do. Redrawing the list and its ARIA state on every such event
+  // closed the Android keyboard while space was held for the language chooser.
+  if (q === suggestQuery) return;
   clearTimeout(suggestTimer);
   if (q.length < 2) return closeSuggestions();
+  suggestQuery = q;
   // A loaded list answers at once; the server fallback waits for a pause in typing.
   if (titlesReady()) void loadSuggestions(q);
   else suggestTimer = setTimeout(() => void loadSuggestions(q), 150);
@@ -2178,48 +2180,6 @@ searchInput.addEventListener("keydown", (e) => {
 });
 
 searchInput.addEventListener("blur", () => closeSuggestions());
-
-/**
- * Touch screens: when the window gets focus back after a system dialog, the
- * browser may leave the search box active but not focused, so the keyboard
- * stays closed. Focus it again (blur first: focus() on the active element does
- * nothing), with the caret where it was.
- */
-let refocusSearch = false;
-
-/** A line in the ?debug event log (debug.ts); nothing without ?debug. */
-const debugLog = (text: string) => (window as unknown as { pgDebugLog?: (t: string) => void }).pgDebugLog?.(text);
-
-/** When the box last lost focus to nothing on the page (focusout with no relatedTarget). */
-let searchLeftAt = -Infinity;
-searchInput.addEventListener("focusout", (e) => {
-  if (!e.relatedTarget) searchLeftAt = performance.now();
-});
-
-// The window, not the page, took focus from the box (on Android, e.g. the
-// keyboard's language chooser, a system dialog). Brave keeps the box active
-// until the window blur; Chrome blurs the box just before it, so a box that
-// lost focus to nothing in the last half second counts too.
-window.addEventListener("blur", () => {
-  refocusSearch = document.activeElement === searchInput || performance.now() - searchLeftAt < 500;
-  debugLog(`refocus: flag ${refocusSearch} (window blur)`);
-});
-
-window.addEventListener("focus", () => {
-  const active = document.activeElement;
-  debugLog(
-    `refocus: flag ${refocusSearch}, coarse ${window.matchMedia("(pointer: coarse)").matches}, ` +
-      `active ${active === searchInput ? "search" : active === document.body ? "body" : (active?.tagName ?? "null")}`,
-  );
-  if (!refocusSearch) return;
-  refocusSearch = false;
-  if (!window.matchMedia("(pointer: coarse)").matches) return;
-  if (active !== searchInput && active !== document.body) return;
-  const { selectionStart, selectionEnd } = searchInput;
-  if (document.activeElement === searchInput) searchInput.blur();
-  searchInput.focus({ preventScroll: true });
-  if (selectionStart !== null) searchInput.setSelectionRange(selectionStart, selectionEnd);
-});
 
 // mousedown would move focus off the search box and close the list before the click.
 suggestBox.addEventListener("mousedown", (e) => e.preventDefault());
@@ -2305,12 +2265,8 @@ app.addEventListener("click", (e) => {
 });
 
 // Phone testing: ?debug in the URL (before the #) shows an event log. See debug.ts.
-// With it, &nosuggest turns off the suggestion list and &text makes the
-// search box type="text", to find what closes the Android keyboard.
-const debugParams = new URLSearchParams(location.search);
-if (debugParams.has("debug")) {
+if (new URLSearchParams(location.search).has("debug")) {
   void import("./debug.js").then((m) => m.startDebugLog());
-  if (debugParams.has("text")) searchInput.type = "text";
 }
 
 window.addEventListener("hashchange", () => void route());

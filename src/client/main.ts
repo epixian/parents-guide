@@ -1947,6 +1947,50 @@ function nameMorph(img: HTMLImageElement | null, on: boolean): void {
   if (card) card.style.viewTransitionName = on ? "card" : "";
 }
 
+/** How long the poster takes to fall off the screen, in milliseconds. */
+const FALL_MS = 900;
+
+/**
+ * Make the poster (and its card) of a closing title page tip over to the left
+ * and fall off the bottom of the screen in an arc, when the new page has no
+ * card for it to move to. The animations drive the view-transition parts of
+ * the old poster and card, which have no new element to move to.
+ */
+function fallOff(poster: DOMRect, card: DOMRect | null): void {
+  const outer = card ?? poster;
+  // They turn about the card's bottom left corner, which then falls.
+  const px = outer.left;
+  const py = outer.bottom;
+  // Far enough down that no corner stays on the screen, at any angle.
+  const drop = window.innerHeight - py + Math.hypot(outer.width, outer.height) + 16;
+  const steps = 40;
+  const keyframes = (box: DOMRect): Keyframe[] =>
+    Array.from({ length: steps + 1 }, (_, i) => {
+      const t = i / steps;
+      // First it tips about the fixed corner, then it falls: steady sideways,
+      // faster and faster down, so it moves in an arc.
+      const fall = Math.max(0, (t - 0.25) / 0.75);
+      const x = px - 160 * fall;
+      const y = py + drop * fall * fall;
+      const angle = -100 * t * t;
+      return {
+        transformOrigin: "0 0",
+        transform: `translate(${x}px, ${y}px) rotate(${angle}deg) translate(${box.left - px}px, ${box.top - py}px)`,
+      };
+    });
+  const animate = (box: DOMRect, name: string) =>
+    document.documentElement.animate(keyframes(box), {
+      duration: FALL_MS,
+      easing: "linear",
+      // Stay off the screen until the transition ends, which can be a frame
+      // later: otherwise the card shows again in its old place.
+      fill: "forwards",
+      pseudoElement: `::view-transition-group(${name})`,
+    });
+  animate(poster, "poster");
+  if (card) animate(card, "card");
+}
+
 /** Wait for an image to be ready to draw, but not for long. */
 const imageReady = (img: HTMLImageElement) =>
   Promise.race([img.decode().catch(() => {}), new Promise((resolve) => setTimeout(resolve, 300))]);
@@ -1977,7 +2021,10 @@ async function morphPoster(fromHash: string, toHash: string, render: () => Promi
     return;
   }
   nameMorph(source, true);
+  const sourceBox = source.getBoundingClientRect();
+  const sourceCard = cardOf(source)?.getBoundingClientRect() ?? null;
   let target: HTMLImageElement | null = null;
+  let falls = false;
   const transition = document.startViewTransition(async () => {
     held?.remove();
     await render();
@@ -1985,13 +2032,27 @@ async function morphPoster(fromHash: string, toHash: string, render: () => Promi
     // Between two title pages with no card for the old one (a series and its
     // season): poster to poster.
     if (!target && isTitlePage(fromHash) && isTitlePage(toHash)) target = titlePoster();
-    if (!target) return; // No poster on the new page: the pages cross-fade.
+    if (!target) {
+      // Leaving a title page for a page with no card for it: the poster falls
+      // off the screen. Otherwise it would stay still and then go out at once.
+      if (!toTitle) {
+        falls = true;
+        // Before the parts are made: style.css keeps the old card from fading.
+        document.documentElement.classList.add("poster-falls");
+      }
+      return;
+    }
     nameMorph(target, true);
     await imageReady(target);
   });
+  // The parts exist once the transition is ready: start the fall then, in the first frame.
+  void transition.ready.then(() => falls && fallOff(sourceBox, sourceCard), () => {});
   await transition.updateCallbackDone.catch(() => {});
   // Clear the names, so the next animation can give them to other elements.
-  void transition.finished.finally(() => nameMorph(target, false));
+  void transition.finished.finally(() => {
+    nameMorph(target, false);
+    document.documentElement.classList.remove("poster-falls");
+  });
 }
 
 // ---------- Scroll position ----------

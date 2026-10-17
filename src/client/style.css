@@ -1646,6 +1646,12 @@ a.audience:hover {
   animation-duration: 350ms;
 }
 
+/* The poster and card falling off the screen (see fallOff in main.ts): the
+   old card stays solid, as the old poster does. */
+.poster-falls::view-transition-old(card) {
+  animation: none;
+}
+
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: 200ms;

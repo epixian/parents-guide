@@ -1,13 +1,14 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { HeadBucketCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+// Type only: the SDK itself loads on first use, so a server without S3_BUCKET never loads it.
+import type { S3Client } from "@aws-sdk/client-s3";
 import { config, type S3Config } from "./config.js";
 
 // Off-site copy of CACHE_DIR in any S3-compatible bucket (AWS S3,
 // DigitalOcean Spaces, Cloudflare R2, Backblaze B2, MinIO). Off when
-// S3_BUCKET is not set. Bad settings turn it off with one warning: at start
-// (config.ts), when the client cannot be made, or when the bucket check finds
-// wrong keys or no bucket. The site keeps working without the backup.
+// S3_BUCKET is not set, and then the S3 SDK never loads. Bad settings turn it
+// off with one warning: at start (config.ts), when the client cannot be made,
+// or when the bucket check finds wrong keys or no bucket. The site keeps working without the backup.
 //
 // The local disk stays the source of truth: every read uses it. Each saved
 // result is queued for upload right after it is written, so a lost disk loses
@@ -30,7 +31,11 @@ export const objectKey = (s3: S3Config, rel: string) => `${s3.prefix}${rel.split
 
 const contentType = (rel: string) => (rel.endsWith(".jsonl") ? "application/x-ndjson" : "application/json");
 
-export function s3Client(s3: S3Config): S3Client {
+/** The S3 SDK, loaded on first use. */
+const sdk = () => import("@aws-sdk/client-s3");
+
+export async function s3Client(s3: S3Config): Promise<S3Client> {
+  const { S3Client } = await sdk();
   return new S3Client({
     region: s3.region,
     endpoint: s3.endpoint || undefined,
@@ -42,6 +47,7 @@ export function s3Client(s3: S3Config): S3Client {
 /** Upload one file from CACHE_DIR. Reads the file at upload time, so the newest version goes up. */
 export async function uploadFile(client: S3Client, s3: S3Config, root: string, rel: string): Promise<void> {
   const body = await fs.readFile(path.join(root, rel));
+  const { PutObjectCommand } = await sdk();
   await client.send(
     new PutObjectCommand({ Bucket: s3.bucket, Key: objectKey(s3, rel), Body: body, ContentType: contentType(rel) }),
   );
@@ -56,7 +62,7 @@ const RETRY_WAITS_MS = [2_000, 10_000, 60_000];
 const httpStatus = (err: unknown) => (err as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode;
 
 export class Backup {
-  private readonly client: S3Client;
+  private readonly client: Promise<S3Client>;
   /** Paths waiting for upload. A path queued twice uploads once. */
   private readonly pending = new Set<string>();
   /** Paths that failed every retry. They go back in the queue on the next queue() call or flush(). */
@@ -73,6 +79,8 @@ export class Backup {
     private readonly root: string,
   ) {
     this.client = s3Client(s3);
+    // check() reports a failure; this only stops an "unhandled rejection" crash.
+    this.client.catch(() => {});
   }
 
   /**
@@ -80,8 +88,16 @@ export class Backup {
    * Other errors (network, 5xx) keep it on: the uploads retry.
    */
   async check(): Promise<void> {
+    let client: S3Client;
     try {
-      await this.client.send(new HeadBucketCommand({ Bucket: this.s3.bucket }));
+      client = await this.client;
+    } catch (err) {
+      this.disable(`the S3 client could not be made: ${(err as Error).message}`);
+      return;
+    }
+    try {
+      const { HeadBucketCommand } = await sdk();
+      await client.send(new HeadBucketCommand({ Bucket: this.s3.bucket }));
     } catch (err) {
       const status = httpStatus(err);
       if (status === 401 || status === 403 || status === 404) {
@@ -90,6 +106,11 @@ export class Backup {
         console.warn(`Backup: bucket check failed, uploads will retry: ${(err as Error).message}`);
       }
     }
+  }
+
+  /** False after bad settings turned the backup off. */
+  get on(): boolean {
+    return !this.disabled;
   }
 
   private disable(why: string): void {
@@ -140,7 +161,7 @@ export class Backup {
     for (let attempt = 0; ; attempt++) {
       if (this.disabled) return;
       try {
-        await uploadFile(this.client, this.s3, this.root, rel);
+        await uploadFile(await this.client, this.s3, this.root, rel);
         if (this.failing) console.log("Backup: uploads work again");
         this.failing = false;
         return;
@@ -165,16 +186,6 @@ export class Backup {
   }
 }
 
-function makeBackup(): Backup | null {
-  if (!config.s3) return null;
-  try {
-    return new Backup(config.s3, config.cacheDir);
-  } catch (err) {
-    console.warn(`Backup: off (the S3 client could not be made: ${(err as Error).message}). See .env.example.`);
-    return null;
-  }
-}
-
 /** The backup for this process, or null when it is off (no S3_BUCKET, or bad settings). */
-export const backup: Backup | null = makeBackup();
+export const backup: Backup | null = config.s3 ? new Backup(config.s3, config.cacheDir) : null;
 void backup?.check();

@@ -34,7 +34,7 @@ async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const restore = args.includes("--restore");
   const dryRun = args.includes("--dry-run");
-  const client = s3Client(s3);
+  const client = await s3Client(s3);
   const root = config.cacheDir;
 
   // Object sizes by path inside CACHE_DIR.

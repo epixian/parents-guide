@@ -42,22 +42,34 @@ export interface S3Config {
   forcePathStyle: boolean;
 }
 
-function s3Config(): S3Config | null {
-  const bucket = process.env.S3_BUCKET || "";
+/**
+ * The backup bucket from the environment, or null when the backup is off.
+ * Bad settings turn the backup off with a warning; they never stop the server.
+ */
+export function s3Config(env: NodeJS.ProcessEnv = process.env): S3Config | null {
+  const bucket = env.S3_BUCKET?.trim() || "";
   if (!bucket) return null;
-  const accessKeyId = process.env.S3_ACCESS_KEY_ID || "";
-  const secretAccessKey = process.env.S3_SECRET_ACCESS_KEY || "";
-  if (!accessKeyId || !secretAccessKey) throw new Error("S3_BUCKET is set, so S3_ACCESS_KEY_ID and S3_SECRET_ACCESS_KEY are required");
-  const prefix = (process.env.S3_PREFIX || "").replace(/^\/+/, "");
+  const off = (why: string) => {
+    console.warn(`Backup: off (${why}). See .env.example.`);
+    return null;
+  };
+  const accessKeyId = env.S3_ACCESS_KEY_ID?.trim() || "";
+  const secretAccessKey = env.S3_SECRET_ACCESS_KEY?.trim() || "";
+  if (!accessKeyId || !secretAccessKey) return off("S3_BUCKET is set, but S3_ACCESS_KEY_ID or S3_SECRET_ACCESS_KEY is empty");
+  const endpoint = env.S3_ENDPOINT?.trim() || "";
+  if (endpoint && !/^https?:$/.test(URL.parse(endpoint)?.protocol ?? "")) {
+    return off(`S3_ENDPOINT is not an http or https URL: ${endpoint}`);
+  }
+  const prefix = (env.S3_PREFIX?.trim() || "").replace(/^\/+/, "");
   return {
-    endpoint: process.env.S3_ENDPOINT || "",
+    endpoint,
     // Most S3-compatible services ignore the region; "us-east-1" is the usual placeholder.
-    region: process.env.S3_REGION || "us-east-1",
+    region: env.S3_REGION?.trim() || "us-east-1",
     bucket,
     accessKeyId,
     secretAccessKey,
     prefix: prefix && !prefix.endsWith("/") ? `${prefix}/` : prefix,
-    forcePathStyle: process.env.S3_FORCE_PATH_STYLE === "1",
+    forcePathStyle: env.S3_FORCE_PATH_STYLE === "1",
   };
 }
 
@@ -79,6 +91,6 @@ export const config = {
   // Open Library allows about 3 requests per second; without one, about 1.
   openLibraryContact: process.env.OPENLIBRARY_CONTACT || "",
   model: "claude-haiku-4-5",
-  /** Off-site backup bucket, or null when S3_BUCKET is not set. */
+  /** Off-site backup bucket, or null when the backup is off (no S3_BUCKET, or bad settings). */
   s3: s3Config(),
 };

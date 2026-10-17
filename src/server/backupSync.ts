@@ -30,7 +30,7 @@ async function localFiles(root: string): Promise<Map<string, number>> {
 
 async function main(): Promise<void> {
   const s3 = config.s3;
-  if (!s3) throw new Error("S3_BUCKET is not set. See .env.example.");
+  if (!s3) throw new Error("The backup is off: S3_BUCKET is not set, or a setting is bad (see the warning above).");
   const args = process.argv.slice(2);
   const restore = args.includes("--restore");
   const dryRun = args.includes("--dry-run");

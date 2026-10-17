@@ -77,9 +77,9 @@ export function createApi(
     return c.json(await reports.suggest(q, 8));
   });
 
-  api.get("/recent", async (c) => c.json(await reports.getRecent(8)));
+  api.get("/recent", async (c) => c.json(await reports.getRecent(12)));
 
-  api.get("/trending", async (c) => c.json(await reports.getTrending(8)));
+  api.get("/trending", async (c) => c.json(await reports.getTrending(12)));
 
   // Every saved title in one list. The browser filters it with src/shared/browse.ts.
   // "no-cache" with an ETag: the browser keeps its copy and asks again on each

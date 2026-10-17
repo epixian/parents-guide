@@ -97,5 +97,6 @@ serve({ fetch: app.fetch, port: config.port, hostname: config.host }, (info) => 
   console.log(`Cache directory: ${config.cacheDir}`);
   if (!config.anthropicApiKey) console.warn("ANTHROPIC_API_KEY is not set: new AI lookups will fail.");
   if (!config.tmdbApiKey) console.warn("TMDB_API_KEY is not set: movie and TV search will fail.");
-  console.log(config.s3 ? `Backup: s3://${config.s3.bucket}/${config.s3.prefix}` : "Backup: off (S3_BUCKET not set)");
+  if (backup && config.s3) console.log(`Backup: s3://${config.s3.bucket}/${config.s3.prefix}`);
+  else console.log(process.env.S3_BUCKET ? "Backup: off (see the warning above)" : "Backup: off (S3_BUCKET not set)");
 });

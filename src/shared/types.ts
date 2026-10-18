@@ -182,9 +182,15 @@ export interface IndexEntry {
   scores: Partial<Record<CategoryId, number>>;
   /** Every treatment seen per category (across seasons for TV). */
   treatments: Partial<Record<CategoryId, TreatmentId[]>>;
+  /** Mood on the current scales (the newest rated season that has one, for TV). Left out when unknown. */
+  mood?: { tone: number; feeling: number; depth: number };
+  /** User score at the catalog source (TMDB or Open Library) as a percent, so both sort together. Left out when unknown. */
+  userScore?: number;
+  /** TMDB ids of the services that stream it (see WatchService.sweep). Left out for books and titles with none or not looked up yet. */
+  providers?: number[];
 }
 
-export type BrowseSort = "added" | "title" | "year";
+export type BrowseSort = "added" | "title" | "year" | "score" | "random";
 
 /** One page of browse results. See src/server/browse.ts for the filters. */
 export interface BrowseResponse {

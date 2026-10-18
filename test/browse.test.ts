@@ -42,8 +42,37 @@ test("defaults sort newest added first", () => {
 
 test("filters by kind, title text without accents, and every tag", () => {
   assert.deepEqual(ids("kind=tv", TITLES), ["c"]);
+  const mixed = [...TITLES, entry("d", { kind: "book", title: "Dune" })];
+  assert.deepEqual(ids("kind=tv&kind=book&sort=title", mixed), ["c", "d"]);
+  assert.deepEqual(ids("kind=movie,book&sort=title", mixed), ["a", "b", "d"]);
   assert.deepEqual(ids("q=amelie", TITLES), ["a"]);
   assert.deepEqual(ids("tag=war&tag=friendship", TITLES), ["c"]);
+});
+
+test("streaming on my services: a title passes when any of its services is not hidden", () => {
+  const titles = [
+    entry("a", { providers: [8, 15] }),
+    entry("b", { providers: [337] }),
+    entry("c", { title: "No streams" }),
+  ];
+  assert.deepEqual(ids("streaming=mine&sort=title", titles), ["a", "b"]);
+  assert.deepEqual(ids("streaming=mine&hideService=8,337&sort=title", titles), ["a"]);
+  assert.deepEqual(ids("streaming=mine&hideService=8&hideService=15&sort=title", titles), ["b"]);
+  assert.deepEqual(ids("hideService=8,15,337&sort=title", titles), ["a", "b", "c"]);
+  assert.throws(() => parse("streaming=yes"), /streaming/);
+  assert.throws(() => parse("hideService=netflix"), /hideService/);
+});
+
+test("mood: a title passes when its level is checked on every scale with levels", () => {
+  const titles = [
+    entry("a", { mood: { tone: 5, feeling: 2, depth: 2 } }),
+    entry("b", { mood: { tone: 4, feeling: 4, depth: 4 } }),
+    entry("c"),
+  ];
+  assert.deepEqual(ids("tone=4,5&sort=title", titles), ["a", "b"]);
+  assert.deepEqual(ids("tone=4&tone=5&depth=4&sort=title", titles), ["b"]);
+  assert.deepEqual(ids("sort=title", titles), ["a", "b", "c"]);
+  assert.throws(() => parse("feeling=6"), /feeling/);
 });
 
 test("max score and hidden treatments", () => {
@@ -52,6 +81,21 @@ test("max score and hidden treatments", () => {
   assert.deepEqual(ids("hide.lgbtq=approving&sort=title", TITLES), ["a", "b"]);
   assert.deepEqual(ids("hide.lgbtq=critical&sort=title", TITLES), ["a", "b", "c"]);
   assert.deepEqual(parse("hide.lgbtq=critical&hide.lgbtq=approving,critical").hide, { lgbtq: ["critical", "approving"] });
+});
+
+test("score sort: highest user score first, titles with no score last", () => {
+  const titles = [entry("a", { userScore: 70 }), entry("b"), entry("c", { userScore: 84 })];
+  assert.deepEqual(ids("sort=score", titles), ["c", "a", "b"]);
+});
+
+test("random sort: one order per seed, so pages do not repeat titles", () => {
+  const titles = Array.from({ length: 20 }, (_, i) => entry(`t${i}`));
+  const order = ids("sort=random&seed=7", titles);
+  assert.deepEqual(ids("sort=random&seed=7", titles), order);
+  assert.notDeepEqual(ids("sort=random&seed=8", titles), order);
+  assert.deepEqual([...ids("sort=random&seed=7&limit=10", titles), ...ids("sort=random&seed=7&limit=10&offset=10", titles)], order);
+  assert.deepEqual([...order].sort(), titles.map((t) => t.id).sort());
+  assert.throws(() => parse("sort=random&seed=-1"), /seed/);
 });
 
 test("year sort, paging, and tag counts over all matches", () => {

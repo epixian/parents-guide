@@ -85,6 +85,9 @@ export function groupProviders(list: ProviderEntry[], bases = new Map<string, Pr
   });
 }
 
+/** Every TMDB service id in the groups, for the browse filter. */
+export const serviceIds = (providers: WatchProvider[]) => [...new Set(providers.flatMap((p) => p.ids))];
+
 /** Free with ads first: the user can watch with no subscription. */
 const OFFER_ORDER: WatchOffer[] = ["ads", "subscription"];
 
@@ -109,7 +112,7 @@ export class WatchService {
   constructor(
     cacheDir: string,
     private readonly fetchers: WatchFetchers = { title: getWatchProviders, catalog: getProviderCatalog },
-    ttlMs = DAY,
+    private readonly ttlMs = DAY,
     keepMs = 7 * DAY,
   ) {
     this.cache = new TtlFileCache(path.join(cacheDir, "watch"), ttlMs, keepMs);
@@ -120,11 +123,10 @@ export class WatchService {
    * season (tmdb-tv-1399-s01), which gets the series' services.
    */
   async title(id: string, now = Date.now()): Promise<WatchResponse> {
-    const screen = parseScreenId(id);
-    if (!screen) throw new HttpError(400, "Streaming services are known for TMDB movies and TV series only");
-    const { kind, tmdbId } = screen;
+    const key = this.key(id);
+    const { kind, tmdbId } = parseScreenId(id)!;
     const [saved, catalog] = await Promise.all([
-      this.cache.load(`${kind}-${tmdbId}`, () => this.fetchers.title(kind, tmdbId), now),
+      this.cache.load(key, () => this.fetchers.title(kind, tmdbId), now),
       // The catalog only gives a brand its main logo; without it the title still shows.
       this.cache.load("catalog", () => this.fetchers.catalog(), now).catch(() => null),
     ]);
@@ -135,6 +137,50 @@ export class WatchService {
   /** Every brand in WATCH_REGION, for the "My services" choices. */
   async catalog(now = Date.now()): Promise<WatchProvider[]> {
     return groupProviders((await this.cache.load("catalog", () => this.fetchers.catalog(), now)).value);
+  }
+
+  /**
+   * Look up the services of each title and give them to save. A title with a
+   * fresh file reads it from disk; others ask TMDB, with a pause after each
+   * request so the sweep stays far below TMDB's rate limit. After maxFetches
+   * requests (failed ones count too), the rest read their file at any age.
+   * A failed title is skipped until the next sweep.
+   */
+  async sweep(
+    ids: string[],
+    save: (id: string, providers: number[]) => void,
+    { maxFetches = Infinity, pauseMs = 250 } = {},
+  ): Promise<{ fetched: number; failed: number; stale: number }> {
+    let fetched = 0;
+    let failed = 0;
+    let stale = 0;
+    for (const id of ids) {
+      const now = Date.now();
+      if (fetched + failed >= maxFetches) {
+        // Request limit reached: use the file at any age, and fetch it on a later sweep.
+        const saved = await this.cache.peek(this.key(id));
+        if (!saved || now - saved.at >= this.ttlMs) stale++;
+        if (saved) save(id, serviceIds(groupProviders(saved.value)));
+        continue;
+      }
+      try {
+        const res = await this.title(id, now);
+        save(id, serviceIds(res.providers));
+        if (Date.parse(res.fetchedAt) < now) continue;
+        fetched++;
+      } catch {
+        failed++;
+      }
+      if (pauseMs) await new Promise((resolve) => setTimeout(resolve, pauseMs));
+    }
+    return { fetched, failed, stale };
+  }
+
+  /** Cache key of a movie or TV series (a season uses its series' key). */
+  private key(id: string): string {
+    const screen = parseScreenId(id);
+    if (!screen) throw new HttpError(400, "Streaming services are known for TMDB movies and TV series only");
+    return `${screen.kind}-${screen.tmdbId}`;
   }
 
   prune(now = Date.now()): Promise<number> {

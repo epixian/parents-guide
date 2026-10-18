@@ -123,6 +123,17 @@ export class ReportService {
     return { tag: `${this.started}-${this.index.version}`, titles: this.index.titles() };
   }
 
+  /** Ids of every saved movie and TV series. */
+  async screenIds(): Promise<string[]> {
+    await this.loadIndex();
+    return this.index.screenIds();
+  }
+
+  /** Keep the streaming services of a title (or a TV season's series) for the browse filter. */
+  setProviders(id: string, providers: number[]): void {
+    this.index.setProviders(id.replace(/^(tmdb-tv-\d+)-s\d+$/, "$1"), providers);
+  }
+
   /** Build the index from the cache folder one time. Call at startup to avoid a slow first request. */
   loadIndex(): Promise<void> {
     this.indexReady ??= this.cache.listAll().then((all) => {

@@ -10,7 +10,7 @@ import {
   type CategoryId,
   type TreatmentId,
 } from "../shared/categories.js";
-import { DEPTH_LABELS, DEPTH_MAX, FEELING_LABELS, FEELING_MAX, TONE_LABELS, TONE_MAX, hasMood } from "../shared/mood.js";
+import { DEPTH_LABELS, DEPTH_MAX, FEELING_LABELS, FEELING_MAX, MOOD_SCALES, TONE_LABELS, TONE_MAX, hasMood } from "../shared/mood.js";
 import { THEME_TAGS } from "../shared/themes.js";
 import type {
   AudienceScore,
@@ -32,9 +32,11 @@ import type {
 import { api } from "./api.js";
 import { recommend } from "../shared/recommend.js";
 import { rankSimilar } from "../shared/similar.js";
+import { parseBrowseQuery, withinLimits } from "../shared/browse.js";
 import { browse, prefetchTitles, preloadTitles, suggest, titlesById, titlesReady } from "./titles.js";
 import {
   loadHidden,
+  loadLimits,
   loadHiddenProviders,
   loadNotInterested,
   loadThumbs,
@@ -42,6 +44,8 @@ import {
   markTipSeen,
   saveHidden,
   saveHiddenProviders,
+  saveLimits,
+  limitParams,
   saveNotInterested,
   saveThumbs,
   saveWatchlist,
@@ -54,41 +58,131 @@ import {
 const app = document.querySelector<HTMLElement>("#app")!;
 const searchForm = document.querySelector<HTMLFormElement>("#search-form")!;
 const searchInput = document.querySelector<HTMLInputElement>("#search-input")!;
-const prefsBody = document.querySelector<HTMLElement>("#prefs-body")!;
 
 let hidden = loadHidden();
 let hiddenProviders = loadHiddenProviders();
+let limits = loadLimits();
 
 const esc = (s: string | number | null | undefined): string =>
   String(s ?? "").replace(/[&<>"']/g, (ch) => `&#${ch.charCodeAt(0)};`);
 
 const KIND_LABEL: Record<SearchResult["kind"], string> = { movie: "Movie", tv: "TV series", book: "Book" };
 
-// ---------- Preferences ----------
+// ---------- Preferences page ----------
 
-function renderPrefs(): void {
-  prefsBody.innerHTML = `
-    <p class="muted">Uncheck the topics you do not want to see.</p>
+// #/preferences: the topics the user cares about, the concern limits that
+// Browse applies, and the streaming services the user has. Every change is
+// saved at once, without rebuilding the page.
+
+const MAX_OPTIONS: [value: string, label: string][] = [
+  ["", "Any level"],
+  ...Array.from({ length: SCORE_MAX }, (_, n): [string, string] => [String(n), n ? `${n} (${SCORE_LABELS[n]}) or less` : "None (0)"]),
+];
+const HIDE_TREATMENTS = TREATMENTS.filter((t) => t.id !== "not_present");
+
+/** One topic: a show checkbox, then a level limit and treatments to leave out. A hidden topic's limits do not apply. */
+function concernRow(c: Category): string {
+  const off = hidden.has(c.id) ? " disabled" : "";
+  const max = String(limits.max[c.id] ?? "");
+  const left = new Set<string>(limits.hide[c.id] ?? []);
+  return `
+    <div class="concern-row${off ? " is-hidden" : ""}" data-topic="${c.id}">
+      <label class="pref"><input type="checkbox" data-show value="${c.id}"${off ? "" : " checked"} /><span>${esc(c.label)}</span></label>
+      <select data-max="${c.id}" aria-label="Highest level for ${esc(c.label)}"${off}>${MAX_OPTIONS.map(([v, label]) => `<option value="${v}"${v === max ? " selected" : ""}>${esc(label)}</option>`).join("")}</select>
+      ${
+        c.hasTreatment
+          ? `<span class="hide-treatments"><span class="muted small">Leave out:</span>${HIDE_TREATMENTS.map(
+              (t) =>
+                `<label class="chip-check" title="${esc(t.description)}"><input type="checkbox" data-hide="${c.id}" value="${t.id}"${left.has(t.id) ? " checked" : ""}${off} />${esc(t.label)}</label>`,
+            ).join("")}</span>`
+          : ""
+      }
+    </div>`;
+}
+
+function concernsHtml(): string {
+  return `
     <p class="pref-actions">
-      <button type="button" data-all="show">Show all</button>
-      <button type="button" data-all="hide">Hide all</button>
+      <button type="button" data-topics="show">Show all</button>
+      <button type="button" data-topics="hide">Hide all</button>
+      <button type="button" data-topics="clear">Clear limits</button>
     </p>
     ${CATEGORY_SECTIONS.map(
       (section) => `
       <fieldset class="pref-section">
         <legend>${esc(section.label)}</legend>
-        ${CATEGORIES.filter((c) => c.section === section.id)
-          .map(
-            (c) => `
-        <label class="pref">
-          <input type="checkbox" value="${c.id}" ${hidden.has(c.id) ? "" : "checked"} />
-          <span>${esc(c.label)}</span>
-        </label>`,
-          )
-          .join("")}
+        ${CATEGORIES.filter((c) => c.section === section.id).map(concernRow).join("")}
       </fieldset>`,
     ).join("")}`;
 }
+
+function showPreferences(): string {
+  searchInput.value = "";
+  pageTitle = "Preferences";
+  dismissTip();
+  afterRender = loadServices;
+  return `
+    <h1>Preferences</h1>
+    <p class="muted">These choices stay in this browser.</p>
+    <section class="prefs-section">
+      <h2>Concerns</h2>
+      <p class="muted">Uncheck the topics you do not want to see. Set a highest level or treatments to leave out, and Browse hides the titles over your limits. TV series use their highest level across rated seasons.</p>
+      <div id="concerns">${concernsHtml()}</div>
+    </section>
+    <section class="prefs-section">
+      <h2>My services</h2>
+      <div id="services-body"><p class="status"><span class="spinner" aria-hidden="true"></span>Loading services…</p></div>
+    </section>`;
+}
+
+app.addEventListener("change", (e) => {
+  const input = e.target as HTMLInputElement | HTMLSelectElement;
+  const row = input.closest<HTMLElement>("#concerns .concern-row");
+  if (!row) return;
+  const id = row.dataset.topic as CategoryId;
+  if (input instanceof HTMLInputElement && input.hasAttribute("data-show")) {
+    if (input.checked) hidden.delete(id);
+    else hidden.add(id);
+    saveHidden(hidden);
+    row.classList.toggle("is-hidden", !input.checked);
+    for (const el of row.querySelectorAll<HTMLInputElement | HTMLSelectElement>("select, input[data-hide]")) el.disabled = !input.checked;
+    return;
+  }
+  if (input instanceof HTMLSelectElement) {
+    if (input.value) limits.max[id] = Number(input.value);
+    else delete limits.max[id];
+  } else {
+    const ids = [...row.querySelectorAll<HTMLInputElement>("input[data-hide]:checked")].map((box) => box.value as TreatmentId);
+    if (ids.length) limits.hide[id] = ids;
+    else delete limits.hide[id];
+  }
+  saveLimits(limits);
+});
+
+app.addEventListener("click", (e) => {
+  const action = (e.target as HTMLElement).closest<HTMLButtonElement>("#concerns button[data-topics]")?.dataset.topics;
+  if (!action) return;
+  if (action === "clear") {
+    limits = { max: {}, hide: {} };
+    saveLimits(limits);
+  } else {
+    hidden = action === "hide" ? new Set(CATEGORIES.map((c) => c.id)) : new Set();
+    saveHidden(hidden);
+  }
+  document.querySelector("#concerns")!.innerHTML = concernsHtml();
+});
+
+// First-visit tip next to the Preferences link. Opening the page also counts as seen.
+const tip = document.querySelector<HTMLElement>("#concerns-tip")!;
+
+function dismissTip(): void {
+  if (tip.hidden) return;
+  tip.hidden = true;
+  markTipSeen();
+}
+
+tip.hidden = tipSeen();
+document.querySelector("#concerns-tip-close")!.addEventListener("click", dismissTip);
 
 /**
  * Table rows for the visible categories, with a heading row before each
@@ -106,45 +200,9 @@ function sectionRows(row: (c: Category) => string, columns: number): string {
   }).join("");
 }
 
-prefsBody.addEventListener("change", (e) => {
-  const box = e.target as HTMLInputElement;
-  const id = box.value as CategoryId;
-  if (box.checked) hidden.delete(id);
-  else hidden.add(id);
-  saveHidden(hidden);
-  void route(); // Re-render the current view with the new filter.
-});
-
-prefsBody.addEventListener("click", (e) => {
-  const action = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-all]")?.dataset.all;
-  if (!action) return;
-  hidden = action === "hide" ? new Set(CATEGORIES.map((c) => c.id)) : new Set();
-  saveHidden(hidden);
-  renderPrefs();
-  void route();
-});
-
-// First-visit tip next to "My concerns". Opening the panel also counts as seen.
-const tip = document.querySelector<HTMLElement>("#concerns-tip")!;
-const prefsDetails = document.querySelector<HTMLDetailsElement>("#prefs")!;
-
-function dismissTip(): void {
-  if (tip.hidden) return;
-  tip.hidden = true;
-  markTipSeen();
-}
-
-tip.hidden = tipSeen();
-document.querySelector("#concerns-tip-close")!.addEventListener("click", dismissTip);
-prefsDetails.addEventListener("toggle", () => {
-  if (prefsDetails.open) dismissTip();
-});
-
 // ---------- Streaming services ----------
 
-const servicesDetails = document.querySelector<HTMLDetailsElement>("#services")!;
-const servicesBody = document.querySelector<HTMLElement>("#services-body")!;
-/** Every service, loaded the first time "My services" opens. */
+/** Every service, loaded the first time the Preferences page opens. */
 let catalog: WatchProvider[] | null = null;
 
 /** A service's logo. In "My services" the name follows it, so the logo has no alt text there. */
@@ -164,9 +222,10 @@ function serviceChoice(p: WatchProvider): string {
 }
 
 function renderServices(): void {
-  if (!catalog) return;
+  const body = document.querySelector<HTMLElement>("#services-body");
+  if (!catalog || !body) return;
   const others = catalog.filter((p) => p.rank === null);
-  servicesBody.innerHTML = `
+  body.innerHTML = `
     <p class="muted">Uncheck the services you do not have. Titles show only the checked services.</p>
     <p class="pref-actions">
       <button type="button" data-all="show">Show all</button>
@@ -182,9 +241,9 @@ function renderServices(): void {
     </div>`;
 }
 
-servicesDetails.addEventListener("toggle", () => {
-  if (!servicesDetails.open || catalog) return;
-  servicesBody.innerHTML = `<p class="status"><span class="spinner" aria-hidden="true"></span>Loading services…</p>`;
+/** Fill "My services" on the Preferences page. The list loads from the server once. */
+function loadServices(): void {
+  if (catalog) return renderServices();
   api
     .providers()
     .then((list) => {
@@ -192,40 +251,40 @@ servicesDetails.addEventListener("toggle", () => {
       renderServices();
     })
     .catch((err: unknown) => {
-      servicesBody.innerHTML = errorHtml(err);
+      const body = document.querySelector<HTMLElement>("#services-body");
+      if (body) body.innerHTML = errorHtml(err);
     });
-});
+}
 
-servicesBody.addEventListener("change", (e) => {
+app.addEventListener("change", (e) => {
   const box = e.target as HTMLInputElement;
-  if (box.type !== "checkbox") return;
+  if (box.type !== "checkbox" || !box.closest("#services-body")) return;
   for (const id of box.value.split(",").map(Number)) {
     if (box.checked) hiddenProviders.delete(id);
     else hiddenProviders.add(id);
   }
   saveHiddenProviders(hiddenProviders);
-  renderWatch();
 });
 
-servicesBody.addEventListener("input", (e) => {
+app.addEventListener("input", (e) => {
   const find = e.target as HTMLInputElement;
-  if (!find.classList.contains("service-find")) return;
+  const body = find.closest<HTMLElement>("#services-body");
+  if (!body || !find.classList.contains("service-find")) return;
   const text = find.value.trim().toLowerCase();
   // Search every service, not only the major ones.
-  const other = servicesBody.querySelector<HTMLDetailsElement>(".other-services");
+  const other = body.querySelector<HTMLDetailsElement>(".other-services");
   if (other && text) other.open = true;
-  for (const label of servicesBody.querySelectorAll<HTMLElement>(".service-list .pref")) {
+  for (const label of body.querySelectorAll<HTMLElement>(".service-list .pref")) {
     label.hidden = Boolean(text) && !label.dataset.name!.includes(text);
   }
 });
 
-servicesBody.addEventListener("click", (e) => {
-  const action = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-all]")?.dataset.all;
+app.addEventListener("click", (e) => {
+  const action = (e.target as HTMLElement).closest<HTMLButtonElement>("#services-body button[data-all]")?.dataset.all;
   if (!action || !catalog) return;
   hiddenProviders = action === "hide" ? new Set(catalog.flatMap((p) => p.ids)) : new Set();
   saveHiddenProviders(hiddenProviders);
   renderServices();
-  renderWatch();
 });
 
 /** Services per title id, kept for one hour so a re-render does not ask again. The server keeps them for a day. */
@@ -274,7 +333,7 @@ function watchLine(): string {
   return `<div class="watch" id="watch-slot"${html ? "" : " hidden"}${ready ? "" : ` aria-busy="true"`}>${html}</div>`;
 }
 
-/** Show the current page's services again, e.g. after the user changes "My services". */
+/** Show the current page's services again, e.g. after the user asks for all of them. */
 function renderWatch(): void {
   const slot = document.querySelector<HTMLElement>("#watch-slot");
   if (!slot || pageProviders === null) return;
@@ -922,7 +981,7 @@ function ratingsSection(report: Report): string {
       ${sectionHead("Ratings")}
       <table class="ratings">
         <thead><tr><th>Topic</th><th>Level</th><th>Details</th></tr></thead>
-        <tbody>${rows || `<tr><td colspan="3" class="muted">All topics are hidden. Change "My concerns" to see them.</td></tr>`}</tbody>
+        <tbody>${rows || `<tr><td colspan="3" class="muted">All topics are hidden. Change them in <a href="#/preferences">Preferences</a>.</td></tr>`}</tbody>
       </table>
       ${hiddenNote()}
     </section>`;
@@ -1292,9 +1351,9 @@ function largerPoster(url: string | null): string | null {
 }
 
 /** extra: HTML between the poster and the title (the composite bars). notInterested: recommended titles only. */
-function cardHtml(item: RecentItem, showKind: boolean, extra = "", opts: { notInterested?: boolean } = {}): string {
+function cardHtml(item: RecentItem, showKind: boolean, extra = "", opts: { notInterested?: boolean; className?: string } = {}): string {
   return `
-    <li>
+    <li${opts.className ? ` class="${opts.className}"` : ""}>
       ${cardActions(item, opts)}
       <a href="${pageHref(item)}">
         ${item.imageUrl ? `<img src="${esc(item.imageUrl)}" alt="" width="110" height="165" loading="lazy" decoding="async" />` : `<span class="noimg" aria-hidden="true"></span>`}
@@ -1501,11 +1560,6 @@ async function showHome(): Promise<string> {
 // filtered list can be bookmarked or shared. The browser filters the list of
 // rated titles with that query string; see src/client/titles.ts.
 
-const MAX_OPTIONS: [value: string, label: string][] = [
-  ["", "Any level"],
-  ...Array.from({ length: SCORE_MAX }, (_, n): [string, string] => [String(n), n ? `${n} (${SCORE_LABELS[n]}) or less` : "None (0)"]),
-];
-const HIDE_TREATMENTS = TREATMENTS.filter((t) => t.id !== "not_present");
 
 /**
  * Small stacked-bar icon for a poster card: one short bar per composite
@@ -1544,34 +1598,48 @@ function miniComposites(t: Pick<RecentItem, "kind" | "scores">): string {
     </span>`;
 }
 
-function browseCards(items: IndexEntry[]): string {
-  return items.map((t) => cardHtml(t, true, miniComposites(t))).join("");
+/** Over the saved concern limits, for marking cards while the page shows those titles. Null while the limits apply. */
+type OverCheck = ((t: IndexEntry) => boolean) | null;
+
+function overLimitsCheck(params: URLSearchParams): OverCheck {
+  const keys = limitParams(limits, hidden);
+  if (params.get("limits") !== "off" || !keys.length) return null;
+  const f = parseBrowseQuery(new URLSearchParams(keys));
+  return (t) => !withinLimits(t, f);
 }
 
-/** One topic row: a level limit, and treatment checkboxes for topics that have a treatment. */
-function topicFilter(c: Category, params: URLSearchParams): string {
-  const max = params.get(`max.${c.id}`) ?? "";
-  const hiddenTreatments = new Set(params.getAll(`hide.${c.id}`).flatMap((v) => v.split(",")));
-  return `
-    <div class="topic-filter">
-      <label><span>${esc(c.label)}</span>
-        <select name="max.${c.id}">${MAX_OPTIONS.map(([v, label]) => `<option value="${v}"${v === max ? " selected" : ""}>${esc(label)}</option>`).join("")}</select>
-      </label>
-      ${
-        c.hasTreatment
-          ? `<span class="hide-treatments"><span class="muted small">Leave out:</span>${HIDE_TREATMENTS.map(
-              (t) =>
-                `<label class="chip-check" title="${esc(t.description)}"><input type="checkbox" name="hide.${c.id}" value="${t.id}"${hiddenTreatments.has(t.id) ? " checked" : ""} />${esc(t.label)}</label>`,
-            ).join("")}</span>`
-          : ""
-      }
-    </div>`;
+function browseCards(items: IndexEntry[], over: OverCheck = null): string {
+  return items
+    .map((t) =>
+      over?.(t)
+        ? cardHtml(t, true, `${miniComposites(t)}<span class="over-badge">Over your limits</span>`, { className: "over-limits" })
+        : cardHtml(t, true, miniComposites(t)),
+    )
+    .join("");
 }
 
-/** Number of topic limits set in the query. */
-function topicFilterCount(params: URLSearchParams): number {
-  return new Set([...params.keys()].filter((k) => /^(max|hide)\./.test(k)).map((k) => k.replace(/^\w+\./, ""))).size;
+/** One row of level chips per mood scale. Checked levels pass; none checked passes any level. */
+function moodFilters(params: URLSearchParams): string {
+  return MOOD_SCALES.map(({ id, label, labels }) => {
+    const set = new Set(params.getAll(id).flatMap((v) => v.split(",")));
+    return `
+      <div class="mood-filter">
+        <span class="mood-filter-label">${esc(label)}</span>
+        <span class="tag-chips">${Object.entries(labels)
+          .map(
+            ([n, name]) =>
+              `<label class="chip-check"><input type="checkbox" name="${id}" value="${n}"${set.has(n) ? " checked" : ""} />${esc(name)}</label>`,
+          )
+          .join("")}</span>
+      </div>`;
+  }).join("");
 }
+
+/** Number of mood scales with levels set in the query. */
+const moodFilterCount = (params: URLSearchParams) => MOOD_SCALES.filter(({ id }) => params.has(id)).length;
+
+/** "(2 selected)" for the Theme tags heading; empty when none. */
+const tagCount = (n: number) => (n ? `(${n} selected)` : "");
 
 /** Theme tag chips: selected tags first, then tags in the current results by count. */
 function tagChips(res: BrowseResponse, selected: Set<string>): string {
@@ -1586,11 +1654,13 @@ function tagChips(res: BrowseResponse, selected: Set<string>): string {
     .join("");
 }
 
-function browseResultsHtml(res: BrowseResponse): string {
+/** "24 titles" above the list; empty when nothing matches (the list says so). */
+const countText = (res: BrowseResponse) => (res.total ? `${res.total} title${res.total === 1 ? "" : "s"}` : "");
+
+function browseResultsHtml(res: BrowseResponse, over: OverCheck): string {
   if (!res.total) return `<p class="status">No titles match these filters.</p>`;
   return `
-    <p class="muted">${res.total} title${res.total === 1 ? "" : "s"}</p>
-    <ul class="cards grid">${browseCards(res.items)}</ul>
+    <ul class="cards grid">${browseCards(res.items, over)}</ul>
     ${res.items.length < res.total ? `<p><button type="button" class="button" data-more="${res.items.length}">Show more</button></p>` : ""}`;
 }
 
@@ -1600,53 +1670,97 @@ function browseParams(form: HTMLFormElement): URLSearchParams {
   for (const [key, value] of new FormData(form)) {
     if (typeof value === "string" && value.trim() && !(key === "sort" && value === "added")) params.append(key, value.trim());
   }
+  if (params.get("sort") !== "random") params.delete("seed");
+  // Every type on is the same as no type filter: keep the URL short.
+  if (params.getAll("kind").length === SEARCH_KINDS.length) params.delete("kind");
   return params;
 }
+
+/**
+ * The browse request for the page's filters, with the saved concern limits
+ * unless the page shows titles over them (limits=off). "On my services" also
+ * needs the services the user does not have. Neither goes in the page URL.
+ */
+function browseQuery(params: URLSearchParams, withLimits = params.get("limits") !== "off"): string {
+  const query = new URLSearchParams(params);
+  query.delete("limits");
+  if (withLimits) for (const [key, value] of limitParams(limits, hidden)) query.append(key, value);
+  if (query.get("streaming") === "mine" && hiddenProviders.size) query.set("hideService", [...hiddenProviders].join(","));
+  return query.toString();
+}
+
+/** Results for the page, and how many titles the concern limits leave out (0 with no limits). */
+async function browseCounted(params: URLSearchParams, fresh = false): Promise<{ res: BrowseResponse; over: number }> {
+  if (!limitParams(limits, hidden).length) return { res: await browse(browseQuery(params, false), fresh), over: 0 };
+  const res = await browse(browseQuery(params), fresh);
+  // The other count, with limits if the page has none and the other way round. Only its total is used.
+  const off = params.get("limits") === "off";
+  const other = await browse(`${browseQuery(params, off)}&limit=1`);
+  return { res, over: Math.abs(res.total - other.total) };
+}
+
+/** Label of the over-limits toggle. It stays while on, even at 0, so the user can turn it off. */
+const overText = (n: number, on: boolean) => `${on ? "Showing" : "Show"} ${n} title${n === 1 ? "" : "s"} over my concern limits`;
 
 async function showBrowse(query: string): Promise<string> {
   searchInput.value = "";
   setLoading("Loading titles…");
   const params = new URLSearchParams(query);
-  const res = await browse(params.toString(), true);
-  const kind = params.get("kind") ?? "";
+  // Old links can carry limits; the saved ones on the Preferences page apply instead.
+  for (const key of [...params.keys()]) if (/^(max|hide)\./.test(key)) params.delete(key);
+  const { res, over } = await browseCounted(params, true);
+  const off = params.get("limits") === "off";
+  const kinds = new Set(params.getAll("kind").flatMap((v) => v.split(",")));
   const sort = params.get("sort") ?? "added";
   const selectedTags = new Set(params.getAll("tag").filter((t) => (THEME_TAGS as readonly string[]).includes(t)));
-  // Show the topics the user has not hidden, and any topic the URL filters on.
-  const topics = CATEGORIES.filter((c) => !hidden.has(c.id) || params.has(`max.${c.id}`) || params.has(`hide.${c.id}`));
-  const limits = topicFilterCount(params);
+  const moods = moodFilterCount(params);
   pageTitle = "Browse";
 
   return `
-    <h1>Browse rated titles</h1>
+    <div class="row-head browse-head">
+      <h1>Browse rated titles</h1>
+      <button type="button" data-browse-clear>Clear filters</button>
+    </div>
     <form id="browse-form" class="browse-form">
       <div class="browse-row">
-        <label><span>Type</span>
-          <select name="kind">
-            <option value="">All</option>
-            ${SEARCH_KINDS.map((k) => `<option value="${k.kind}"${k.kind === kind ? " selected" : ""}>${esc(k.label)}</option>`).join("")}
-          </select>
-        </label>
+        <fieldset class="kind-toggles"><legend>Show</legend>
+          ${SEARCH_KINDS.map(
+            (k) =>
+              `<label class="chip-check"><input type="checkbox" name="kind" value="${k.kind}"${!kinds.size || kinds.has(k.kind) ? " checked" : ""} />${esc(k.label)}</label>`,
+          ).join("")}
+        </fieldset>
+        <fieldset class="kind-toggles"><legend>Streaming</legend>
+          <label class="chip-check" title="Movies and TV series that stream on a service checked in My services"><input type="checkbox" name="streaming" value="mine"${params.get("streaming") === "mine" ? " checked" : ""} />On my services</label>
+        </fieldset>
         <label><span>Title</span><input type="search" name="q" value="${esc(params.get("q") ?? "")}" placeholder="Title contains" /></label>
-        <label><span>Sort by</span>
-          <select name="sort">
-            ${[["added", "Recently added"], ["title", "Title"], ["year", "Year (newest)"]]
-              .map(([v, label]) => `<option value="${v}"${v === sort ? " selected" : ""}>${label}</option>`)
-              .join("")}
-          </select>
-        </label>
-        <button type="button" data-browse-clear>Clear filters</button>
       </div>
-      <details class="topic-filters"${limits ? " open" : ""}>
-        <summary>Topic limits <span class="count" id="limit-count">${limits ? `(${limits} set)` : ""}</span></summary>
-        ${CATEGORY_SECTIONS.map((section) => {
-          const rows = topics.filter((c) => c.section === section.id).map((c) => topicFilter(c, params)).join("");
-          return rows ? `<fieldset class="pref-section"><legend>${esc(section.label)}</legend>${rows}</fieldset>` : "";
-        }).join("")}
-        <p class="muted small">TV series use their highest level across rated seasons. "Leave out" removes a title if any rated season has that treatment.</p>
+      <details class="topic-filters"${selectedTags.size ? " open" : ""}>
+        <summary>Theme tags <span class="count" id="tag-count">${tagCount(selectedTags.size)}</span></summary>
+        <div class="tag-chips" id="browse-tags" aria-label="Theme tags">${tagChips(res, selectedTags)}</div>
       </details>
-      <div class="tag-chips" id="browse-tags" aria-label="Theme tags">${tagChips(res, selectedTags)}</div>
+      <details class="topic-filters"${moods ? " open" : ""}>
+        <summary>Mood <span class="count" id="mood-count">${moods ? `(${moods} set)` : ""}</span></summary>
+        ${moodFilters(params)}
+      </details>
+      <div class="row-head results-head">
+        <div class="results-count">
+          <p class="muted" id="browse-count">${countText(res)}</p>
+          <label class="chip-check" id="over-toggle"${over || off ? "" : " hidden"}><input type="checkbox" name="limits" value="off"${off ? " checked" : ""} /><span id="over-text">${overText(over, off)}</span></label>
+        </div>
+        <div class="sort-by">
+          <input type="hidden" name="seed" value="${sort === "random" ? esc(params.get("seed") ?? "") : ""}" />
+          <button type="button" data-browse-shuffle${sort === "random" ? "" : " hidden"}>Randomize</button>
+          <label><span>Sort by</span>
+            <select name="sort">
+              ${[["added", "Recently added"], ["title", "Title"], ["year", "Year (newest)"], ["score", "User score (highest)"], ["random", "Random"]]
+                .map(([v, label]) => `<option value="${v}"${v === sort ? " selected" : ""}>${label}</option>`)
+                .join("")}
+            </select>
+          </label>
+        </div>
+      </div>
     </form>
-    <div id="browse-results">${browseResultsHtml(res)}</div>`;
+    <div id="browse-results">${browseResultsHtml(res, overLimitsCheck(params))}</div>`;
 }
 
 // Each filter change gets a number, so a slow response cannot overwrite a newer one.
@@ -1657,14 +1771,18 @@ async function updateBrowse(form: HTMLFormElement): Promise<void> {
   const seq = ++browseSeq;
   const params = browseParams(form);
   history.replaceState(null, "", `#/browse${params.size ? `?${params}` : ""}`);
-  const limits = topicFilterCount(params);
-  document.querySelector("#limit-count")!.textContent = limits ? `(${limits} set)` : "";
+  document.querySelector("#tag-count")!.textContent = tagCount(params.getAll("tag").length);
+  const moods = moodFilterCount(params);
+  document.querySelector("#mood-count")!.textContent = moods ? `(${moods} set)` : "";
   const results = document.querySelector<HTMLElement>("#browse-results")!;
   results.setAttribute("aria-busy", "true");
   try {
-    const res = await browse(params.toString());
+    const { res, over } = await browseCounted(params);
     if (seq !== browseSeq) return;
-    results.innerHTML = browseResultsHtml(res);
+    document.querySelector<HTMLElement>("#over-toggle")!.hidden = !over && params.get("limits") !== "off";
+    document.querySelector("#over-text")!.textContent = overText(over, params.get("limits") === "off");
+    results.innerHTML = browseResultsHtml(res, overLimitsCheck(params));
+    document.querySelector("#browse-count")!.textContent = countText(res);
     watchMore();
     document.querySelector("#browse-tags")!.innerHTML = tagChips(res, new Set(params.getAll("tag")));
   } catch (err) {
@@ -1703,8 +1821,8 @@ async function showMoreBrowse(button: HTMLButtonElement): Promise<void> {
   params.set("offset", button.dataset.more!);
   button.disabled = true;
   try {
-    const res = await browse(params.toString());
-    document.querySelector("#browse-results .cards")?.insertAdjacentHTML("beforeend", browseCards(res.items));
+    const res = await browse(browseQuery(params));
+    document.querySelector("#browse-results .cards")?.insertAdjacentHTML("beforeend", browseCards(res.items, overLimitsCheck(params)));
     const shown = res.offset + res.items.length;
     if (shown < res.total) {
       button.dataset.more = String(shown);
@@ -1720,9 +1838,25 @@ async function showMoreBrowse(button: HTMLButtonElement): Promise<void> {
 
 let browseTyping: ReturnType<typeof setTimeout> | undefined;
 
+/** A seed for sort=random (see src/shared/browse.ts). */
+const newSeed = () => String(Math.floor(Math.random() * 2 ** 31));
+
 app.addEventListener("change", (e) => {
-  const form = (e.target as HTMLElement).closest<HTMLFormElement>("#browse-form");
-  if (form && (e.target as HTMLElement).getAttribute("name") !== "q") void updateBrowse(form);
+  const target = e.target as HTMLInputElement;
+  const form = target.closest<HTMLFormElement>("#browse-form");
+  if (!form) return;
+  // Keep at least one type on; with none, the list would always be empty.
+  if (target.name === "kind" && !form.querySelector("input[name=kind]:checked")) {
+    target.checked = true;
+    return;
+  }
+  if (target.name === "sort") {
+    const random = target.value === "random";
+    form.querySelector<HTMLElement>("button[data-browse-shuffle]")!.hidden = !random;
+    const seed = form.querySelector<HTMLInputElement>("input[name=seed]")!;
+    if (random && !seed.value) seed.value = newSeed();
+  }
+  if (target.name !== "q") void updateBrowse(form);
 });
 
 app.addEventListener("input", (e) => {
@@ -1793,6 +1927,7 @@ async function route(): Promise<void> {
     else if ((m = /^\/tv\/(\d+)$/.exec(hash))) html = await showSeries(m[1]!);
     else if ((m = /^\/browse(?:\?(.*))?$/.exec(hash))) html = await showBrowse(m[1] ?? "");
     else if (hash === "/watchlist") html = await showWatchlist();
+    else if (hash === "/preferences") html = showPreferences();
     else html = await showHome();
   } catch (err) {
     html = errorHtml(err);
@@ -2301,6 +2436,13 @@ app.addEventListener("click", (e) => {
     return;
   }
 
+  const shuffle = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-browse-shuffle]");
+  if (shuffle?.form) {
+    shuffle.form.querySelector<HTMLInputElement>("input[name=seed]")!.value = newSeed();
+    void updateBrowse(shuffle.form);
+    return;
+  }
+
   if ((e.target as HTMLElement).closest("button[data-browse-clear]")) {
     // Filter changes replace the URL without a hashchange event, so the hash may already match.
     clearTimeout(browseTyping);
@@ -2331,7 +2473,6 @@ if (new URLSearchParams(location.search).has("debug")) {
 }
 
 window.addEventListener("hashchange", () => void route());
-renderPrefs();
 void route();
 // Load the rated titles when the browser is idle, on any first page, so search,
 // browse, and the watchlist bars need no wait later.

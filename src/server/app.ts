@@ -10,7 +10,7 @@ import { HttpError } from "./http.js";
 import type { ReportService } from "./reports.js";
 import type { SearchCache } from "./searchCache.js";
 import type { SimilarService } from "./similar.js";
-import type { WatchService } from "./watchProviders.js";
+import { serviceIds, type WatchService } from "./watchProviders.js";
 
 /**
  * The visitor's address, for the AI limit and trending. Behind nginx, use
@@ -136,7 +136,12 @@ export function createApi(
 
   // Streaming services for a title, and every service for the "My services" choices.
   // The server keeps each answer for one day (see WatchService).
-  api.get("/watch/:id", async (c) => c.json(await watch.title(c.req.param("id"))));
+  api.get("/watch/:id", async (c) => {
+    const id = c.req.param("id");
+    const res = await watch.title(id);
+    reports.setProviders(id, serviceIds(res.providers));
+    return c.json(res);
+  });
 
   api.get("/providers", async (c) => c.json(await watch.catalog()));
 

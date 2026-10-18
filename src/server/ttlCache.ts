@@ -41,6 +41,11 @@ export class TtlFileCache<T> {
     return job.finally(() => this.pending.delete(key));
   }
 
+  /** The file for key at any age, with no fetch. Null when there is none. */
+  peek(key: string): Promise<Saved<T> | null> {
+    return this.read(key);
+  }
+
   private file(key: string): string {
     return path.join(this.dir, `${key}.json`);
   }

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { migrateKeys } from "../src/client/prefs.js";
+import { limitParams, migrateKeys, parseLimits } from "../src/client/prefs.js";
 
 function fakeStorage(entries: Record<string, string>) {
   const map = new Map(Object.entries(entries));
@@ -29,4 +29,22 @@ test("migrateKeys does nothing on a second run", () => {
   migrateKeys(s);
   migrateKeys(s);
   assert.deepEqual(Object.fromEntries(s.map), { thumbs: "old" });
+});
+
+test("parseLimits keeps only known topics, levels, and treatments", () => {
+  const raw = JSON.stringify({
+    max: { violence: 2, profanity: 9, nope: 1, sexual_content: 1.5 },
+    hide: { lgbtq: ["approving", "not_present", "bad"], violence: ["approving"] },
+  });
+  assert.deepEqual(parseLimits(raw), { max: { violence: 2 }, hide: { lgbtq: ["approving"] } });
+  assert.deepEqual(parseLimits("not json"), { max: {}, hide: {} });
+  assert.deepEqual(parseLimits(null), { max: {}, hide: {} });
+});
+
+test("limitParams leaves out hidden topics", () => {
+  const limits = parseLimits(JSON.stringify({ max: { violence: 2, profanity: 1 }, hide: { lgbtq: ["approving", "critical"] } }));
+  assert.deepEqual(limitParams(limits, new Set(["profanity"])), [
+    ["max.violence", "2"],
+    ["hide.lgbtq", "critical,approving"],
+  ]);
 });

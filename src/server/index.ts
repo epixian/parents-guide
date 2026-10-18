@@ -68,6 +68,33 @@ const watch = new WatchService(config.cacheDir);
 setInterval(() => void watch.prune(), 60 * 60 * 1000).unref();
 void watch.prune();
 
+// Streaming services of every rated movie and TV series, for the Browse filter
+// "On my services". At startup, then every hour. Each sweep asks TMDB again only
+// for titles with no file or one older than a day, and makes at most
+// SWEEP_MAX_FETCHES requests; the rest wait for a later sweep. 300 an hour is
+// 7,200 a day, well above the about 2,150 titles that need one each day.
+const SWEEP_EVERY_MS = 60 * 60 * 1000;
+const SWEEP_MAX_FETCHES = 300;
+let sweeping = false;
+async function sweepStreaming(): Promise<void> {
+  if (sweeping || !config.tmdbApiKey) return;
+  sweeping = true;
+  try {
+    const ids = await reports.screenIds();
+    const save = (id: string, providers: number[]) => reports.setProviders(id, providers);
+    const { fetched, failed, stale } = await watch.sweep(ids, save, { maxFetches: SWEEP_MAX_FETCHES });
+    console.log(
+      `Streaming sweep: ${ids.length} titles, ${fetched} from TMDB${failed ? `, ${failed} failed` : ""}${stale ? `, ${stale} left for later` : ""}`,
+    );
+  } catch (err) {
+    console.warn(`Streaming sweep failed: ${(err as Error).message}`);
+  } finally {
+    sweeping = false;
+  }
+}
+setInterval(() => void sweepStreaming(), SWEEP_EVERY_MS).unref();
+void sweepStreaming();
+
 const similar = new SimilarService(config.cacheDir);
 setInterval(() => void similar.prune(), 60 * 60 * 1000).unref();
 void similar.prune();

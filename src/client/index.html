@@ -70,22 +70,18 @@
       <a href="#/browse" class="nav-link">Browse</a>
       <a href="#/watchlist" class="nav-link">Watchlist</a>
       <div class="prefs-anchor">
-        <details class="prefs" id="prefs">
-          <summary>My concerns</summary>
-          <div id="prefs-body" class="prefs-body"></div>
-        </details>
-        <!-- First-visit tip. Shown by main.ts until the visitor dismisses it or opens "My concerns". -->
+        <a href="#/preferences" class="gear" aria-label="Preferences" title="Preferences">
+          <!-- Gear icon from Feather (MIT license). -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+        </a>
+        <!-- First-visit tip. Shown by main.ts until the visitor dismisses it or opens Preferences. -->
         <div class="tip" id="concerns-tip" role="note" hidden>
-          <p>Choose the topics you care about. Other topics are hidden on every page.</p>
+          <p>Choose the topics you care about and your limits in Preferences. Other topics are hidden on every page.</p>
           <button type="button" id="concerns-tip-close">Got it</button>
         </div>
-      </div>
-      <div class="prefs-anchor">
-        <details class="prefs" id="services">
-          <summary>My services</summary>
-          <!-- Filled by main.ts the first time it opens. -->
-          <div id="services-body" class="prefs-body"></div>
-        </details>
       </div>
     </header>
     <main id="app" aria-live="polite"></main>

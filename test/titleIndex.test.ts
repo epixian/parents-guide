@@ -100,10 +100,44 @@ test("a save that changes nothing in the index keeps the version", () => {
   index.add(r);
   const v = index.version;
   index.add({ ...r, refreshedAt: "2026-10-05T00:00:00Z", summary: "New words" });
-  index.add({ ...r, mood: { tone: 3, feeling: 2, depth: 2, note: "", version: 2 } });
+  index.add({ ...r, mood: { tone: 3, feeling: 2, depth: 2, note: "", version: 1 } });
   assert.equal(index.version, v);
+  index.add({ ...r, mood: { tone: 3, feeling: 2, depth: 2, note: "", version: 2 } });
+  assert.equal(index.version, v + 1);
+  assert.deepEqual(index.titles()[0]!.mood, { tone: 3, feeling: 2, depth: 2 });
   const scored = structuredClone(r);
   scored.categories.violence.score = 2;
   index.add(scored);
+  assert.equal(index.version, v + 2);
+});
+
+test("streaming services join the series entry, and only a change moves the version", () => {
+  const index = new TitleIndex();
+  index.add(report("tmdb-tv-7-s01", "tv-season", "2026-10-01T00:00:00Z"));
+  index.add(report("ol-1", "book", "2026-10-01T00:00:00Z"));
+  assert.deepEqual(index.screenIds(), ["tmdb-tv-7"]);
+  index.setProviders("tmdb-tv-7", [15, 8, 15]);
+  const v = index.version;
+  assert.deepEqual(index.titles().find((t) => t.id === "tmdb-tv-7")?.providers, [8, 15]);
+  index.setProviders("tmdb-tv-7", [8, 15]);
+  assert.equal(index.version, v);
+  index.setProviders("tmdb-tv-7", []);
   assert.equal(index.version, v + 1);
+  assert.equal(index.titles().find((t) => t.id === "tmdb-tv-7")?.providers, undefined);
+});
+
+test("user score: a percent of the source's scale, from the newest season that has one", () => {
+  const index = new TitleIndex();
+  const info = (average: number, scale: number) => ({
+    years: null, rating: null, credits: [], imageUrl: null, source: null,
+    audience: { source: "x", average, scale, count: 100 },
+  });
+  index.add(report("ol-1", "book", "2026-10-01T00:00:00Z", { info: info(4.2, 5) }));
+  index.add(report("tmdb-tv-7-s01", "tv-season", "2026-10-01T00:00:00Z", { info: info(8.1, 10) }));
+  index.add(report("tmdb-tv-7-s02", "tv-season", "2026-10-02T00:00:00Z"));
+  index.add(report("tmdb-movie-1", "movie", "2026-10-01T00:00:00Z"));
+  const score = (id: string) => index.titles().find((t) => t.id === id)?.userScore;
+  assert.equal(score("ol-1"), 84);
+  assert.equal(score("tmdb-tv-7"), 81);
+  assert.equal(score("tmdb-movie-1"), undefined);
 });

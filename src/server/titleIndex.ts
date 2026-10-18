@@ -1,4 +1,5 @@
 import { CATEGORIES, type CategoryId, type TreatmentId } from "../shared/categories.js";
+import { hasMood } from "../shared/mood.js";
 import type { ThemeTag } from "../shared/themes.js";
 import type { IndexEntry, MediaKind, RecentItem, RecentResponse, Report } from "../shared/types.js";
 
@@ -16,6 +17,9 @@ interface ResultEntry {
   themeTags: ThemeTag[];
   scores: Partial<Record<CategoryId, number>>;
   treatments: Partial<Record<CategoryId, TreatmentId>>;
+  /** Catalog user score as a percent, or null. */
+  userScore: number | null;
+  mood: IndexEntry["mood"] | null;
 }
 
 function toEntry(r: Report): ResultEntry {
@@ -38,12 +42,19 @@ function toEntry(r: Report): ResultEntry {
     themeTags: r.themeTags ?? [],
     scores,
     treatments,
+    mood: hasMood(r) ? { tone: r.mood.tone, feeling: r.mood.feeling, depth: r.mood.depth } : null,
+    userScore: r.info?.audience ? Math.round((r.info.audience.average / r.info.audience.scale) * 100) : null,
   };
 }
 
 /** Merge TV seasons into one series entry: highest score per category, all treatments and tags. */
 function mergeTitle(results: ResultEntry[]): IndexEntry {
   const newest = results.reduce((a, b) => (b.addedAt > a.addedAt ? b : a));
+  // TV seasons carry the series' score; use the newest one that has a score.
+  const newestWith = (has: (r: ResultEntry) => boolean) =>
+    results.filter(has).reduce<ResultEntry | null>((a, b) => (!a || b.addedAt > a.addedAt ? b : a), null);
+  const userScore = newestWith((r) => r.userScore !== null)?.userScore;
+  const mood = newestWith((r) => r.mood !== null)?.mood;
   const scores: IndexEntry["scores"] = {};
   const treatments: IndexEntry["treatments"] = {};
   const tagCounts = new Map<ThemeTag, number>();
@@ -68,6 +79,8 @@ function mergeTitle(results: ResultEntry[]): IndexEntry {
     themeTags: [...tagCounts.entries()].sort((a, b) => b[1] - a[1]).map(([tag]) => tag),
     scores,
     treatments,
+    ...(userScore != null ? { userScore } : {}),
+    ...(mood ? { mood } : {}),
   };
 }
 
@@ -94,17 +107,33 @@ function toItem(t: IndexEntry): RecentItem {
  */
 export class TitleIndex {
   private readonly results = new Map<string, ResultEntry>();
+  /** Streaming service ids per title id. Kept apart from results: they come from TMDB, not the saved files. */
+  private readonly streaming = new Map<string, number[]>();
   /** Goes up on every add, so clients can tell when their copy is out of date. */
   private changes = 0;
   private merged: { changes: number; titles: IndexEntry[] } | null = null;
 
-  /** Add or replace a result. A save that changes nothing in the index (a mood, a refresh with the same scores) keeps the version. */
+  /** Add or replace a result. A save that changes nothing in the index (a refresh with the same scores) keeps the version. */
   add(report: Report): void {
     const entry = toEntry(report);
     const old = this.results.get(report.id);
     if (old && JSON.stringify(old) === JSON.stringify(entry)) return;
     this.results.set(report.id, entry);
     this.changes++;
+  }
+
+  /** Set the streaming service ids of a movie or TV series. A list that is the same as before keeps the version. */
+  setProviders(titleId: string, ids: number[]): void {
+    const sorted = [...new Set(ids)].sort((a, b) => a - b);
+    if ((this.streaming.get(titleId) ?? []).join() === sorted.join()) return;
+    if (sorted.length) this.streaming.set(titleId, sorted);
+    else this.streaming.delete(titleId);
+    this.changes++;
+  }
+
+  /** Ids of every movie and TV series, for the streaming sweep. */
+  screenIds(): string[] {
+    return this.titles().flatMap((t) => (t.kind === "book" ? [] : [t.id]));
   }
 
   /** Changes since startup. Part of the ETag for GET /api/titles. */
@@ -125,7 +154,11 @@ export class TitleIndex {
       if (list) list.push(r);
       else groups.set(r.titleId, [r]);
     }
-    return [...groups.values()].map(mergeTitle);
+    return [...groups.values()].map((results) => {
+      const t = mergeTitle(results);
+      const providers = this.streaming.get(t.id);
+      return providers ? { ...t, providers } : t;
+    });
   }
 
   /** Card data for the given title ids, in the same order. Unknown ids are skipped. */

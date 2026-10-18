@@ -162,3 +162,30 @@ test("WatchService makes one TMDB call for requests at the same time", async () 
   assert.deepEqual(s.calls, ["tv-1"]);
   await s.done();
 });
+
+test("WatchService.sweep gives each title its service ids, and reads fresh files from disk", async () => {
+  const s = await service(24 * 60 * 60 * 1000);
+  const saved = new Map<string, number[]>();
+  const save = (id: string, ids: number[]) => saved.set(id, ids);
+  assert.deepEqual(await s.watch.sweep(["tmdb-movie-1", "tmdb-tv-2"], save, { pauseMs: 0 }), { fetched: 2, failed: 0, stale: 0 });
+  assert.deepEqual(saved.get("tmdb-tv-2"), [8]);
+  s.set(new Error("TMDB down"));
+  assert.deepEqual(await s.watch.sweep(["tmdb-movie-1", "tmdb-movie-3"], save, { pauseMs: 0 }), { fetched: 0, failed: 1, stale: 0 });
+  assert.deepEqual(s.calls, ["movie-1", "tv-2", "movie-3"]);
+  await s.done();
+});
+
+test("WatchService.sweep stops asking TMDB at the limit, and uses older files for the rest", async () => {
+  const s = await service(1000);
+  const saved = new Map<string, number[]>();
+  const save = (id: string, ids: number[]) => saved.set(id, ids);
+  await s.watch.sweep(["tmdb-movie-1"], save, { pauseMs: 0 });
+  // Let the file get older than the time limit.
+  await new Promise((resolve) => setTimeout(resolve, 1100));
+  saved.clear();
+  const ids = ["tmdb-movie-4", "tmdb-movie-1", "tmdb-movie-5"];
+  assert.deepEqual(await s.watch.sweep(ids, save, { maxFetches: 1, pauseMs: 0 }), { fetched: 1, failed: 0, stale: 2 });
+  assert.deepEqual(s.calls, ["movie-1", "movie-4"]);
+  assert.deepEqual([...saved.keys()], ["tmdb-movie-4", "tmdb-movie-1"]);
+  await s.done();
+});

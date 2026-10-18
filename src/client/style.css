@@ -224,12 +224,24 @@ button,
   color: var(--accent-text);
 }
 
-.prefs-anchor,
-.prefs {
+.prefs-anchor {
   position: relative;
 }
 
-/* First-visit tip: a callout below "My concerns", pointing up at it. */
+/* Gear link to the Preferences page. */
+.gear {
+  display: block;
+  padding: 6px;
+  color: var(--text);
+  line-height: 0;
+}
+
+.gear svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* First-visit tip: a callout below the gear, pointing up at it. */
 .tip {
   position: absolute;
   top: 100%;
@@ -253,7 +265,7 @@ button,
   content: "";
   position: absolute;
   bottom: 100%;
-  right: 24px;
+  right: 10px;
   border: 8px solid transparent;
   border-bottom-color: var(--accent);
 }
@@ -270,38 +282,13 @@ button,
   font-size: 0.85rem;
 }
 
-.prefs summary {
-  cursor: pointer;
-  user-select: none;
-}
-
-.prefs[open] > .prefs-body {
-  position: absolute;
-  right: 0;
-  z-index: 10;
-  width: min(300px, calc(100vw - 32px));
-  margin-top: 8px;
-  padding: 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: 0 8px 24px rgb(0 0 0 / 0.15);
-}
-
-.prefs[open] > .prefs-body {
-  max-height: min(70vh, 560px);
-  overflow-y: auto;
-}
-
-/* Phones: "My concerns" wraps to its own line, so anchor the panel to the
-   header (16px from each edge) instead of to the short summary link. */
+/* Phones: anchor the tip to the header (16px from each edge) instead of to the small gear. */
 @media (max-width: 640px) {
   .site-header {
     position: relative;
   }
 
-  .prefs-anchor,
-  .prefs {
+  .prefs-anchor {
     position: static;
   }
 
@@ -314,14 +301,6 @@ button,
 
   .tip::before {
     display: none;
-  }
-
-  .prefs[open] > .prefs-body {
-    top: 100%;
-    left: 16px;
-    right: 16px;
-    width: auto;
-    margin-top: 4px;
   }
 }
 
@@ -802,6 +781,41 @@ a.audience:hover {
   margin: 0;
 }
 
+.browse-head {
+  align-items: center;
+  margin-top: 0;
+}
+
+.browse-head h1 {
+  margin: 0;
+}
+
+.results-head {
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.results-head p {
+  margin: 0;
+}
+
+.sort-by,
+.sort-by label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.sort-by {
+  gap: 8px;
+}
+
+.sort-by button[hidden] {
+  display: none;
+}
+
 .recent-row h3 {
   margin: 0;
   font-size: 1rem;
@@ -837,6 +851,23 @@ a.audience:hover {
   object-fit: cover;
   border-radius: 6px;
   background: var(--border);
+}
+
+/* Browse, while it shows titles over the user's concern limits: mark those cards. */
+/* The shadow widens the background past the poster, and the outline sits just
+   outside it, so the card keeps its size and layout. */
+.cards li.over-limits {
+  border-radius: 6px;
+  background: var(--notice-bg);
+  box-shadow: 0 0 0 3px var(--notice-bg);
+  outline: 2px solid var(--level-4);
+  outline-offset: 3px;
+}
+
+.over-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--notice-text);
 }
 
 .cards a:hover .card-title,
@@ -1169,8 +1200,7 @@ a.audience:hover {
   margin-bottom: 8px;
 }
 
-.browse-row label,
-.topic-filter > label {
+.browse-row label {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -1179,13 +1209,42 @@ a.audience:hover {
 }
 
 .browse-form select,
-.browse-form input[type="search"] {
+.browse-form input[type="search"],
+.concern-row select {
   padding: 6px 8px;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--surface);
   color: var(--text);
   font: inherit;
+}
+
+.kind-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.kind-toggles legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 2px;
+  padding: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.browse-row .kind-toggles .chip-check {
+  flex-direction: row;
+  padding: 6px 12px;
+  color: var(--text);
+}
+
+.browse-row .kind-toggles .chip-check:has(input:checked) {
+  color: var(--accent-text);
 }
 
 .browse-row input[type="search"] {
@@ -1206,21 +1265,39 @@ a.audience:hover {
   font-weight: 600;
 }
 
-.topic-filter {
+/* Preferences page: one row per topic, with its limits. */
+.prefs-section {
+  margin: 24px 0;
+}
+
+.concern-row {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 12px;
-  align-items: flex-end;
+  align-items: center;
   padding: 6px 0;
   border-bottom: 1px solid var(--border);
 }
 
-.topic-filter > label {
-  flex: 0 1 16rem;
+.concern-row > .pref {
+  flex: 0 1 14rem;
+  padding: 0;
 }
 
-.topic-filter > label span {
-  color: var(--text);
+.concern-row.is-hidden select,
+.concern-row.is-hidden .hide-treatments {
+  opacity: 0.5;
+}
+
+.results-count {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: center;
+}
+
+.results-count .chip-check[hidden] {
+  display: none;
 }
 
 .hide-treatments {
@@ -1261,6 +1338,29 @@ a.audience:hover {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.topic-filters .tag-chips {
+  margin-top: 8px;
+}
+
+.mood-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.mood-filter .tag-chips {
+  margin-top: 0;
+}
+
+/* One width for the three names, so the chips line up. */
+.mood-filter-label {
+  width: 4rem;
+  font-size: 0.85rem;
+  color: var(--muted);
 }
 
 .cards.grid {

@@ -41,6 +41,15 @@ export const DEPTH_LABELS: Record<number, string> = {
   5: "Profound",
 };
 
+/** The three scales in display order, with the names the site shows. */
+export const MOOD_SCALES = [
+  { id: "tone", label: "Outlook", labels: TONE_LABELS },
+  { id: "feeling", label: "Pull", labels: FEELING_LABELS },
+  { id: "depth", label: "Depth", labels: DEPTH_LABELS },
+] as const;
+
+export type MoodScale = (typeof MOOD_SCALES)[number]["id"];
+
 /** True when the result has a mood on the current scales (see MOOD_VERSION). */
 export function hasMood(r: { mood?: Mood }): r is { mood: Mood } {
   return r.mood?.version === MOOD_VERSION;

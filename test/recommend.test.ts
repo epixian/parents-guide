@@ -46,3 +46,34 @@ test("recommend counts concern scores above the liked titles' highest only with 
   // With fewer liked titles there is no limit yet. l2 and l3 are not thumbed, so they come too.
   assert.deepEqual(ids(recommend(catalog, { l1: "up" }, opts)), ["l2", "l3", "calm", "violent"]);
 });
+
+test("recommend leaves out titles marked Not interested and counts them as a weak no", () => {
+  const catalog = [
+    title("liked", ["animals", "adventure"]),
+    title("skip", ["adventure"]),
+    title("a", ["animals"]),
+    title("c", ["adventure"]),
+  ];
+  // adventure: 1 - 0.5 = 0.5, animals: 1. "skip" is left out.
+  assert.deepEqual(ids(recommend(catalog, { liked: "up" }, { ...opts, notInterested: { skip: "2026-10-01" } })), ["a", "c"]);
+});
+
+test("recommend uses the taste model (tags and mood) once the marks are a strong enough signal", () => {
+  const withMood = (id: string, tags: ThemeTag[], mood: [number, number, number]): IndexEntry => ({
+    ...title(id, tags),
+    mood: { tone: mood[0], feeling: mood[1], depth: mood[2] },
+  });
+  const catalog = [
+    ...["l1", "l2", "l3", "l4"].map((id) => withMood(id, ["animals", "humor", "friendship"], [5, 2, 2])),
+    ...["d1", "d2"].map((id) => withMood(id, ["war", "death-and-grief", "survival"], [1, 5, 5])),
+    // All the liked tags, but the mood of the disliked titles.
+    withMood("tags", ["animals", "humor", "friendship"], [1, 5, 5]),
+    // Fewer liked tags, but the mood of the liked titles.
+    withMood("mood", ["animals", "humor"], [5, 2, 2]),
+  ];
+  const thumbs = { l1: "up", l2: "up", l3: "up", l4: "up", d1: "down", d2: "down" } as const;
+  assert.deepEqual(ids(recommend(catalog, thumbs, opts)), ["mood", "tags"]);
+  // With 5 marks there is no model yet: the tag sum puts "tags" first.
+  const { d2: _, ...five } = thumbs;
+  assert.deepEqual(ids(recommend(catalog, five, opts)), ["tags", "mood"]);
+});

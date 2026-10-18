@@ -146,7 +146,7 @@ export function createApi(
   api.get("/providers", async (c) => c.json(await watch.catalog()));
 
   // Every rated title that TMDB recommends for a movie or TV series, best first.
-  // The browser orders them by the user's thumbs up and shows the first few.
+  // The browser orders them by the user's thumbs and "Not interested" marks and shows the first few.
   api.get("/similar/:id", async (c) => c.json(await reports.items(await similar.title(c.req.param("id")))));
 
   api.notFound((c) => c.json<ApiError>({ error: "Not found" }, 404));

@@ -197,7 +197,8 @@ export const loadThumbs = () => loadRecord(THUMBS_KEY, (v): v is Thumb => v === 
 export const saveThumbs = (thumbs: Record<string, Thumb>) => saveRecord(THUMBS_KEY, thumbs);
 
 // Titles the user marked "Not interested": left out of the recommendations.
-// Title id → ISO time. They do not change the thumbs or the tag weights.
+// Title id → ISO time. They do not change the thumbs. For the tag weights and
+// the fit hint they count as a weak thumbs down (see markSignals).
 const NOT_INTERESTED_KEY = "notInterested";
 
 export const loadNotInterested = () => loadRecord(NOT_INTERESTED_KEY, (v): v is string => typeof v === "string");

@@ -493,6 +493,21 @@ main {
   color: var(--muted);
 }
 
+/* A topic over the user's limits: the colors of the over-limit cards in
+   Browse, with an accent bar on the left. */
+.ratings tr.over-limit {
+  background: var(--notice-bg);
+}
+
+.ratings tr.over-limit > th {
+  box-shadow: inset 3px 0 0 var(--level-4);
+}
+
+.over-note {
+  display: block;
+  margin-top: 6px;
+}
+
 /* Same neutral style for every treatment: whether "approving" or "critical"
    is good depends on the parent, so color must not suggest a judgment. */
 .treatment {
@@ -593,6 +608,15 @@ main {
     width: auto;
   }
 
+  /* The row is one box here: the accent bar runs down all of it. */
+  .ratings tr.over-limit {
+    box-shadow: inset 3px 0 0 var(--level-4);
+  }
+
+  .ratings tr.over-limit > th {
+    box-shadow: none;
+  }
+
   .ratings td:not(.score) {
     grid-column: 1 / -1;
     padding-top: 0;
@@ -634,55 +658,35 @@ main {
   font-variant-numeric: tabular-nums;
 }
 
-/* Text form of the TMDB score; only the title rail shows it. */
-.audience-text {
-  display: none;
-}
-
-/* TMDB-style user score ring */
-.score-ring {
-  width: 36px;
-  height: 36px;
+/* TMDB's logo after its score, about as tall as small text. */
+.audience-logo {
+  display: block;
   flex: none;
+  width: 77px;
+  height: 10px;
 }
 
-.score-ring[data-tone="high"] { --ring: #21d07a; }
-.score-ring[data-tone="mid"] { --ring: #d2d531; }
-.score-ring[data-tone="low"] { --ring: #db2360; }
-
-.ring-bg {
-  fill: #081c22;
+/* The score (and TMDB's logo) in a white badge, also in dark mode: the
+   text color is fixed so it stays dark on the white. */
+.audience-badge {
+  display: inline-flex;
+  flex: none;
+  gap: 6px;
+  /* The logo on the text baseline: the digits and the logo letters (both
+     capital height) line up. */
+  align-items: baseline;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #fff;
+  color: #0d253f;
+  line-height: 1;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.15);
 }
 
-.ring-track,
-.ring-fill {
-  fill: none;
-  stroke: var(--ring);
-  stroke-width: 3;
-}
-
-.ring-track {
-  opacity: 0.3;
-}
-
-.ring-fill {
-  stroke-linecap: round;
-}
-
-.ring-text {
-  fill: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  text-anchor: middle;
-  dominant-baseline: central;
-}
-
-.ring-pct {
-  font-size: 6px;
-}
-
-a.audience:hover {
-  text-decoration: underline;
+/* No underline on the score link: a stronger shadow on the badge shows it. */
+a.audience:hover .audience-badge,
+a.audience:focus-visible .audience-badge {
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
 }
 
 .title-text .byline {
@@ -1016,6 +1020,23 @@ a.audience:hover {
   padding: 4px 12px;
   border-radius: var(--radius);
   font-size: 0.9rem;
+}
+
+/* The same small shadow as the score badge and the service icons, in place
+   of the normal border. The border stays transparent, so the accent border
+   of the current section and on hover does not change the size. */
+.jumps button,
+.rail-jumps button {
+  border-color: transparent;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.15);
+}
+
+/* A stronger shadow on hover, the same as the score badge. */
+.jumps button:hover,
+.jumps button:focus-visible,
+.rail-jumps button:hover,
+.rail-jumps button:focus-visible {
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
 }
 
 /* The section being read (see updateJumps in main.ts). */
@@ -1363,9 +1384,25 @@ a.audience:hover {
   color: var(--muted);
 }
 
+/* Browse and the watchlist page: as many columns as fit at 110px or more,
+   then the cards grow to fill the row. The posters keep their 2:3 shape. */
 .cards.grid {
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
   overflow-x: visible;
+}
+
+.cards.grid li {
+  width: auto;
+  min-width: 0;
+}
+
+.cards.grid img,
+.cards.grid .noimg {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 3;
 }
 
 #browse-results[aria-busy="true"] {
@@ -1477,6 +1514,7 @@ a.audience:hover {
   display: block;
   flex: none;
   border-radius: 6px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.15);
 }
 
 .watch-list .service-logo {
@@ -1561,6 +1599,25 @@ a.audience:hover {
 
 .mark[aria-pressed="true"] svg {
   fill: currentColor;
+}
+
+/* "You might like this" below the thumbs. Hidden without a strong match.
+   Text flow, not flex: the icon follows the last word, also when the
+   narrow rail wraps the text. */
+.title-text .fit {
+  display: block;
+  margin: -4px 0 10px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.title-text .fit .info-wrap {
+  margin-left: 4px;
+  vertical-align: -3px;
+}
+
+.title-text .fit[hidden] {
+  display: none;
 }
 
 .marks-slash {
@@ -1758,27 +1815,28 @@ a.audience:hover {
 }
 
 /* Title rail: the title's card and the jump links, always in the left margin
-   of title pages on wide screens (a 144px rail beside the 960px column needs
-   1320px; keep the width in step with wideScreen in main.ts). The title
+   of title pages on wide screens (a 176px rail beside the 960px column needs
+   1344px; keep the width in step with wideScreen in main.ts). The title
    area then drops its own poster and the top jump links. updateRail in
    main.ts sets top and max-height. */
 .title-rail {
   display: none;
 }
 
-@media (min-width: 1320px) {
+@media (min-width: 1344px) {
   .title-rail {
     /* One vertical gap between every part of the rail. */
     --rail-gap: 8px;
     position: fixed;
     top: 16px;
-    /* 960px column centered; 144px rail, 16px from the column. */
-    left: calc(50% - 480px - 160px);
+    /* 960px column centered. The rail's content (176px less 6px of padding,
+       after the -2px margin) ends 16px from the cards, the same as top. */
+    left: calc(50% - 480px - 170px);
     z-index: 5;
     display: flex;
     flex-direction: column;
     gap: var(--rail-gap);
-    width: 144px;
+    width: 176px;
     overflow-x: hidden;
     overflow-y: auto;
     /* Room for focus rings and the scrollbar. */
@@ -1796,12 +1854,6 @@ a.audience:hover {
     display: none;
   }
 
-  /* The space above the first card belongs to the site header, so the first
-     card and the rail start at the same height. */
-  body:has(.title-rail) .site-header {
-    margin-bottom: 16px;
-  }
-
   .title-rail ~ .card:not(.title-rail ~ .card ~ .card) {
     margin-top: 0;
   }
@@ -1813,15 +1865,9 @@ a.audience:hover {
     font-size: 0.85rem;
   }
 
-  /* The card shows the year, and the vote count does not fit: keep the source name. */
-  .rail-info .fact-year,
-  .rail-info .audience-source,
-  .rail-info .score-ring {
+  /* The card shows the year. */
+  .rail-info .fact-year {
     display: none;
-  }
-
-  .rail-info .audience-text {
-    display: inline;
   }
 
   /* The score is muted until hover or focus; its tooltip names the source. */
@@ -1849,8 +1895,7 @@ a.audience:hover {
     margin: 0;
   }
 
-  /* Rating badge, score text, and source name on one text baseline (the
-     ring, centered in the normal header, is hidden here). */
+  /* Rating badge and score badge on one text baseline. */
   .rail-info .facts,
   .rail-info .audience {
     align-items: baseline;
@@ -1865,6 +1910,10 @@ a.audience:hover {
   .rail-info .watch,
   .rail-info .marks {
     flex-wrap: wrap;
+    margin: 0;
+  }
+
+  .rail-info .fit {
     margin: 0;
   }
 
@@ -1924,7 +1973,8 @@ a.audience:hover {
 
   /* The rail scrolls and would cut off the tooltip: fix it to the window,
      placed beside the rail by placeRailTip in main.ts. */
-  .title-rail .minibars-tip {
+  .title-rail .minibars-tip,
+  .title-rail .info-tip {
     position: fixed;
     bottom: auto;
   }

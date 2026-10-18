@@ -32,6 +32,7 @@ import type {
 import { api } from "./api.js";
 import { recommend } from "../shared/recommend.js";
 import { rankSimilar } from "../shared/similar.js";
+import { type Fit, fitFor, markSignals, MIN_MARKED } from "../shared/taste.js";
 import { parseBrowseQuery, withinLimits } from "../shared/browse.js";
 import { browse, prefetchTitles, preloadTitles, suggest, titlesById, titlesReady } from "./titles.js";
 import {
@@ -378,10 +379,10 @@ function cachedSimilar(): RecentItem[] | null {
 /** True when the page gets a "Similar titles" section: movies and TV, unless the list is known to be empty. */
 const hasSimilar = () => Boolean(watchId) && cachedSimilar()?.length !== 0;
 
-/** The first cards, after titles like the ones the user liked (see rankSimilar). */
+/** The first cards, after titles like the ones the user liked and before ones like those they did not (see rankSimilar). */
 function similarCardsHtml(items: RecentItem[]): string {
-  const liked = Object.keys(thumbs).filter((id) => thumbs[id] === "up");
-  const ranked = rankSimilar(items, liked, (id) => similarIndex?.get(id)?.themeTags).slice(0, SIMILAR_LIMIT);
+  const signals = markSignals(thumbs, notInterested);
+  const ranked = rankSimilar(items, signals, (id) => similarIndex?.get(id)?.themeTags).slice(0, SIMILAR_LIMIT);
   return `<ul class="cards">${ranked.map((item) => cardHtml(item, false, miniComposites(item))).join("")}</ul>`;
 }
 
@@ -492,6 +493,7 @@ function toggleMark(button: HTMLButtonElement): void {
     else thumbs[id] = thumb;
     saveThumbs(thumbs);
     rerankSimilar();
+    void refreshFit();
   }
   box.outerHTML = marksHtml(id, title);
   if (mark === "list") refreshListButtons(id);
@@ -510,7 +512,40 @@ window.addEventListener("storage", () => {
     refreshListButtons(box.dataset.id!);
   }
   rerankSimilar();
+  void refreshFit();
 });
+
+// ---------- Fit hint ----------
+
+/** "You might like this" on a title page, empty until refreshFit fills it. */
+const fitSlot = (id: string) => `<p class="fit with-info" id="fit" data-id="${esc(id)}" hidden></p>`;
+
+function fitHtml(fit: Fit): string {
+  // "A", "A and B", or "A, B, and C".
+  const names = new Intl.ListFormat("en").format(fit.likedNear.slice(0, 3).map((t) => esc(t.title)));
+  return `
+    <span>You might like this.</span>
+    <span class="info-wrap">
+      <button type="button" class="info-icon" aria-label="About this guess" aria-describedby="fit-info">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></svg>
+      </button>
+      <span class="info-tip" id="fit-info" role="tooltip">Similar to ${names}, which you also liked.</span>
+    </span>`;
+}
+
+/** Show or hide the fit line for the page's title (see fitFor). Hidden without the rated titles. */
+async function refreshFit(): Promise<void> {
+  const slot = document.querySelector<HTMLElement>("#fit");
+  if (!slot) return;
+  // Too few marks for a fit: do not load the rated titles for nothing.
+  const enough = markSignals(thumbs, notInterested).size >= MIN_MARKED;
+  const index = enough ? await titlesById().catch(() => null) : null;
+  // The user left the page while the list loaded.
+  if (!slot.isConnected) return;
+  const fit = index ? fitFor(slot.dataset.id!, [...index.values()], thumbs, notInterested) : null;
+  slot.innerHTML = fit ? fitHtml(fit) : "";
+  slot.hidden = !fit;
+}
 
 // ---------- Rendering helpers ----------
 
@@ -541,38 +576,18 @@ function creditHtml(e: CreditEntry): string {
     : esc(e.name);
 }
 
-/** "27k" for 27,123; small counts as they are. */
-const compactCount = (n: number) => new Intl.NumberFormat("en", { notation: "compact" }).format(n);
-
 /**
- * Percent ring in the style TMDB uses for its user score: green from 70%,
- * yellow from 40%, red below.
- */
-function scoreRing(percent: number): string {
-  const tone = percent >= 70 ? "high" : percent >= 40 ? "mid" : "low";
-  return `
-    <svg class="score-ring" data-tone="${tone}" viewBox="0 0 36 36" aria-hidden="true">
-      <circle cx="18" cy="18" r="18" class="ring-bg" />
-      <circle cx="18" cy="18" r="14.5" class="ring-track" />
-      <circle cx="18" cy="18" r="14.5" class="ring-fill" pathLength="100" stroke-dasharray="${percent} 100" transform="rotate(-90 18 18)" />
-      <text x="18" y="18" class="ring-text">${percent}<tspan class="ring-pct" dy="-3">%</tspan></text>
-    </svg>`;
-}
-
-/**
- * Audience score from the catalog. TMDB: a percent ring ("87%" for 8.7/10).
- * Others: "★ 4.2/5". The full vote count is in the tooltip.
+ * Audience score from the catalog, in a badge. TMDB: "8.7/10" and TMDB's
+ * logo. Others: "★ 4.2/5". The tooltip names the source and the vote count.
  */
 function audienceHtml(a: AudienceScore | null | undefined, sourceUrl: string | undefined): string {
   if (!a) return "";
   const tip = `Average user score on ${a.source}: ${a.average.toFixed(1)} of ${a.scale}, from ${a.count.toLocaleString("en")} votes`;
-  // TMDB: the percent ring, plus the same score as text ("8.0/10") for the title rail, which shows only the text.
-  const score =
-    a.scale === 10
-      ? `${scoreRing(Math.round(a.average * 10))}<span class="audience-text">${esc(`${a.average.toFixed(1)}/10`)}</span>`
-      : esc(`★ ${a.average.toFixed(1)}/${a.scale}`);
-  // Source and vote count are separate spans, so the narrow title rail can hide them (the tooltip names the source).
-  const inner = `${score} <span class="audience-source muted small">${esc(a.source)}<span class="audience-votes"> · ${esc(compactCount(a.count))} votes</span></span>`;
+  const score = esc(a.scale === 10 ? `${a.average.toFixed(1)}/10` : `★ ${a.average.toFixed(1)}/${a.scale}`);
+  // TMDB's official short logo (themoviedb.org/about/logos-attribution), unchanged, next to the
+  // score in our own white badge. Other sources get the badge with the score only.
+  const logo = a.source === "TMDB" ? `<img class="audience-logo" src="/logos/tmdb.svg" alt="TMDB" width="77" height="10" />` : "";
+  const inner = `<span class="audience-badge">${score}${logo}</span>`;
   return sourceUrl && /^https:\/\//.test(sourceUrl)
     ? `<a class="audience" href="${esc(sourceUrl)}" target="_blank" rel="noopener" title="${esc(tip)}">${inner}</a>`
     : `<span class="audience" title="${esc(tip)}">${inner}</span>`;
@@ -608,6 +623,7 @@ function titleHeader(
         ${facts.length ? `<p class="facts">${facts.join("")}</p>` : ""}
         ${watchId ? watchLine() : ""}
         ${marksHtml(markId(markFor), markTitle(markFor, title, info))}
+        ${fitSlot(markId(markFor))}
       </div>
       ${composites}
     </section>
@@ -637,7 +653,7 @@ function titleRail(
     <aside class="title-rail" data-rail aria-label="${esc(title)}">
       ${cardActions(card)}
       <button type="button" class="rail-link" data-top aria-label="${esc(`Back to the top of ${title}`)}">
-        ${info?.imageUrl ? `<img class="rail-poster" src="${esc(info.imageUrl)}" alt="" width="144" height="216" />` : ""}
+        ${info?.imageUrl ? `<img class="rail-poster" src="${esc(info.imageUrl)}" alt="" width="176" height="264" />` : ""}
         ${bars}
         <span class="rail-title">${esc(title)}</span>
         <span class="muted small">${meta}</span>
@@ -648,7 +664,7 @@ function titleRail(
 }
 
 /** Same width as the title rail's media query in style.css. */
-const wideScreen = window.matchMedia("(min-width: 1320px)");
+const wideScreen = window.matchMedia("(min-width: 1344px)");
 
 /**
  * Wide screens: move the title header (heading, byline, facts, streaming,
@@ -694,7 +710,8 @@ function updateRail(): void {
   rail.classList.toggle("shown", shown);
   rail.inert = !shown;
   if (!shown) return;
-  // Level with the first card: the top of the column plus its 16px padding.
+  // Level with the first card: the top of the column plus its 16px padding,
+  // which is also the gap to the cards on the right and to the window top.
   const top = Math.max(16, app.getBoundingClientRect().top + 16);
   rail.style.top = `${top}px`;
   rail.style.maxHeight = `calc(100vh - ${top + 16}px)`;
@@ -703,24 +720,35 @@ function updateRail(): void {
 window.addEventListener("resize", () => updateRail());
 
 /**
- * The rail scrolls, so it would cut off the composite tooltip. In the rail the
- * tooltip is position: fixed (see style.css); this puts it to the right of the
- * rail, level with the bars, when they are hovered or the card is focused.
+ * The rail scrolls, so it would cut off a tooltip. In the rail the composite
+ * and info tooltips are position: fixed (see style.css); this puts one to the
+ * right of the rail, level with what shows it, on hover or focus.
  */
-function placeRailTip(e: Event): void {
-  const bars = (e.target as HTMLElement).closest(".title-rail")?.querySelector<HTMLElement>(".minibars");
-  const tip = bars?.querySelector<HTMLElement>(".minibars-tip");
-  if (!bars || !tip) return;
-  const box = bars.getBoundingClientRect();
-  const rail = bars.closest(".title-rail")!.getBoundingClientRect();
+function placeRailTip(anchor: HTMLElement, tip: HTMLElement): void {
+  const box = anchor.getBoundingClientRect();
+  const rail = anchor.closest(".title-rail")!.getBoundingClientRect();
   tip.style.left = `${rail.right + 8}px`;
   tip.style.top = `${box.top}px`;
 }
+
+/** The composite bars or the info button under the event target, with its tooltip. */
+function railTipFor(e: Event): [HTMLElement, HTMLElement] | null {
+  const target = e.target as HTMLElement;
+  const info = target.closest<HTMLElement>(".title-rail .info-wrap");
+  const bars = target.closest(".title-rail .minibars, .title-rail .rail-link")
+    ? target.closest(".title-rail")!.querySelector<HTMLElement>(".minibars")
+    : null;
+  const anchor = info ?? bars;
+  const tip = anchor?.querySelector<HTMLElement>(".info-tip, .minibars-tip");
+  return anchor && tip ? [anchor, tip] : null;
+}
 app.addEventListener("mouseover", (e) => {
-  if ((e.target as HTMLElement).closest(".title-rail .minibars")) placeRailTip(e);
+  const found = railTipFor(e);
+  if (found) placeRailTip(...found);
 });
 app.addEventListener("focusin", (e) => {
-  if ((e.target as HTMLElement).closest(".title-rail .rail-link")) placeRailTip(e);
+  const found = railTipFor(e);
+  if (found) placeRailTip(...found);
 });
 
 /**
@@ -896,12 +924,12 @@ function fillMoodSlot(seq: number, html: string): void {
   else slot.remove();
 }
 
-/** A section heading, with a "Back to top" button on the right. */
-function sectionHead(title: string): string {
+/** A section heading, with a "Back to top" button on the right. toTop: false for the first section, which is at the top. */
+function sectionHead(title: string, toTop = true): string {
   return `
     <div class="section-head">
       <h2>${title}</h2>
-      <button type="button" class="to-top" data-top>Back to top <span aria-hidden="true">↑</span></button>
+      ${toTop ? `<button type="button" class="to-top" data-top>Back to top <span aria-hidden="true">↑</span></button>` : ""}
     </div>`;
 }
 
@@ -965,20 +993,35 @@ function hiddenNote(): string {
   return hiddenCount ? `<p class="muted small">${hiddenCount} topic(s) hidden by your preferences.</p>` : "";
 }
 
+/**
+ * True when a topic the user shows is over their concern limits: a level
+ * above their highest, or a treatment they leave out. Browse marks the same
+ * titles (see withinLimits).
+ */
+function overLimit(id: CategoryId, score: number | undefined, treatment?: TreatmentId | null): boolean {
+  if (hidden.has(id)) return false;
+  const max = limits.max[id];
+  return (max !== undefined && (score ?? 0) > max) || (!!treatment && (limits.hide[id] ?? []).includes(treatment));
+}
+
+/** "Over your limit" under a rating row's level. */
+const OVER_NOTE = `<span class="over-badge over-note">Over your limit</span>`;
+
 function ratingsSection(report: Report): string {
   const rows = sectionRows((c) => {
     const r = report.categories[c.id];
     if (!r) return "";
+    const over = overLimit(c.id, r.score, r.treatment);
     return `
-      <tr>
+      <tr${over ? ` class="over-limit"` : ""}>
         <th scope="row">${esc(c.label)}</th>
-        <td class="score">${scoreBar(r.score)}<span class="score-label">${r.score} · ${esc(SCORE_LABELS[r.score])}</span>${treatmentChip(r.treatment)}</td>
+        <td class="score">${scoreBar(r.score)}<span class="score-label">${r.score} · ${esc(SCORE_LABELS[r.score])}</span>${treatmentChip(r.treatment)}${over ? OVER_NOTE : ""}</td>
         <td>${esc(r.notes)}</td>
       </tr>`;
   }, 3);
   return `
     <section class="card section" id="sec-ratings">
-      ${sectionHead("Ratings")}
+      ${sectionHead("Ratings", false)}
       <table class="ratings">
         <thead><tr><th>Topic</th><th>Level</th><th>Details</th></tr></thead>
         <tbody>${rows || `<tr><td colspan="3" class="muted">All topics are hidden. Change them in <a href="#/preferences">Preferences</a>.</td></tr>`}</tbody>
@@ -1223,7 +1266,9 @@ async function showSeries(tmdbId: string): Promise<string> {
     const range = agg.categories[c.id];
     if (!range) return "";
     const text = range.min === range.max ? `${range.max}` : `${range.min}–${range.max}`;
-    return `<tr><th scope="row">${esc(c.label)}</th><td class="score">${rangeBar(range)}<span class="score-label">${text}</span></td></tr>`;
+    // Seasons over the limit: the highest level counts (the series has no treatments).
+    const over = overLimit(c.id, range.max);
+    return `<tr${over ? ` class="over-limit"` : ""}><th scope="row">${esc(c.label)}</th><td class="score">${rangeBar(range)}<span class="score-label">${text}</span>${over ? OVER_NOTE : ""}</td></tr>`;
   }, 2);
 
   const seasonsList = s.seasons
@@ -1278,7 +1323,7 @@ async function showSeries(tmdbId: string): Promise<string> {
     )}
     ${jumpLinks(sections)}
     <section class="card section" id="sec-ratings">
-      ${sectionHead("Ratings for the whole series")}
+      ${sectionHead("Ratings for the whole series", false)}
       ${
         agg.ratedSeasons
           ? `${agg.partial ? `<p class="notice">Partial: based on ${agg.ratedSeasons} of ${agg.releasedSeasons} released seasons. Rate more seasons below to complete it.</p>` : ""}
@@ -1351,12 +1396,28 @@ function largerPoster(url: string | null): string | null {
 }
 
 /** extra: HTML between the poster and the title (the composite bars). notInterested: recommended titles only. */
-function cardHtml(item: RecentItem, showKind: boolean, extra = "", opts: { notInterested?: boolean; className?: string } = {}): string {
+/**
+ * Poster sizes for a grid card, which grows past 110px to fill its row (see
+ * .cards.grid): TMDB w185 and w342, Open Library M and L. Empty for other URLs.
+ */
+function gridSrcset(url: string): string {
+  if (url.includes("/t/p/w185/")) return `${url} 185w, ${url.replace("/t/p/w185/", "/t/p/w342/")} 342w`;
+  if (/-M\.jpg$/.test(url)) return `${url} 180w, ${url.replace(/-M\.jpg$/, "-L.jpg")} 500w`;
+  return "";
+}
+
+/** About the widest a grid card gets at each screen width: 2 columns on phones, 3 on small tablets. */
+const GRID_SIZES = "(max-width: 520px) 50vw, (max-width: 760px) 33vw, 160px";
+
+/** grid: a card in a .cards.grid list, which loads a larger poster when it needs one. */
+function cardHtml(item: RecentItem, showKind: boolean, extra = "", opts: { notInterested?: boolean; className?: string; grid?: boolean } = {}): string {
+  const srcset = opts.grid && item.imageUrl ? gridSrcset(item.imageUrl) : "";
+  const sizes = srcset ? ` srcset="${esc(srcset)}" sizes="${GRID_SIZES}"` : "";
   return `
     <li${opts.className ? ` class="${opts.className}"` : ""}>
       ${cardActions(item, opts)}
       <a href="${pageHref(item)}">
-        ${item.imageUrl ? `<img src="${esc(item.imageUrl)}" alt="" width="110" height="165" loading="lazy" decoding="async" />` : `<span class="noimg" aria-hidden="true"></span>`}
+        ${item.imageUrl ? `<img src="${esc(item.imageUrl)}"${sizes} alt="" width="110" height="165" loading="lazy" decoding="async" />` : `<span class="noimg" aria-hidden="true"></span>`}
         ${extra}
         <span class="card-title">${esc(item.title)}</span>
         <span class="muted small">${[showKind ? KIND_LABEL[item.kind] : "", item.years ?? ""].filter(Boolean).map(esc).join(" · ")}</span>
@@ -1379,14 +1440,14 @@ function trendingHtml(items: RecentItem[]): string {
 const WATCHLIST_HOME = 8;
 
 /** Watchlist cards, most recently added first. index: rated titles, for the bars. */
-function watchlistCards(index: Map<string, IndexEntry> | null, limit = Infinity): string[] {
+function watchlistCards(index: Map<string, IndexEntry> | null, limit = Infinity, grid = false): string[] {
   return Object.entries(watchlist)
     .sort((a, b) => b[1].addedAt.localeCompare(a[1].addedAt))
     .slice(0, limit)
     .map(([id, e]) => {
       const rated = index?.get(id);
       const item: RecentItem = { id, ...e, scores: rated?.scores ?? {} };
-      return cardHtml(item, true, rated ? miniComposites(item) : "");
+      return cardHtml(item, true, rated ? miniComposites(item) : "", { grid });
     });
 }
 
@@ -1415,7 +1476,7 @@ async function showWatchlist(): Promise<string> {
     ${
       total
         ? `<p class="muted" id="watchlist-count">${total} title${total === 1 ? "" : "s"}, most recently added first.</p>
-           <ul class="cards grid" id="watchlist-grid">${watchlistCards(index).join("")}</ul>`
+           <ul class="cards grid" id="watchlist-grid">${watchlistCards(index, Infinity, true).join("")}</ul>`
         : `<p class="muted">Your watchlist is empty. Select the bookmark on a title's page to add it.</p>`
     }`;
 }
@@ -1427,7 +1488,8 @@ async function showWatchlist(): Promise<string> {
 function recommendedHtml(index: Map<string, IndexEntry> | null): string {
   if (!index) return "";
   const picks = recommend([...index.values()], thumbs, {
-    exclude: new Set([...Object.keys(watchlist), ...Object.keys(notInterested)]),
+    exclude: new Set(Object.keys(watchlist)),
+    notInterested,
     categories: visibleCategories(hidden).map((c) => c.id),
     limit: 12,
   });
@@ -1440,7 +1502,7 @@ function recommendedHtml(index: Map<string, IndexEntry> | null): string {
           <button type="button" class="info-icon" aria-label="About recommendations" aria-describedby="recommend-info">
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></svg>
           </button>
-          <span class="info-tip" id="recommend-info" role="tooltip">Recommendations are automatically generated based on titles you liked/disliked and never leave the browser.</span>
+          <span class="info-tip" id="recommend-info" role="tooltip">Recommendations are automatically generated based on titles you liked/disliked or marked "Not interested" and never leave the browser.</span>
         </span>
       </h2>
       <ul class="cards">${picks.map((t) => cardHtml(t, true, miniComposites(t), { notInterested: true })).join("")}</ul>
@@ -1612,8 +1674,8 @@ function browseCards(items: IndexEntry[], over: OverCheck = null): string {
   return items
     .map((t) =>
       over?.(t)
-        ? cardHtml(t, true, `${miniComposites(t)}<span class="over-badge">Over your limits</span>`, { className: "over-limits" })
-        : cardHtml(t, true, miniComposites(t)),
+        ? cardHtml(t, true, `${miniComposites(t)}<span class="over-badge">Over your limits</span>`, { className: "over-limits", grid: true })
+        : cardHtml(t, true, miniComposites(t), { grid: true }),
     )
     .join("");
 }
@@ -1952,6 +2014,7 @@ async function route(): Promise<void> {
       loadWatch(watchId, seq);
       loadSimilar(watchId, seq);
     }
+    void refreshFit();
     pageMetaEl.textContent = pageMeta;
     pageMetaEl.hidden = !pageMeta;
     footerEl.hidden = false;

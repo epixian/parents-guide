@@ -124,7 +124,6 @@ function showPreferences(): string {
   afterRender = loadServices;
   return `
     <h1>Preferences</h1>
-    <p class="muted">These choices stay in this browser.</p>
     <section class="prefs-section">
       <h2>Concerns</h2>
       <p class="muted">Uncheck the topics you do not want to see. Set a highest level or treatments to leave out, and Browse hides the titles over your limits. TV series use their highest level across rated seasons.</p>
@@ -2308,6 +2307,76 @@ function updateBackButton(): void {
 
 backButton.addEventListener("click", () => history.back());
 
+// ---------- Header in the installed app ----------
+
+// The installed app has no browser bar, so its header (with the back button)
+// stays at the top of the window: it hides while the visitor scrolls down and
+// comes back when they scroll up a little. In a browser tab the header scrolls
+// away as usual. The header height is in --header-h, and --header-shown is
+// that height while the header shows, else 0 (for the fixed rail).
+
+const header = document.querySelector<HTMLElement>(".site-header")!;
+/** Scroll distance that counts as a direction, so small movements do not toggle the header. */
+const HEADER_SLACK = 8;
+let headerY = 0;
+/** True during a jump or a scroll restore: the scroll comes from the page, not the visitor. */
+let headerHeld = false;
+let headerHoldTimer: ReturnType<typeof setTimeout> | undefined;
+
+function setHeaderTucked(tucked: boolean): void {
+  header.classList.toggle("tucked", tucked);
+  document.documentElement.style.setProperty("--header-shown", tucked ? "0px" : "var(--header-h)");
+}
+
+/** Keep the header open while the visitor uses it: the search box, its suggestions, or the first-visit tip. */
+function headerInUse(): boolean {
+  return header.contains(document.activeElement) || !document.querySelector<HTMLElement>("#concerns-tip")!.hidden;
+}
+
+function onHeaderScroll(): void {
+  const y = window.scrollY;
+  if (headerHeld) {
+    headerY = y;
+    return;
+  }
+  if (y <= header.offsetHeight) setHeaderTucked(false);
+  else if (y > headerY + HEADER_SLACK && !headerInUse()) setHeaderTucked(true);
+  else if (y < headerY - HEADER_SLACK) setHeaderTucked(false);
+  else return; // Too small to count: keep the start point.
+  headerY = y;
+}
+
+/**
+ * Set the header for a scroll that the page makes, and ignore that scroll
+ * until it ends: a section jump (tucked, so the section is not under the
+ * header) or a page change (open).
+ */
+function holdHeader(tucked: boolean): void {
+  if (!document.documentElement.classList.contains("installed")) return;
+  setHeaderTucked(tucked);
+  headerHeld = true;
+  clearTimeout(headerHoldTimer);
+  const release = () => {
+    clearTimeout(headerHoldTimer);
+    headerHeld = false;
+    headerY = window.scrollY;
+  };
+  // scrollend is not in every browser: the timer ends the hold there.
+  window.addEventListener("scrollend", release, { once: true });
+  headerHoldTimer = setTimeout(release, 1000);
+}
+
+function startInstalledHeader(): void {
+  if (!installed()) return;
+  document.documentElement.classList.add("installed");
+  new ResizeObserver(() => document.documentElement.style.setProperty("--header-h", `${header.offsetHeight}px`)).observe(header);
+  setHeaderTucked(false);
+  window.addEventListener("scroll", onHeaderScroll, { passive: true });
+  // The "/" shortcut or Tab can focus the search box while the header is hidden.
+  header.addEventListener("focusin", () => setHeaderTucked(false));
+}
+startInstalledHeader();
+
 /** True from the start of route() until the scroll position is set, so no wrong position is saved. */
 let routing = false;
 let scrollTimer: ReturnType<typeof setTimeout> | undefined;
@@ -2360,6 +2429,7 @@ async function loadBrowseCards(count: number, seq: number): Promise<void> {
 async function restoreScroll(saved: PageState | null, seq: number): Promise<void> {
   if (saved?.cards) await loadBrowseCards(saved.cards, seq);
   if (seq !== navSeq) return;
+  holdHeader(false);
   window.scrollTo({ top: saved?.scrollY ?? 0, behavior: "instant" });
   routing = false;
 }
@@ -2580,8 +2650,20 @@ app.addEventListener("click", (e) => {
 
   const id = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-jump]")?.dataset.jump;
   if (!id) return;
+  holdHeader(true);
   document.getElementById(id)?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
 });
+
+// Offline use (public/sw.js). Not in development: Vite serves modules that change on each edit.
+if ("serviceWorker" in navigator && import.meta.env.PROD) {
+  window.addEventListener("load", () => void navigator.serviceWorker.register("/sw.js").catch(() => {}));
+}
+
+const offlineNote = document.querySelector<HTMLElement>("#offline-note")!;
+const updateOffline = () => (offlineNote.hidden = navigator.onLine);
+window.addEventListener("online", updateOffline);
+window.addEventListener("offline", updateOffline);
+updateOffline();
 
 // Phone testing: ?debug in the URL (before the #) shows an event log. See debug.ts.
 if (new URLSearchParams(location.search).has("debug")) {

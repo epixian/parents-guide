@@ -18,6 +18,8 @@ AI summaries of parental concerns for movies, TV shows, and books. A user search
 
 8. `GET /api/similar/:id` returns the rated titles that TMDB recommends for a movie or TV series (a season id gets the series' list). The page shows them in a "Similar titles" section between Summary and Details. TMDB's "similar" list matches only on genres and keywords and gives poor results, so the server uses TMDB recommendations. It answers with every rated title in the list, in TMDB's order. The browser puts titles that share theme tags with the titles the user liked (thumbs up) first, and shows 12 (see `src/shared/similar.ts`).
 
+9. The site can be installed as an app (`manifest.webmanifest`, icons in `icons/`). The installed app shows a back button left of the logo, and its header hides while scrolling down and comes back when scrolling up. A service worker (`src/client/public/sw.js`, production builds only) makes it work offline: the page loads from the network first (the saved copy after 3 seconds or offline), app files load from the cache, and the API answers of pages opened before are saved for offline use (at most 300). The title list works offline from IndexedDB. Search and new ratings need a connection.
+
 The AI prompt always covers every category, so one cached result serves every user. Filtering happens in the browser.
 
 ### Cache and refresh policy

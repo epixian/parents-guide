@@ -128,6 +128,34 @@ h2 {
   height: 24px;
 }
 
+/* A line below the header while the browser is offline. */
+.offline-note {
+  margin: 0;
+  padding: 8px 16px;
+  background: var(--notice-bg);
+  color: var(--notice-text);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* Installed app: the header stays at the top, and hides while scrolling down (see main.ts). */
+html.installed .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  transition: transform 0.2s ease;
+}
+
+html.installed .site-header.tucked {
+  transform: translateY(-100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.installed .site-header {
+    transition: none;
+  }
+}
+
 .brand {
   display: block;
   color: var(--text);
@@ -1878,7 +1906,9 @@ a.audience:focus-visible .audience-badge {
     /* One vertical gap between every part of the rail. */
     --rail-gap: 8px;
     position: fixed;
-    top: 16px;
+    /* Below the installed app's header while it shows (--header-shown, see main.ts). */
+    top: calc(var(--header-shown, 0px) + 16px);
+    transition: top 0.2s ease;
     /* 960px column centered. The rail's content (176px less 6px of padding,
        after the -2px margin) ends 16px from the cards, the same as top. */
     left: calc(50% - 480px - 170px);

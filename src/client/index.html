@@ -102,6 +102,10 @@
         </div>
       </div>
     </header>
+    <!-- Shown by main.ts while the browser is offline. -->
+    <p id="offline-note" class="offline-note" role="status" hidden>
+      You are offline. Saved titles and pages you opened before still work. Search and new ratings need a connection.
+    </p>
     <main id="app" aria-live="polite"></main>
     <!-- Hidden until main.ts renders the first page, so it does not jump down when the content arrives. -->
     <footer class="site-footer" hidden>

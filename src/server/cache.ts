@@ -55,11 +55,20 @@ export class FileReportCache implements ReportCache {
   }
 
   async listAll(): Promise<Report[]> {
-    const files = await fs.readdir(this.root, { recursive: true }).catch(() => [] as string[]);
+    // Only the result folders: CACHE_DIR also holds other files (batch-catalog/, popularity.json) and,
+    // in production, the .git folder of the backup, which is slow to read.
+    const files = (
+      await Promise.all(
+        [...RESULT_DIRS].map(async (dir) =>
+          (await fs.readdir(path.join(this.root, dir), { recursive: true }).catch(() => [] as string[])).map((rel) =>
+            path.join(dir, rel),
+          ),
+        ),
+      )
+    ).flat();
     const reports: Report[] = [];
     for (const rel of files) {
-      // Only the result folders; CACHE_DIR also holds other files (batch-catalog/, popularity.json).
-      if (!rel.endsWith(".json") || !RESULT_DIRS.has(rel.split(path.sep)[0]!)) continue;
+      if (!rel.endsWith(".json")) continue;
       try {
         const report = JSON.parse(await fs.readFile(path.join(this.root, rel), "utf8")) as Report;
         if (report.schemaVersion === SCHEMA_VERSION && cachePathFor(report.id) === rel) reports.push(report);

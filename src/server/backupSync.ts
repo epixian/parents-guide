@@ -19,7 +19,21 @@ const CONCURRENCY = 8;
 
 async function localFiles(root: string): Promise<Map<string, number>> {
   const out = new Map<string, number>();
-  const entries = await fs.readdir(root, { recursive: true }).catch(() => [] as string[]);
+  // Not recursive at the top: CACHE_DIR may be a git repository, and its .git folder is slow to read.
+  const top = await fs.readdir(root, { withFileTypes: true }).catch(() => []);
+  const entries = (
+    await Promise.all(
+      top.map(async (e) =>
+        !e.isDirectory()
+          ? [e.name]
+          : e.name.startsWith(".")
+            ? []
+            : (await fs.readdir(path.join(root, e.name), { recursive: true }).catch(() => [] as string[])).map((rel) =>
+                path.join(e.name, rel),
+              ),
+      ),
+    )
+  ).flat();
   for (const rel of entries) {
     if (!isBackedUp(rel)) continue;
     const stat = await fs.stat(path.join(root, rel)).catch(() => null);

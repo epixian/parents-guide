@@ -235,3 +235,14 @@ test("titleChanges sends the changes since a tag, also after a restart, and rese
     assert.equal("reset" in (await restarted.titleChanges(bad)), true, bad);
   }
 });
+
+test("TV seasons merge their genres; titles without genres have none", () => {
+  const index = new TitleIndex();
+  const info = (genres?: string[]) => ({ years: null, rating: null, credits: [], imageUrl: null, source: null, ...(genres ? { genres } : {}) });
+  index.add(report("tmdb-tv-1-s01", "tv-season", "2026-10-01T00:00:00Z", { info: info(["Drama"]) }));
+  index.add(report("tmdb-tv-1-s02", "tv-season", "2026-10-02T00:00:00Z", { info: info(["Drama", "Crime"]) }));
+  index.add(report("tmdb-movie-2", "movie", "2026-10-03T00:00:00Z", { info: info() }));
+  const byId = new Map(index.titles().map((t) => [t.id, t]));
+  assert.deepEqual(byId.get("tmdb-tv-1")!.genres, ["Drama", "Crime"]);
+  assert.equal("genres" in byId.get("tmdb-movie-2")!, false);
+});

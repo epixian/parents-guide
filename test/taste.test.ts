@@ -4,7 +4,7 @@ import { fitFor, markSignals, MIN_FIT } from "../src/shared/taste.js";
 import type { ThemeTag } from "../src/shared/themes.js";
 import type { IndexEntry } from "../src/shared/types.js";
 
-const title = (id: string, themeTags: ThemeTag[], mood?: [number, number, number]): IndexEntry => ({
+const title = (id: string, themeTags: ThemeTag[], mood?: [number, number, number], genres?: string[]): IndexEntry => ({
   id,
   kind: "movie",
   title: id,
@@ -16,6 +16,7 @@ const title = (id: string, themeTags: ThemeTag[], mood?: [number, number, number
   scores: {},
   treatments: {},
   ...(mood ? { mood: { tone: mood[0], feeling: mood[1], depth: mood[2] } } : {}),
+  ...(genres ? { genres } : {}),
 });
 
 // Funny animal titles (uplifting, low-key, light) and grim war titles (bleak, powerful, profound).
@@ -80,4 +81,21 @@ test("fitFor gives no fit to a good score when more than the top share of titles
   // With more titles in the catalog, the same 2 higher titles are less than 5% of it.
   const filler = Array.from({ length: 20 }, (_, i) => title(`more${i}`, ["history"], [2, 4, 4]));
   assert.ok(fitFor("partial", [...catalog, partial, ...filler], clear));
+});
+
+test("fitFor ranks genre above theme tags and mood", () => {
+  // Same tags and mood: liked thrillers, disliked cartoons. Only the genres tell them apart.
+  const tags: ThemeTag[] = ["mystery", "crime-and-justice"];
+  const thriller = (id: string) => title(id, tags, [3, 2, 3], ["Thriller", "Crime"]);
+  const cartoon = (id: string) => title(id, tags, [3, 2, 3], ["Animation", "Comedy"]);
+  const genreCatalog = [
+    ...["t1", "t2", "t3", "t4", "t5"].map(thriller),
+    ...["c1", "c2", "c3", "c4", "c5"].map(cartoon),
+    ...Array.from({ length: 20 }, (_, i) => title(`other${i}`, ["family"], [4, 3, 3], ["Family"])),
+  ];
+  const marks = { t1: "up", t2: "up", t3: "up", t4: "up", c1: "down", c2: "down", c3: "down", c4: "down" } as const;
+  const fit = fitFor("t5", genreCatalog, marks);
+  assert.ok(fit);
+  assert.deepEqual(fit.likedNear.map((t) => t.id).sort(), ["t1", "t2", "t3", "t4"]);
+  assert.equal(fitFor("c5", genreCatalog, marks), null);
 });

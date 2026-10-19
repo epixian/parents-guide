@@ -52,10 +52,11 @@ export function parseId(id: string): { kind: Report["kind"]; load: (now: Date) =
 /** Catalog facts (credits, poster, audience score) older than this are reloaded on the next view. No AI call. */
 const INFO_MAX_AGE_MS = 30 * 86_400_000;
 
-/** False when the info box is missing, in an older format, or older than INFO_MAX_AGE_MS. */
+/** False when the info box is missing, in an older format (or a movie or TV season without genres), or older than INFO_MAX_AGE_MS. */
 function hasCurrentInfo(report: Report, now: Date): boolean {
   const info = report.info;
   if (!info?.fetchedAt || !info.credits.every((c) => Array.isArray(c.entries))) return false;
+  if (report.kind !== "book" && !info.genres) return false;
   return now.getTime() - Date.parse(info.fetchedAt) < INFO_MAX_AGE_MS;
 }
 

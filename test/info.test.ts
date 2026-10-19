@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { WorkInfo } from "../src/shared/types.js";
 import { audienceScore } from "../src/server/catalog/types.js";
+import { screenGenres } from "../src/server/catalog/tmdb.js";
 import { mergeInfo } from "../src/server/reports.js";
 
 const info = (publisher: string): WorkInfo => ({
@@ -25,4 +26,12 @@ test("audience score needs enough votes and rounds to one decimal", () => {
   assert.deepEqual(audienceScore("TMDB", 8.7134, 27000, 10, 25), { source: "TMDB", average: 8.7, scale: 10, count: 27000 });
   assert.equal(audienceScore("TMDB", 9, 24, 10, 25), null);
   assert.equal(audienceScore("Open Library", 0, 50, 5, 10), null);
+});
+
+test("screenGenres gives TV genres in movie names, once each", () => {
+  const named = (...names: string[]) => names.map((name) => ({ name }));
+  assert.deepEqual(screenGenres(named("Action & Adventure", "Sci-Fi & Fantasy", "Kids", "Family", "Drama")), [
+    "Action", "Adventure", "Science Fiction", "Fantasy", "Family", "Drama",
+  ]);
+  assert.deepEqual(screenGenres(undefined), []);
 });

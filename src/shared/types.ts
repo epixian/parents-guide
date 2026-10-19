@@ -40,6 +40,8 @@ export interface WorkInfo {
   audience?: AudienceScore | null;
   /** ISO timestamp of the catalog lookup. The server reloads facts older than 30 days. Older files may not have it. */
   fetchedAt?: string;
+  /** TMDB genres in movie names (see screenGenres), e.g. ["Action", "Thriller"]. Movies and TV only. Older files may not have it. */
+  genres?: string[];
 }
 
 /** Average user score at a catalog source, e.g. TMDB 8.7 / 10 from 27,000 votes. */
@@ -207,6 +209,8 @@ export interface IndexEntry {
   treatments: Partial<Record<CategoryId, TreatmentId[]>>;
   /** Mood on the current scales (the newest rated season that has one, for TV). Left out when unknown. */
   mood?: { tone: number; feeling: number; depth: number };
+  /** TMDB genres (see WorkInfo.genres). Left out for books and titles not looked up yet. */
+  genres?: string[];
   /** User score at the catalog source (TMDB or Open Library) as a percent, so both sort together. Left out when unknown. */
   userScore?: number;
   /** TMDB ids of the services that stream it (see WatchService.sweep). Left out for books and titles with none or not looked up yet. */

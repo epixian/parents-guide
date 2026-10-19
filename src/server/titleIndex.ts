@@ -22,6 +22,7 @@ interface ResultEntry {
   /** Catalog user score as a percent, or null. */
   userScore: number | null;
   mood: IndexEntry["mood"] | null;
+  genres: string[];
 }
 
 function toEntry(r: Report): ResultEntry {
@@ -45,11 +46,12 @@ function toEntry(r: Report): ResultEntry {
     scores,
     treatments,
     mood: hasMood(r) ? { tone: r.mood.tone, feeling: r.mood.feeling, depth: r.mood.depth } : null,
+    genres: r.info?.genres ?? [],
     userScore: r.info?.audience ? Math.round((r.info.audience.average / r.info.audience.scale) * 100) : null,
   };
 }
 
-/** Merge TV seasons into one series entry: highest score per category, all treatments and tags. */
+/** Merge TV seasons into one series entry: highest score per category, all treatments, tags, and genres. */
 function mergeTitle(results: ResultEntry[]): IndexEntry {
   const newest = results.reduce((a, b) => (b.addedAt > a.addedAt ? b : a));
   // TV seasons carry the series' score; use the newest one that has a score.
@@ -60,6 +62,7 @@ function mergeTitle(results: ResultEntry[]): IndexEntry {
   const scores: IndexEntry["scores"] = {};
   const treatments: IndexEntry["treatments"] = {};
   const tagCounts = new Map<ThemeTag, number>();
+  const genres = new Set<string>();
   for (const r of results) {
     for (const [id, score] of Object.entries(r.scores) as [CategoryId, number][]) {
       scores[id] = Math.max(scores[id] ?? 0, score);
@@ -69,6 +72,7 @@ function mergeTitle(results: ResultEntry[]): IndexEntry {
       if (!list.includes(t)) list.push(t);
     }
     for (const tag of r.themeTags) tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+    for (const g of r.genres) genres.add(g);
   }
   return {
     id: newest.titleId,
@@ -83,6 +87,7 @@ function mergeTitle(results: ResultEntry[]): IndexEntry {
     treatments,
     ...(userScore != null ? { userScore } : {}),
     ...(mood ? { mood } : {}),
+    ...(genres.size ? { genres: [...genres] } : {}),
   };
 }
 

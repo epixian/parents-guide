@@ -45,10 +45,15 @@ export const TOP_SHARE = 0.05;
 /** Marked titles that vote on a fit: the most similar ones. */
 export const NEIGHBORS = 5;
 /**
- * Part of the similarity from the theme tags; the rest is from the mood.
- * Most titles for children have a similar mood, so mood alone says little.
+ * Parts of the similarity: genre counts most, then theme tags, then mood.
+ * Genres keep a cartoon comedy apart from a crime thriller with the same
+ * tags. Most titles for children have a similar mood, so mood alone says
+ * little. A part that one of the titles has no data for is left out, and the
+ * other parts share its weight.
  */
-const TAG_WEIGHT = 2 / 3;
+const GENRE_WEIGHT = 3;
+const TAG_WEIGHT = 2;
+const MOOD_WEIGHT = 1;
 /** Mood distance (on the 1-5 scales) at which two moods have no similarity. */
 const MOOD_FAR = 2;
 
@@ -68,37 +73,59 @@ interface Marked {
   signal: number;
 }
 
-/** Rarity of each tag in the catalog: a tag that most titles have says little. */
-function rarity(catalog: readonly IndexEntry[]): (tag: ThemeTag) => number {
-  const count = new Map<ThemeTag, number>();
-  for (const t of catalog) for (const tag of new Set(t.themeTags)) count.set(tag, (count.get(tag) ?? 0) + 1);
-  return (tag) => Math.log(1 + catalog.length / (count.get(tag) ?? 1));
+/** Rarity of each theme tag and genre in the catalog: one that most titles have says little. */
+interface Rarity {
+  tag: (tag: ThemeTag) => number;
+  genre: (genre: string) => number;
 }
 
-/**
- * Similarity of two titles, 0 to 1: the tag similarity (cosine, with rare
- * tags weighted more) and the mood closeness, by TAG_WEIGHT. Tags only when
- * either title has no mood.
- */
-function similarity(a: IndexEntry, b: IndexEntry, rare: (tag: ThemeTag) => number): number {
-  const tb = new Set(b.themeTags);
+function rarityOf<K>(catalog: readonly IndexEntry[], keys: (t: IndexEntry) => readonly K[]): (key: K) => number {
+  const count = new Map<K, number>();
+  for (const t of catalog) for (const key of new Set(keys(t))) count.set(key, (count.get(key) ?? 0) + 1);
+  return (key) => Math.log(1 + catalog.length / (count.get(key) ?? 1));
+}
+
+function rarity(catalog: readonly IndexEntry[]): Rarity {
+  return { tag: rarityOf(catalog, (t) => t.themeTags), genre: rarityOf(catalog, (t) => t.genres ?? []) };
+}
+
+/** Cosine similarity of two sets, with rare keys weighted more. 0 when either is empty. */
+function cosine<K>(a: readonly K[], b: readonly K[], rare: (key: K) => number): number {
+  const sb = new Set(b);
   let shared = 0;
   let na = 0;
   let nb = 0;
-  for (const tag of new Set(a.themeTags)) {
-    const w = rare(tag) ** 2;
+  for (const key of new Set(a)) {
+    const w = rare(key) ** 2;
     na += w;
-    if (tb.has(tag)) shared += w;
+    if (sb.has(key)) shared += w;
   }
-  for (const tag of tb) nb += rare(tag) ** 2;
-  const tags = na && nb ? shared / Math.sqrt(na * nb) : 0;
-  if (!a.mood || !b.mood) return tags;
-  const d = Math.hypot(a.mood.tone - b.mood.tone, a.mood.feeling - b.mood.feeling, a.mood.depth - b.mood.depth);
-  return TAG_WEIGHT * tags + (1 - TAG_WEIGHT) * Math.max(0, 1 - d / MOOD_FAR);
+  for (const key of sb) nb += rare(key) ** 2;
+  return na && nb ? shared / Math.sqrt(na * nb) : 0;
+}
+
+/**
+ * Similarity of two titles, 0 to 1: the genre and tag similarity (see cosine)
+ * and the mood closeness, by GENRE_WEIGHT, TAG_WEIGHT, and MOOD_WEIGHT.
+ * Genres only when both titles have them (books do not); mood the same.
+ */
+function similarity(a: IndexEntry, b: IndexEntry, rare: Rarity): number {
+  let sum = TAG_WEIGHT * cosine(a.themeTags, b.themeTags, rare.tag);
+  let weight = TAG_WEIGHT;
+  if (a.genres?.length && b.genres?.length) {
+    sum += GENRE_WEIGHT * cosine(a.genres, b.genres, rare.genre);
+    weight += GENRE_WEIGHT;
+  }
+  if (a.mood && b.mood) {
+    const d = Math.hypot(a.mood.tone - b.mood.tone, a.mood.feeling - b.mood.feeling, a.mood.depth - b.mood.depth);
+    sum += MOOD_WEIGHT * Math.max(0, 1 - d / MOOD_FAR);
+    weight += MOOD_WEIGHT;
+  }
+  return sum / weight;
 }
 
 /** The fit score (see Fit) and the marked titles that vote on it, most similar first. */
-function predict(t: IndexEntry, marked: readonly Marked[], rare: (tag: ThemeTag) => number) {
+function predict(t: IndexEntry, marked: readonly Marked[], rare: Rarity) {
   const near = marked
     .filter((m) => m.t.id !== t.id)
     .map((m) => ({ ...m, sim: similarity(t, m.t, rare) }))

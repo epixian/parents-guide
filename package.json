@@ -22,6 +22,8 @@
     "batch:dev": "tsx src/server/batch.ts",
     "backfill:mood": "node dist/server/backfillMood.js",
     "backfill:mood:dev": "tsx src/server/backfillMood.ts",
+    "backfill:genres": "node dist/server/backfillGenres.js",
+    "backfill:genres:dev": "tsx src/server/backfillGenres.ts",
     "backup:sync": "node dist/server/backupSync.js",
     "backup:sync:dev": "tsx src/server/backupSync.ts"
   },

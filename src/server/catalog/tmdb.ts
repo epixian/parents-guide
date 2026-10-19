@@ -118,6 +118,19 @@ function topCast(c: Credits | undefined, n = 5): CreditEntry[] {
     .map(person);
 }
 
+/** TV genres that hold two movie genres, or that have another movie name. */
+const TV_GENRES: Record<string, string[]> = {
+  "Action & Adventure": ["Action", "Adventure"],
+  "Sci-Fi & Fantasy": ["Science Fiction", "Fantasy"],
+  "War & Politics": ["War"],
+  Kids: ["Family"],
+};
+
+/** Genre names, with TV genres in movie names, so a movie and a series can share a genre. */
+export function screenGenres(genres: Named[] | undefined): string[] {
+  return [...new Set((genres ?? []).flatMap((g) => TV_GENRES[g.name] ?? [g.name]))];
+}
+
 /** TMDB user score (0-10). */
 const tmdbScore = (d: { vote_average?: number; vote_count?: number }) =>
   audienceScore("TMDB", d.vote_average, d.vote_count, 10, 25);
@@ -162,6 +175,7 @@ export async function getMovie(tmdbId: string, now: Date): Promise<WorkDetails> 
     source: { name: "TMDB", url: `${SITE}/movie/${tmdbId}` },
     audience: tmdbScore(m),
     fetchedAt: now.toISOString(),
+    genres: screenGenres(m.genres),
   };
 
   const context = [
@@ -243,6 +257,7 @@ export async function getTvSeries(tmdbId: string): Promise<TvSeries> {
       source: { name: "TMDB", url: `${SITE}/tv/${tmdbId}` },
       audience: tmdbScore(tv),
       fetchedAt: new Date().toISOString(),
+      genres: screenGenres(tv.genres),
     },
     // Season 0 holds specials; it is not rated.
     seasons: (tv.seasons ?? [])
@@ -293,6 +308,7 @@ export async function getTvSeason(tmdbId: string, seasonNumber: number, now: Dat
     // TMDB has vote counts for whole series only, so a season shows the series score.
     audience: tmdbScore(tv),
     fetchedAt: now.toISOString(),
+    genres: screenGenres(tv.genres),
   };
 
   const context = [
@@ -330,6 +346,12 @@ export function parseScreenId(id: string): { kind: "movie" | "tv"; tmdbId: strin
   const m = /^tmdb-(?:movie-(\d+)|tv-(\d+)(?:-s\d+)?)$/.exec(id);
   if (!m) return null;
   return m[1] ? { kind: "movie", tmdbId: m[1] } : { kind: "tv", tmdbId: m[2]! };
+}
+
+/** Genres of a movie or TV series (see screenGenres), for the genre backfill. */
+export async function getGenres(kind: "movie" | "tv", tmdbId: string): Promise<string[]> {
+  const d = await tmdb<{ genres?: Named[] }>(`/${kind}/${tmdbId}?language=en-US`);
+  return screenGenres(d.genres);
 }
 
 // ---------- Similar titles ----------

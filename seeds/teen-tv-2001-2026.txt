@@ -1,0 +1,125 @@
+# 116 popular TV shows for teenagers, first aired 2001-2026, season 1 only.
+# Source: a hand-picked list of teen-audience shows (teen dramas and comedies, Disney Channel and Nickelodeon
+# teen sitcoms, teen-favorite anime), ids resolved with TMDB /search/tv, ordered by TMDB vote_count.
+# Adult-rated teen shows (Euphoria, Skins, Elite, Big Mouth) are kept, since teens watch them.
+# Left out: shows that started before 2001 (Gilmore Girls, Malcolm in the Middle), general-audience hits
+# (Game of Thrones, Squid Game, The Big Bang Theory), and cartoons for younger kids.
+# Generated 2026-10-18.
+# Run: npm run batch -- seeds/teen-tv-2001-2026.txt --dry-run
+
+tmdb-tv-66732-s01  # Stranger Things (2016), 21992 votes
+tmdb-tv-69050-s01  # Riverdale (2017), 13808 votes
+tmdb-tv-85552-s01  # Euphoria (2019), 11129 votes
+tmdb-tv-119051-s01  # Wednesday (2022), 10895 votes
+tmdb-tv-18165-s01  # The Vampire Diaries (2009), 9806 votes
+tmdb-tv-76669-s01  # Elite (2018), 9427 votes
+tmdb-tv-48866-s01  # The 100 (2014), 8824 votes
+tmdb-tv-31910-s01  # Naruto Shippūden (2007), 8816 votes
+tmdb-tv-1622-s01  # Supernatural (2005), 8759 votes
+tmdb-tv-81356-s01  # Sex Education (2019), 8040 votes
+tmdb-tv-1429-s01  # Attack on Titan (2013), 7771 votes
+tmdb-tv-85937-s01  # Demon Slayer: Kimetsu no Yaiba (2019), 7525 votes
+tmdb-tv-77169-s01  # Cobra Kai (2018), 7041 votes
+tmdb-tv-94605-s01  # Arcane (2021), 6246 votes
+tmdb-tv-65930-s01  # My Hero Academia (2016), 5408 votes
+tmdb-tv-12637-s01  # Rebelde (2004), 5215 votes
+tmdb-tv-13916-s01  # Death Note (2006), 5211 votes
+tmdb-tv-246-s01  # Avatar: The Last Airbender (2005), 5174 votes
+tmdb-tv-70785-s01  # Anne with an E (2017), 5011 votes
+tmdb-tv-34524-s01  # Teen Wolf (2011), 4825 votes
+tmdb-tv-95479-s01  # JUJUTSU KAISEN (2020), 4699 votes
+tmdb-tv-66788-s01  # 13 Reasons Why (2017), 4689 votes
+tmdb-tv-4604-s01  # Smallville (2001), 4635 votes
+tmdb-tv-99966-s01  # All of Us Are Dead (2022), 4491 votes
+tmdb-tv-63926-s01  # One-Punch Man (2015), 4269 votes
+tmdb-tv-79242-s01  # Chilling Adventures of Sabrina (2018), 3830 votes
+tmdb-tv-74577-s01  # The End of the F***ing World (2017), 3710 votes
+tmdb-tv-46896-s01  # The Originals (2013), 3675 votes
+tmdb-tv-40075-s01  # Gravity Falls (2012), 3625 votes
+tmdb-tv-71728-s01  # Young Sheldon (2017), 3125 votes
+tmdb-tv-31917-s01  # Pretty Little Liars (2010), 2855 votes
+tmdb-tv-1639-s01  # Heroes (2006), 2705 votes
+tmdb-tv-33880-s01  # The Legend of Korra (2012), 2455 votes
+tmdb-tv-120089-s01  # SPY x FAMILY (2022), 2368 votes
+tmdb-tv-1395-s01  # Gossip Girl (2007), 2365 votes
+tmdb-tv-114410-s01  # Chainsaw Man (2022), 2341 votes
+tmdb-tv-90260-s01  # I Am Not Okay with This (2020), 2019 votes
+tmdb-tv-2038-s01  # Drake & Josh (2004), 1983 votes
+tmdb-tv-100883-s01  # Never Have I Ever (2020), 1947 votes
+tmdb-tv-117581-s01  # Ginny & Georgia (2021), 1837 votes
+tmdb-tv-124834-s01  # Heartstopper (2022), 1780 votes
+tmdb-tv-31251-s01  # Victorious (2010), 1753 votes
+tmdb-tv-31356-s01  # Big Time Rush (2009), 1691 votes
+tmdb-tv-97186-s01  # Love, Victor (2020), 1669 votes
+tmdb-tv-85720-s01  # Shadow and Bone (2021), 1639 votes
+tmdb-tv-5371-s01  # iCarly (2007), 1581 votes
+tmdb-tv-97175-s01  # Fate: The Winx Saga (2021), 1580 votes
+tmdb-tv-60863-s01  # Haikyu!! (2014), 1558 votes
+tmdb-tv-92782-s01  # Ms. Marvel (2022), 1538 votes
+tmdb-tv-86423-s01  # Locke & Key (2020), 1521 votes
+tmdb-tv-900-s01  # Skins (2007), 1447 votes
+tmdb-tv-82452-s01  # Avatar: The Last Airbender (2024), 1393 votes
+tmdb-tv-100757-s01  # Outer Banks (2020), 1293 votes
+tmdb-tv-71578-s01  # Atypical (2017), 1288 votes
+tmdb-tv-74204-s01  # Big Mouth (2017), 1266 votes
+tmdb-tv-63210-s01  # Shadowhunters (2016), 1259 votes
+tmdb-tv-125910-s01  # Young Royals (2021), 1233 votes
+tmdb-tv-3498-s01  # Wizards of Waverly Place (2007), 1212 votes
+tmdb-tv-7225-s01  # Merlin (2008), 1206 votes
+tmdb-tv-80986-s01  # DC's Stargirl (2020), 1201 votes
+tmdb-tv-61852-s01  # Henry Danger (2014), 1179 votes
+tmdb-tv-252-s01  # Everybody Hates Chris (2005), 1159 votes
+tmdb-tv-194766-s01  # The Summer I Turned Pretty (2022), 1147 votes
+tmdb-tv-1778-s01  # Zoey 101 (2005), 1080 votes
+tmdb-tv-31295-s01  # Misfits (2009), 1077 votes
+tmdb-tv-67466-s01  # Marvel's Runaways (2017), 1006 votes
+tmdb-tv-1417-s01  # Glee (2009), 987 votes
+tmdb-tv-2673-s01  # The O.C. (2003), 983 votes
+tmdb-tv-83639-s01  # Girl from Nowhere (2018), 969 votes
+tmdb-tv-103540-s01  # Percy Jackson and the Olympians (2023), 856 votes
+tmdb-tv-85801-s01  # High School Musical: The Musical: The Series (2019), 801 votes
+tmdb-tv-4610-s01  # Hannah Montana (2006), 752 votes
+tmdb-tv-1432-s01  # Veronica Mars (2004), 742 votes
+tmdb-tv-2260-s01  # H2O: Just Add Water (2006), 727 votes
+tmdb-tv-46028-s01  # Girl Meets World (2014), 724 votes
+tmdb-tv-4605-s01  # The Suite Life of Zack & Cody (2005), 714 votes
+tmdb-tv-195670-s01  # XO, Kitty (2023), 701 votes
+tmdb-tv-38974-s01  # Jessie (2011), 691 votes
+tmdb-tv-76747-s01  # On My Block (2018), 691 votes
+tmdb-tv-250670-s01  # Maxton Hall – The World Between Us (2024), 684 votes
+tmdb-tv-131041-s01  # BLUE LOCK (2022), 676 votes
+tmdb-tv-84647-s01  # The Society (2019), 646 votes
+tmdb-tv-88640-s01  # Looking for Alaska (2019), 642 votes
+tmdb-tv-269-s01  # One Tree Hill (2003), 636 votes
+tmdb-tv-106292-s01  # Julie and the Phantoms (2020), 632 votes
+tmdb-tv-58981-s01  # The Thundermans (2013), 613 votes
+tmdb-tv-7317-s01  # The Inbetweeners (2008), 541 votes
+tmdb-tv-113367-s01  # The Wilds (2020), 506 votes
+tmdb-tv-82428-s01  # All American (2018), 499 votes
+tmdb-tv-21641-s01  # Good Luck Charlie (2010), 454 votes
+tmdb-tv-76148-s01  # Derry Girls (2018), 445 votes
+tmdb-tv-45666-s01  # Sam & Cat (2013), 439 votes
+tmdb-tv-199001-s01  # My Life with the Walter Boys (2023), 433 votes
+tmdb-tv-39859-s01  # Awkward. (2011), 426 votes
+tmdb-tv-219-s01  # Kyle XY (2006), 411 votes
+tmdb-tv-218342-s01  # A Good Girl's Guide to Murder (2024), 380 votes
+tmdb-tv-111625-s01  # Dash & Lily (2020), 369 votes
+tmdb-tv-4575-s01  # Lizzie McGuire (2001), 362 votes
+tmdb-tv-73126-s01  # American Vandal (2017), 359 votes
+tmdb-tv-46880-s01  # The Fosters (2013), 342 votes
+tmdb-tv-4278-s01  # Friday Night Lights (2006), 335 votes
+tmdb-tv-95249-s01  # Gossip Girl (2021), 322 votes
+tmdb-tv-89572-s01  # Nancy Drew (2019), 315 votes
+tmdb-tv-4602-s01  # That's So Raven (2003), 294 votes
+tmdb-tv-208397-s01  # School Spirits (2023), 292 votes
+tmdb-tv-70540-s01  # Andi Mack (2017), 267 votes
+tmdb-tv-110531-s01  # Pretty Little Liars: Original Sin (2022), 259 votes
+tmdb-tv-58956-s01  # Wolfblood (2012), 257 votes
+tmdb-tv-118958-s01  # One of Us Is Lying (2021), 242 votes
+tmdb-tv-39357-s01  # Suburgatory (2011), 237 votes
+tmdb-tv-46157-s01  # The Carrie Diaries (2013), 237 votes
+tmdb-tv-35279-s01  # Austin & Ally (2011), 221 votes
+tmdb-tv-37632-s01  # Switched at Birth (2011), 221 votes
+tmdb-tv-5917-s01  # 90210 (2008), 216 votes
+tmdb-tv-5721-s01  # The Secret Life of the American Teenager (2008), 142 votes
+tmdb-tv-1948-s01  # Degrassi (2001), 115 votes

@@ -1,0 +1,508 @@
+# 500 teen movies (any year) that are not in the other movie seed lists, by TMDB vote_count.
+# Source: TMDB /discover/movie, include_adult=false, sort_by=vote_count.desc, with any of the keywords high school,
+# teenager, coming of age, teen comedy, teen drama, teen movie, teen horror, teen romance, prom, based on young adult
+# novel, teen superhero, high school student, teen angst, high school sports. Minus ids in popular-movies-*.txt and
+# cult-movies.txt (they already hold the big teen hits). Kept: released 1980 or later, in English, Japanese, Korean,
+# or Spanish. Removed by hand: adult films with a teen character, art films, and adult comedies. Generated 2026-10-18.
+# Run: npm run batch -- seeds/teen-movies.txt --dry-run
+
+tmdb-movie-38117  # Beastly (2011), 2902 votes
+tmdb-movie-508883  # The Boy and the Heron (2023), 2861 votes
+tmdb-movie-308369  # Me and Earl and the Dying Girl (2015), 2843 votes
+tmdb-movie-11545  # Rushmore (1998), 2834 votes
+tmdb-movie-80271  # LOL (2012), 2764 votes
+tmdb-movie-776503  # CODA (2021), 2752 votes
+tmdb-movie-68737  # Seventh Son (2014), 2726 votes
+tmdb-movie-412656  # Chaos Walking (2021), 2722 votes
+tmdb-movie-2976  # Hairspray (2007), 2691 votes
+tmdb-movie-407436  # Mowgli: Legend of the Jungle (2018), 2658 votes
+tmdb-movie-277217  # Descendants (2015), 2592 votes
+tmdb-movie-8856  # The Karate Kid Part II (1986), 2586 votes
+tmdb-movie-8456  # Never Back Down (2008), 2571 votes
+tmdb-movie-11459  # Sky High (2005), 2551 votes
+tmdb-movie-43923  # It's Kind of a Funny Story (2010), 2531 votes
+tmdb-movie-369557  # Sing Street (2016), 2531 votes
+tmdb-movie-1646  # Freedom Writers (2007), 2515 votes
+tmdb-movie-371645  # Hunt for the Wilderpeople (2016), 2426 votes
+tmdb-movie-682507  # Where the Crawdads Sing (2022), 2424 votes
+tmdb-movie-9276  # The Faculty (1998), 2402 votes
+tmdb-movie-11397  # Not Another Teen Movie (2001), 2390 votes
+tmdb-movie-10925  # The Return of the Living Dead (1985), 2385 votes
+tmdb-movie-9571  # Dazed and Confused (1993), 2382 votes
+tmdb-movie-37797  # Whisper of the Heart (1995), 2382 votes
+tmdb-movie-650  # Boyz n the Hood (1991), 2373 votes
+tmdb-movie-10314  # She's All That (1999), 2340 votes
+tmdb-movie-14069  # The Girl Who Leapt Through Time (2006), 2332 votes
+tmdb-movie-465136  # Every Day (2018), 2328 votes
+tmdb-movie-198375  # The Garden of Words (2013), 2314 votes
+tmdb-movie-10474  # The Basketball Diaries (1995), 2306 votes
+tmdb-movie-8193  # Napoleon Dynamite (2004), 2283 votes
+tmdb-movie-15144  # Sixteen Candles (1984), 2277 votes
+tmdb-movie-11852  # The Hot Chick (2002), 2269 votes
+tmdb-movie-470044  # The Hate U Give (2018), 2261 votes
+tmdb-movie-38142  # 5 Centimeters per Second (2007), 2233 votes
+tmdb-movie-10014  # A Nightmare on Elm Street Part 2: Freddy's Revenge (1985), 2216 votes
+tmdb-movie-84199  # The First Time (2012), 2185 votes
+tmdb-movie-437557  # Blockers (2018), 2184 votes
+tmdb-movie-15157  # Another Cinderella Story (2008), 2153 votes
+tmdb-movie-241251  # The Boy Next Door (2015), 2149 votes
+tmdb-movie-18126  # Hannah Montana: The Movie (2009), 2140 votes
+tmdb-movie-11918  # Superhero Movie (2008), 2106 votes
+tmdb-movie-455  # Bend It Like Beckham (2002), 2095 votes
+tmdb-movie-111969  # Stuck in Love (2013), 2060 votes
+tmdb-movie-604079  # The Long Walk (2025), 2060 votes
+tmdb-movie-727745  # The Kissing Booth 3 (2021), 2054 votes
+tmdb-movie-1029575  # The Family Plan (2023), 2021 votes
+tmdb-movie-83389  # From Up on Poppy Hill (2011), 2013 votes
+tmdb-movie-35019  # Nanny McPhee and the Big Bang (2010), 2007 votes
+tmdb-movie-9725  # Friday the 13th Part 2 (1981), 1998 votes
+tmdb-movie-109689  # I Want You (2012), 1995 votes
+tmdb-movie-2657  # Pleasantville (1998), 1982 votes
+tmdb-movie-625450  # Tall Girl (2019), 1981 votes
+tmdb-movie-15789  # A Goofy Movie (1995), 1981 votes
+tmdb-movie-2640  # Heathers (1989), 1969 votes
+tmdb-movie-13971  # Wild Child (2008), 1949 votes
+tmdb-movie-551804  # Freaky (2020), 1948 votes
+tmdb-movie-1588  # Bring It On (2000), 1933 votes
+tmdb-movie-11351  # Jeepers Creepers 2 (2003), 1907 votes
+tmdb-movie-642885  # Hocus Pocus 2 (2022), 1894 votes
+tmdb-movie-810693  # Jujutsu Kaisen 0 (2021), 1882 votes
+tmdb-movie-437586  # mid90s (2018), 1879 votes
+tmdb-movie-26123  # American Pie Presents: The Book of Love (2009), 1874 votes
+tmdb-movie-504253  # I Want to Eat Your Pancreas (2018), 1868 votes
+tmdb-movie-11023  # Thirteen (2003), 1851 votes
+tmdb-movie-1391  # Y Tu Mamá También (2001), 1850 votes
+tmdb-movie-203739  # Vampire Academy (2014), 1848 votes
+tmdb-movie-33217  # Diary of a Wimpy Kid (2010), 1847 votes
+tmdb-movie-417320  # Descendants 2 (2017), 1838 votes
+tmdb-movie-454293  # Night School (2018), 1806 votes
+tmdb-movie-19458  # Princess Protection Program (2009), 1780 votes
+tmdb-movie-10735  # What a Girl Wants (2003), 1766 votes
+tmdb-movie-68817  # Footloose (2011), 1765 votes
+tmdb-movie-489925  # Eighth Grade (2018), 1730 votes
+tmdb-movie-10131  # A Nightmare on Elm Street 4: The Dream Master (1988), 1703 votes
+tmdb-movie-283378  # Fallen (2016), 1689 votes
+tmdb-movie-315465  # The Boy and the Beast (2015), 1656 votes
+tmdb-movie-49020  # Submarine (2011), 1654 votes
+tmdb-movie-308639  # Dope (2015), 1637 votes
+tmdb-movie-597219  # The Half of It (2020), 1634 votes
+tmdb-movie-11355  # Never Been Kissed (1999), 1631 votes
+tmdb-movie-227  # The Outsiders (1983), 1626 votes
+tmdb-movie-87826  # Here Comes the Boom (2012), 1621 votes
+tmdb-movie-14191  # Aquamarine (2006), 1619 votes
+tmdb-movie-8326  # Holes (2003), 1610 votes
+tmdb-movie-511785  # Alex Strangelove (2018), 1593 votes
+tmdb-movie-13523  # Sex Drive (2008), 1536 votes
+tmdb-movie-472451  # Boy Erased (2018), 1527 votes
+tmdb-movie-961323  # Nimona (2023), 1524 votes
+tmdb-movie-9293  # John Tucker Must Die (2006), 1522 votes
+tmdb-movie-115290  # Blue Lagoon: The Awakening (2012), 1521 votes
+tmdb-movie-347626  # He's All That (2021), 1512 votes
+tmdb-movie-877269  # Strange World (2022), 1478 votes
+tmdb-movie-472734  # Dumplin' (2018), 1462 votes
+tmdb-movie-9270  # Brick (2006), 1449 votes
+tmdb-movie-779782  # The School for Good and Evil (2022), 1434 votes
+tmdb-movie-40264  # Vampires Suck (2010), 1432 votes
+tmdb-movie-13342  # Fast Times at Ridgemont High (1982), 1428 votes
+tmdb-movie-502292  # The Last Summer (2019), 1408 votes
+tmdb-movie-1197137  # Black Phone 2 (2025), 1390 votes
+tmdb-movie-64678  # The Art of Getting By (2011), 1387 votes
+tmdb-movie-40205  # 16 Wishes (2010), 1385 votes
+tmdb-movie-9779  # The Sisterhood of the Traveling Pants (2005), 1378 votes
+tmdb-movie-1159559  # Scream 7 (2026), 1361 votes
+tmdb-movie-345922  # Fist Fight (2017), 1346 votes
+tmdb-movie-795514  # The Fallout (2021), 1345 votes
+tmdb-movie-11824  # Teen Wolf (1985), 1314 votes
+tmdb-movie-15080  # Only Yesterday (1991), 1308 votes
+tmdb-movie-12182  # Nick and Norah's Infinite Playlist (2008), 1308 votes
+tmdb-movie-156700  # The Kings of Summer (2013), 1279 votes
+tmdb-movie-10283  # Friday the 13th Part VIII: Jason Takes Manhattan (1989), 1265 votes
+tmdb-movie-11522  # Pretty in Pink (1986), 1258 votes
+tmdb-movie-295699  # Everybody Wants Some!! (2016), 1253 votes
+tmdb-movie-9451  # Election (1999), 1250 votes
+tmdb-movie-414190  # iBoy (2017), 1249 votes
+tmdb-movie-295151  # Let It Snow (2019), 1234 votes
+tmdb-movie-612706  # Work It (2020), 1231 votes
+tmdb-movie-274862  # The Lego Ninjago Movie (2017), 1218 votes
+tmdb-movie-11231  # The Next Karate Kid (1994), 1215 votes
+tmdb-movie-10923  # Agent Cody Banks (2003), 1206 votes
+tmdb-movie-24418  # Cirque du Freak: The Vampire's Assistant (2009), 1199 votes
+tmdb-movie-2028  # Say Anything... (1989), 1186 votes
+tmdb-movie-621013  # Chemical Hearts (2020), 1174 votes
+tmdb-movie-431075  # Polaroid (2019), 1171 votes
+tmdb-movie-22798  # Whip It (2009), 1168 votes
+tmdb-movie-1022787  # Elio (2025), 1155 votes
+tmdb-movie-8457  # Drillbit Taylor (2008), 1148 votes
+tmdb-movie-1040148  # Ruby Gillman, Teenage Kraken (2023), 1144 votes
+tmdb-movie-37725  # It's a Boy Girl Thing (2006), 1142 votes
+tmdb-movie-248574  # Barely Lethal (2015), 1133 votes
+tmdb-movie-90369  # Now Is Good (2012), 1124 votes
+tmdb-movie-129139  # The To Do List (2013), 1122 votes
+tmdb-movie-1297842  # GOAT (2026), 1123 votes
+tmdb-movie-306952  # Naomi and Ely's No Kiss List (2015), 1084 votes
+tmdb-movie-379291  # Justice League vs. Teen Titans (2016), 1066 votes
+tmdb-movie-74018  # A Cinderella Story: Once Upon a Song (2011), 1062 votes
+tmdb-movie-762968  # Do Revenge (2022), 1050 votes
+tmdb-movie-9871  # Ginger Snaps (2000), 1050 votes
+tmdb-movie-455656  # #realityhigh (2017), 1049 votes
+tmdb-movie-426613  # The Miseducation of Cameron Post (2018), 1038 votes
+tmdb-movie-69798  # The Inbetweeners Movie (2011), 1029 votes
+tmdb-movie-820525  # After Everything (2023), 1022 votes
+tmdb-movie-19840  # I Love You, Beth Cooper (2009), 1020 votes
+tmdb-movie-299245  # The Gallows (2015), 1012 votes
+tmdb-movie-22327  # Youth in Revolt (2009), 1012 votes
+tmdb-movie-243684  # Men, Women & Children (2014), 1006 votes
+tmdb-movie-723419  # Mr. Harrigan's Phone (2022), 1005 votes
+tmdb-movie-748167  # Uglies (2024), 985 votes
+tmdb-movie-162215  # How I Live Now (2013), 980 votes
+tmdb-movie-1050035  # Monster (2023), 978 votes
+tmdb-movie-177888  # Teen Beach Movie (2013), 977 votes
+tmdb-movie-13374  # Ice Princess (2005), 974 votes
+tmdb-movie-11132  # Confessions of a Teenage Drama Queen (2004), 971 votes
+tmdb-movie-800937  # Senior Year (2022), 964 votes
+tmdb-movie-11025  # New York Minute (2004), 955 votes
+tmdb-movie-10206  # Buffy the Vampire Slayer (1992), 954 votes
+tmdb-movie-814776  # Bottoms (2023), 942 votes
+tmdb-movie-192132  # Palo Alto (2014), 933 votes
+tmdb-movie-11211  # Bring It On: All or Nothing (2006), 934 votes
+tmdb-movie-672647  # The Map of Tiny Perfect Things (2021), 927 votes
+tmdb-movie-446101  # Assassination Nation (2018), 922 votes
+tmdb-movie-1016121  # Beautiful Disaster (2023), 921 votes
+tmdb-movie-11870  # Big Fat Liar (2002), 916 votes
+tmdb-movie-46420  # The Loved Ones (2010), 883 votes
+tmdb-movie-851644  # 20th Century Girl (2022), 871 votes
+tmdb-movie-89185  # Radio Rebel (2012), 854 votes
+tmdb-movie-13060  # Lifted (2006), 853 votes
+tmdb-movie-544431  # The Clovehitch Killer (2018), 850 votes
+tmdb-movie-533444  # Waves (2019), 849 votes
+tmdb-movie-347866  # Hot Summer Nights (2018), 849 votes
+tmdb-movie-532710  # Firestarter (2022), 845 votes
+tmdb-movie-12689  # Angus, Thongs and Perfect Snogging (2008), 844 votes
+tmdb-movie-858017  # I Saw the TV Glow (2024), 838 votes
+tmdb-movie-664300  # Shiva Baby (2021), 833 votes
+tmdb-movie-15648  # The Perfect Man (2005), 830 votes
+tmdb-movie-10188  # The Sisterhood of the Traveling Pants 2 (2008), 818 votes
+tmdb-movie-250124  # The Diary of a Teenage Girl (2015), 812 votes
+tmdb-movie-739993  # Metal Lords (2022), 807 votes
+tmdb-movie-81250  # Geek Charming (2011), 807 votes
+tmdb-movie-6552  # Idle Hands (1999), 801 votes
+tmdb-movie-512025  # There's Someone Inside Your House (2021), 801 votes
+tmdb-movie-232  # Rumble Fish (1983), 794 votes
+tmdb-movie-483980  # Z-O-M-B-I-E-S (2018), 788 votes
+tmdb-movie-673593  # Mean Girls (2024), 778 votes
+tmdb-movie-9037  # Grease 2 (1982), 763 votes
+tmdb-movie-399131  # Dude (2018), 763 votes
+tmdb-movie-10406  # Encino Man (1992), 758 votes
+tmdb-movie-198287  # After the Dark (2013), 755 votes
+tmdb-movie-22620  # Scooby-Doo! The Mystery Begins (2009), 746 votes
+tmdb-movie-660982  # American Pie Presents: Girls' Rules (2020), 744 votes
+tmdb-movie-476292  # Maquia: When the Promised Flower Blooms (2018), 743 votes
+tmdb-movie-12919  # Can't Buy Me Love (1987), 738 votes
+tmdb-movie-9022  # All the Boys Love Mandy Lane (2006), 736 votes
+tmdb-movie-611213  # The Prom (2020), 728 votes
+tmdb-movie-17927  # Fired Up! (2009), 727 votes
+tmdb-movie-550776  # Believe Me: The Abduction of Lisa McVey (2018), 723 votes
+tmdb-movie-1193501  # Whistle (2026), 723 votes
+tmdb-movie-8669  # Charlie Bartlett (2008), 719 votes
+tmdb-movie-412202  # Handsome Devil (2017), 715 votes
+tmdb-movie-396940  # Super Dark Times (2017), 703 votes
+tmdb-movie-17130  # Crossroads (2002), 703 votes
+tmdb-movie-17047  # Agent Cody Banks 2: Destination London (2004), 697 votes
+tmdb-movie-317091  # November Criminals (2017), 694 votes
+tmdb-movie-9978  # Stormbreaker (2006), 691 votes
+tmdb-movie-10985  # The New Guy (2002), 689 votes
+tmdb-movie-448095  # I Still See You (2018), 685 votes
+tmdb-movie-20178  # World's Greatest Dad (2009), 683 votes
+tmdb-movie-523781  # Words on Bathroom Walls (2020), 673 votes
+tmdb-movie-445040  # My Friend Dahmer (2017), 667 votes
+tmdb-movie-13416  # Friday Night Lights (2004), 655 votes
+tmdb-movie-278774  # Zapped (2014), 653 votes
+tmdb-movie-508791  # The Sun Is Also a Star (2019), 639 votes
+tmdb-movie-827931  # Time Cut (2024), 639 votes
+tmdb-movie-713364  # Clown in a Cornfield (2025), 636 votes
+tmdb-movie-993784  # Lisa Frankenstein (2024), 634 votes
+tmdb-movie-1990  # Paranoid Park (2007), 631 votes
+tmdb-movie-534259  # Blinded by the Light (2019), 630 votes
+tmdb-movie-278236  # X+Y (2015), 628 votes
+tmdb-movie-527660  # Yes, God, Yes (2020), 625 votes
+tmdb-movie-10115  # Stick It (2006), 622 votes
+tmdb-movie-15037  # Can't Hardly Wait (1998), 617 votes
+tmdb-movie-325189  # Teen Beach 2 (2015), 616 votes
+tmdb-movie-9785  # The Invisible (2007), 614 votes
+tmdb-movie-604578  # Spontaneous (2020), 610 votes
+tmdb-movie-21474  # Bring It On: Fight to the Finish (2009), 607 votes
+tmdb-movie-241863  # As the Gods Will (2014), 597 votes
+tmdb-movie-1327862  # Regretting You (2025), 594 votes
+tmdb-movie-7342  # Carrie (2002), 592 votes
+tmdb-movie-416494  # Status Update (2018), 586 votes
+tmdb-movie-382748  # Stargirl (2020), 577 votes
+tmdb-movie-50479  # Avalon High (2011), 577 votes
+tmdb-movie-375785  # Then Came You (2018), 576 votes
+tmdb-movie-783675  # The First Slam Dunk (2022), 574 votes
+tmdb-movie-13667  # Better Off Dead... (1985), 570 votes
+tmdb-movie-43930  # Tomorrow, When the War Began (2010), 566 votes
+tmdb-movie-15143  # Some Kind of Wonderful (1987), 565 votes
+tmdb-movie-13078  # The Babysitters (2008), 560 votes
+tmdb-movie-381034  # I Am Not a Serial Killer (2016), 557 votes
+tmdb-movie-15058  # Speak (2004), 554 votes
+tmdb-movie-555285  # Are You There God? It's Me, Margaret. (2023), 551 votes
+tmdb-movie-9893  # Sleepover (2004), 548 votes
+tmdb-movie-1075175  # How to Have Sex (2023), 546 votes
+tmdb-movie-999644  # You Are So Not Invited to My Bat Mitzvah (2023), 545 votes
+tmdb-movie-27902  # Love Wrecked (2005), 544 votes
+tmdb-movie-426618  # Where Hands Touch (2018), 543 votes
+tmdb-movie-13505  # The Perfect Score (2004), 536 votes
+tmdb-movie-947891  # My Old Ass (2024), 536 votes
+tmdb-movie-13193  # Saved! (2004), 533 votes
+tmdb-movie-14370  # Real Genius (1985), 528 votes
+tmdb-movie-11446  # Welcome to the Dollhouse (1996), 525 votes
+tmdb-movie-11857  # Orange County (2002), 524 votes
+tmdb-movie-14748  # Boy A (2008), 514 votes
+tmdb-movie-36599  # Prom Night (1980), 513 votes
+tmdb-movie-39356  # Boy (2010), 512 votes
+tmdb-movie-912916  # The Other Zoey (2023), 511 votes
+tmdb-movie-860159  # Crush (2022), 509 votes
+tmdb-movie-451925  # Time Freak (2018), 504 votes
+tmdb-movie-32293  # The Cheetah Girls (2003), 503 votes
+tmdb-movie-14859  # Keith (2008), 497 votes
+tmdb-movie-7341  # The Rage: Carrie 2 (1999), 497 votes
+tmdb-movie-14709  # Varsity Blues (1999), 493 votes
+tmdb-movie-9263  # Now and Then (1995), 492 votes
+tmdb-movie-507143  # Candy Jar (2018), 490 votes
+tmdb-movie-14123  # Bratz (2007), 483 votes
+tmdb-movie-16237  # Teen Titans: Trouble in Tokyo (2006), 482 votes
+tmdb-movie-14736  # Love & Basketball (2000), 481 votes
+tmdb-movie-51588  # Prom (2011), 478 votes
+tmdb-movie-115210  # Stitches (2012), 471 votes
+tmdb-movie-372754  # Dou kyu sei – Classmates (2016), 469 votes
+tmdb-movie-12540  # Bring It On Again (2004), 468 votes
+tmdb-movie-929170  # Honor Society (2022), 464 votes
+tmdb-movie-461928  # Anna and the Apocalypse (2018), 461 votes
+tmdb-movie-2274  # The Seeker: The Dark Is Rising (2007), 459 votes
+tmdb-movie-305932  # Expelled (2014), 456 votes
+tmdb-movie-82679  # Fun Size (2012), 455 votes
+tmdb-movie-14429  # Drive Me Crazy (1999), 452 votes
+tmdb-movie-809107  # Z-O-M-B-I-E-S 3 (2022), 451 votes
+tmdb-movie-84105  # Frenemies (2012), 451 votes
+tmdb-movie-47760  # Restless (2011), 451 votes
+tmdb-movie-14684  # School Ties (1992), 450 votes
+tmdb-movie-9424  # Disturbing Behavior (1998), 448 votes
+tmdb-movie-364111  # The Anthem of the Heart (2015), 444 votes
+tmdb-movie-28739  # Cabin Fever 2: Spring Fever (2009), 440 votes
+tmdb-movie-582186  # Oh, Ramona! (2019), 434 votes
+tmdb-movie-12281  # Mean Creek (2004), 431 votes
+tmdb-movie-778106  # Along for the Ride (2022), 428 votes
+tmdb-movie-68684  # Detention (2012), 428 votes
+tmdb-movie-772272  # Tall Girl 2 (2022), 427 votes
+tmdb-movie-632632  # Given (2020), 427 votes
+tmdb-movie-8428  # Pump Up the Volume (1990), 427 votes
+tmdb-movie-210908  # All Cheerleaders Die (2013), 425 votes
+tmdb-movie-11564  # Class of 1984 (1982), 424 votes
+tmdb-movie-37609  # The Cheetah Girls 2 (2006), 423 votes
+tmdb-movie-487702  # F the Prom (2017), 420 votes
+tmdb-movie-286987  # How to Build a Better Boy (2014), 414 votes
+tmdb-movie-174323  # G.B.F. (2014), 414 votes
+tmdb-movie-699102  # A Week Away (2021), 413 votes
+tmdb-movie-522098  # Babyteeth (2020), 409 votes
+tmdb-movie-14943  # Crows Zero (2007), 409 votes
+tmdb-movie-1008953  # Incoming (2024), 406 votes
+tmdb-movie-21705  # The Barbie Diaries (2006), 406 votes
+tmdb-movie-30923  # Alice in Wonderland (1999), 404 votes
+tmdb-movie-25642  # Ben 10: Alien Swarm (2009), 401 votes
+tmdb-movie-24913  # April Fool's Day (1986), 401 votes
+tmdb-movie-10750  # Toy Soldiers (1991), 399 votes
+tmdb-movie-539617  # Big Time Adolescence (2020), 397 votes
+tmdb-movie-232679  # When the Game Stands Tall (2014), 395 votes
+tmdb-movie-17474  # The Man in the Moon (1991), 396 votes
+tmdb-movie-419639  # The Thinning (2016), 392 votes
+tmdb-movie-736790  # Chupa (2023), 388 votes
+tmdb-movie-567690  # Dear Evan Hansen (2021), 388 votes
+tmdb-movie-530079  # Ride Your Wave (2019), 388 votes
+tmdb-movie-629017  # Run Hide Fight (2021), 384 votes
+tmdb-movie-899405  # Anonymously Yours (2021), 378 votes
+tmdb-movie-10342  # Teaching Mrs. Tingle (1999), 375 votes
+tmdb-movie-413857  # Tragedy Girls (2017), 370 votes
+tmdb-movie-14695  # Havoc (2005), 369 votes
+tmdb-movie-1312946  # The Map That Leads to You (2025), 365 votes
+tmdb-movie-448194  # Pyewacket (2017), 364 votes
+tmdb-movie-877957  # Drifting Home (2022), 363 votes
+tmdb-movie-10938  # Beautiful Thing (1996), 363 votes
+tmdb-movie-515454  # Come True (2020), 356 votes
+tmdb-movie-15674  # Sabrina the Teenage Witch (1996), 355 votes
+tmdb-movie-24548  # Just One of the Guys (1985), 352 votes
+tmdb-movie-27233  # Kids Return (1996), 350 votes
+tmdb-movie-4226  # Shriek If You Know What I Did Last Friday the 13th (2000), 349 votes
+tmdb-movie-520946  # 100% Wolf (2020), 347 votes
+tmdb-movie-10075  # Blood and Chocolate (2007), 346 votes
+tmdb-movie-425373  # The Miracle Season (2018), 343 votes
+tmdb-movie-8992  # The Sure Thing (1985), 342 votes
+tmdb-movie-18176  # Assassination of a High School President (2008), 338 votes
+tmdb-movie-21309  # River's Edge (1986), 337 votes
+tmdb-movie-632666  # Unpregnant (2020), 335 votes
+tmdb-movie-15671  # Picture This (2008), 334 votes
+tmdb-movie-36801  # Cemetery Junction (2010), 331 votes
+tmdb-movie-12619  # Cherry Falls (2000), 330 votes
+tmdb-movie-16664  # All About Lily Chou-Chou (2001), 327 votes
+tmdb-movie-13990  # The Wackness (2008), 326 votes
+tmdb-movie-1094274  # Y2K (2024), 324 votes
+tmdb-movie-53459  # F (2010), 324 votes
+tmdb-movie-10050  # Get Over It (2001), 324 votes
+tmdb-movie-14613  # Next Avengers: Heroes of Tomorrow (2008), 319 votes
+tmdb-movie-48186  # The Boy Who Cried Werewolf (2010), 317 votes
+tmdb-movie-10292  # Urban Legends: Bloody Mary (2005), 316 votes
+tmdb-movie-34583  # The Final (2010), 315 votes
+tmdb-movie-201676  # My Little Pony: Equestria Girls (2013), 314 votes
+tmdb-movie-11065  # O (2001), 314 votes
+tmdb-movie-1037113  # Snack Shack (2024), 314 votes
+tmdb-movie-537681  # Giant Little Ones (2019), 313 votes
+tmdb-movie-16723  # Sugar & Spice (2001), 314 votes
+tmdb-movie-916192  # The Tunnel to Summer, the Exit of Goodbyes (2022), 312 votes
+tmdb-movie-335795  # Monster High: The Movie (2022), 312 votes
+tmdb-movie-300666  # Bravetown (2015), 309 votes
+tmdb-movie-18172  # All the Right Moves (1983), 308 votes
+tmdb-movie-13079  # The Life Before Her Eyes (2008), 307 votes
+tmdb-movie-9821  # The Mighty (1998), 307 votes
+tmdb-movie-620705  # Crater (2023), 306 votes
+tmdb-movie-317198  # Bad Hair Day (2015), 306 votes
+tmdb-movie-73108  # Teen Spirit (2011), 305 votes
+tmdb-movie-9813  # The Quiet (2006), 303 votes
+tmdb-movie-20616  # Swimfan (2002), 302 votes
+tmdb-movie-353728  # Closet Monster (2016), 301 votes
+tmdb-movie-10263  # Tamara (2005), 297 votes
+tmdb-movie-36865  # The Disappearance of Haruhi Suzumiya (2010), 296 votes
+tmdb-movie-429238  # Coin Heist (2017), 295 votes
+tmdb-movie-409502  # I'm Not Ashamed (2016), 294 votes
+tmdb-movie-138038  # Girl vs. Monster (2012), 291 votes
+tmdb-movie-34729  # Our Lips Are Sealed (2000), 290 votes
+tmdb-movie-741011  # My First Summer (2020), 289 votes
+tmdb-movie-14671  # Summer School (1987), 288 votes
+tmdb-movie-421471  # Flower (2017), 287 votes
+tmdb-movie-27769  # Sometimes They Come Back (1991), 287 votes
+tmdb-movie-15045  # Fat Albert (2004), 284 votes
+tmdb-movie-1468683  # Heartstopper Forever (2026), 284 votes
+tmdb-movie-400547  # Hurricane Bianca (2016), 282 votes
+tmdb-movie-16094  # House Party (1990), 282 votes
+tmdb-movie-1546  # Thumbsucker (2005), 283 votes
+tmdb-movie-671583  # Upside-Down Magic (2020), 275 votes
+tmdb-movie-13346  # Lucas (1986), 275 votes
+tmdb-movie-1012201  # HAIKYU!! The Dumpster Battle (2024), 273 votes
+tmdb-movie-466876  # Gnome Alone (2017), 273 votes
+tmdb-movie-957119  # Sidelined: The QB and Me (2025), 271 votes
+tmdb-movie-552269  # Joe Bell (2020), 271 votes
+tmdb-movie-508422  # Penguin Highway (2018), 271 votes
+tmdb-movie-991814  # Re/Member (2022), 266 votes
+tmdb-movie-14662  # Slums of Beverly Hills (1998), 262 votes
+tmdb-movie-4641  # Read It and Weep (2006), 262 votes
+tmdb-movie-489939  # Daphne & Velma (2018), 261 votes
+tmdb-movie-22371  # Minutemen (2008), 260 votes
+tmdb-movie-25716  # Crows Zero II (2009), 255 votes
+tmdb-movie-571391  # Chicuarotes (2019), 254 votes
+tmdb-movie-779816  # White Bird (2023), 253 votes
+tmdb-movie-1159311  # My Hero Academia: You're Next (2024), 252 votes
+tmdb-movie-121872  # Ginger & Rosa (2012), 252 votes
+tmdb-movie-31023  # Butterfly (1999), 251 votes
+tmdb-movie-728142  # Nowhere Special (2020), 248 votes
+tmdb-movie-1158915  # Dìdi (弟弟) (2024), 249 votes
+tmdb-movie-216769  # Swindle (2014), 247 votes
+tmdb-movie-9817  # Save the Last Dance 2 (2006), 246 votes
+tmdb-movie-531145  # Boarding School (2018), 244 votes
+tmdb-movie-1128752  # Bird (2024), 242 votes
+tmdb-movie-120852  # Lesson of the Evil (2012), 242 votes
+tmdb-movie-15582  # Teen Wolf Too (1987), 241 votes
+tmdb-movie-1811  # Nowhere (1997), 239 votes
+tmdb-movie-12795  # Another Gay Movie (2006), 237 votes
+tmdb-movie-477666  # My Best Friend (2018), 235 votes
+tmdb-movie-1291559  # Drawing Closer (2024), 233 votes
+tmdb-movie-769749  # Finding You (2021), 233 votes
+tmdb-movie-74523  # Born to Race (2011), 233 votes
+tmdb-movie-29355  # Wildcats (1986), 233 votes
+tmdb-movie-574451  # Turtles All the Way Down (2024), 232 votes
+tmdb-movie-325113  # A Girl Like Her (2015), 231 votes
+tmdb-movie-316322  # Barbie in Princess Power (2015), 231 votes
+tmdb-movie-9308  # High School High (1996), 230 votes
+tmdb-movie-18835  # Private School (1983), 229 votes
+tmdb-movie-15489  # Snow Day (2000), 229 votes
+tmdb-movie-36269  # Winning London (2001), 228 votes
+tmdb-movie-264337  # Spare Parts (2015), 227 votes
+tmdb-movie-13094  # Dance of the Dead (2008), 227 votes
+tmdb-movie-31451  # Forever Strong (2008), 226 votes
+tmdb-movie-20009  # Slackers (2002), 226 votes
+tmdb-movie-8618  # The History Boys (2006), 225 votes
+tmdb-movie-115626  # Stuck in the Suburbs (2004), 223 votes
+tmdb-movie-39929  # Hello Mary Lou: Prom Night II (1987), 223 votes
+tmdb-movie-87440  # Struck by Lightning (2013), 221 votes
+tmdb-movie-311615  # Smosh: The Movie (2015), 220 votes
+tmdb-movie-49350  # Harriet the Spy: Blog Wars (2010), 216 votes
+tmdb-movie-572400  # Don't Tell a Soul (2020), 215 votes
+tmdb-movie-212162  # Puella Magi Madoka Magica the Movie -Rebellion- (2013), 215 votes
+tmdb-movie-292177  # My Little Pony: Equestria Girls – Rainbow Rocks (2014), 214 votes
+tmdb-movie-70695  # Dirty Girl (2010), 214 votes
+tmdb-movie-26035  # According to Greta (2009), 214 votes
+tmdb-movie-893941  # Misfit (2021), 213 votes
+tmdb-movie-26603  # Vice Versa (1988), 212 votes
+tmdb-movie-20771  # Kim Possible Movie: So the Drama (2005), 211 votes
+tmdb-movie-212470  # Monster High: 13 Wishes (2013), 211 votes
+tmdb-movie-57118  # That's What I Am (2011), 210 votes
+tmdb-movie-360404  # Monster High: Boo York, Boo York (2015), 210 votes
+tmdb-movie-1243381  # Mary (2024), 208 votes
+tmdb-movie-576040  # Malibu Rescue (2019), 208 votes
+tmdb-movie-417028  # The Swap (2016), 208 votes
+tmdb-movie-24742  # Secret Admirer (1985), 207 votes
+tmdb-movie-637053  # Shithouse (2020), 205 votes
+tmdb-movie-22590  # Sidekicks (1992), 205 votes
+tmdb-movie-194722  # At Middleton (2013), 202 votes
+tmdb-movie-27681  # Wish Upon a Star (1996), 201 votes
+tmdb-movie-956262  # The Kitchen (2023), 200 votes
+tmdb-movie-255413  # anohana: The Flower We Saw That Day - The Movie (2013), 198 votes
+tmdb-movie-25199  # Teen Witch (1989), 197 votes
+tmdb-movie-24584  # Get Real (1998), 197 votes
+tmdb-movie-12621  # Hamlet 2 (2008), 196 votes
+tmdb-movie-32272  # Death Bell (2008), 195 votes
+tmdb-movie-110490  # Rags (2012), 193 votes
+tmdb-movie-635918  # Dating Amber (2020), 191 votes
+tmdb-movie-381075  # Teenage Cocktail (2016), 191 votes
+tmdb-movie-14843  # Ten Inch Hero (2007), 190 votes
+tmdb-movie-682532  # John and the Hole (2021), 188 votes
+tmdb-movie-45878  # Return to Horror High (1987), 187 votes
+tmdb-movie-22102  # Troop Beverly Hills (1989), 187 votes
+tmdb-movie-602198  # Saving Zoë (2019), 186 votes
+tmdb-movie-397601  # The Bachelors (2017), 185 votes
+tmdb-movie-27588  # Forget Me Not (2009), 184 votes
+tmdb-movie-98631  # Himizu (2012), 183 votes
+tmdb-movie-326198  # Nothing in Return (2015), 182 votes
+tmdb-movie-27337  # Linda Linda Linda (2005), 183 votes
+tmdb-movie-615165  # Her Blue Sky (2019), 179 votes
+tmdb-movie-58446  # Daydream Nation (2011), 178 votes
+tmdb-movie-40713  # Sky of Love (2007), 177 votes
+tmdb-movie-21935  # The Haunting Hour: Don't Think About It (2007), 177 votes
+tmdb-movie-895959  # Float (2024), 176 votes
+tmdb-movie-776501  # We're All Going to the World's Fair (2022), 176 votes
+tmdb-movie-34482  # The Clique (2008), 175 votes
+tmdb-movie-349498  # Flying Colors (2015), 173 votes
+tmdb-movie-765897  # The Unbreakable Boy (2025), 171 votes
+tmdb-movie-18252  # My Science Project (1985), 170 votes
+tmdb-movie-17403  # How to Deal (2003), 170 votes
+tmdb-movie-73939  # Pariah (2011), 169 votes
+tmdb-movie-18113  # National Lampoon Presents Dorm Daze (2003), 169 votes
+tmdb-movie-16876  # Bang Bang You're Dead (2003), 169 votes
+tmdb-movie-14557  # Dead Man on Campus (1998), 169 votes
+tmdb-movie-197033  # Geography Club (2013), 166 votes
+tmdb-movie-14750  # Mischief (1985), 166 votes
+tmdb-movie-256057  # Güeros (2014), 165 votes
+tmdb-movie-831410  # Bring It On: Cheer Or Die (2022), 164 votes
+tmdb-movie-428446  # Walking Out (2017), 163 votes
+tmdb-movie-23943  # Zapped! (1982), 163 votes
+tmdb-movie-454889  # Princess Cyd (2017), 161 votes
+tmdb-movie-159770  # The Dirties (2013), 161 votes
+tmdb-movie-352498  # First Girl I Loved (2016), 160 votes
+tmdb-movie-1295026  # 100 METERS (2025), 160 votes
+tmdb-movie-1014209  # Suncoast (2024), 158 votes
+tmdb-movie-490000  # We the Animals (2018), 158 votes
+tmdb-movie-29812  # The Substitute 2: School's Out (1998), 158 votes
+tmdb-movie-222715  # Someone's Gaze (2013), 157 votes
+tmdb-movie-21970  # The Watcher in the Woods (1980), 157 votes
+tmdb-movie-18555  # Foxfire (1996), 157 votes
+tmdb-movie-470894  # At First Light (2018), 156 votes
+tmdb-movie-36914  # Like Father Like Son (1987), 156 votes
+tmdb-movie-348296  # The Bad Education Movie (2015), 155 votes
+tmdb-movie-349158  # My Little Pony: Equestria Girls - Friendship Games (2015), 154 votes

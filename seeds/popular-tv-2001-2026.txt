@@ -1,0 +1,405 @@
+# 400 most-voted TV shows on TMDB first aired 2001-01-01 to 2026-10-18, season 1 only.
+# Source: TMDB /discover/tv, sort_by=vote_count.desc, include_adult=false, without news and talk shows,
+# minus the shows in seeds/teen-tv-2001-2026.txt. Generated 2026-10-18.
+# Run: npm run batch -- seeds/popular-tv-2001-2026.txt --dry-run
+
+tmdb-tv-1399-s01  # Game of Thrones (2011), 27970 votes
+tmdb-tv-71446-s01  # Money Heist (2017), 19744 votes
+tmdb-tv-1396-s01  # Breaking Bad (2008), 18874 votes
+tmdb-tv-1402-s01  # The Walking Dead (2010), 18278 votes
+tmdb-tv-93405-s01  # Squid Game (2021), 17855 votes
+tmdb-tv-63174-s01  # Lucifer (2016), 15732 votes
+tmdb-tv-76479-s01  # The Boys (2019), 13560 votes
+tmdb-tv-85271-s01  # WandaVision (2021), 12972 votes
+tmdb-tv-71712-s01  # The Good Doctor (2017), 12952 votes
+tmdb-tv-1418-s01  # The Big Bang Theory (2007), 12876 votes
+tmdb-tv-84958-s01  # Loki (2021), 12823 votes
+tmdb-tv-60735-s01  # The Flash (2014), 11815 votes
+tmdb-tv-60625-s01  # Rick and Morty (2013), 11488 votes
+tmdb-tv-60574-s01  # Peaky Blinders (2013), 11459 votes
+tmdb-tv-82856-s01  # The Mandalorian (2019), 11318 votes
+tmdb-tv-1416-s01  # Grey's Anatomy (2005), 11086 votes
+tmdb-tv-75006-s01  # The Umbrella Academy (2019), 10168 votes
+tmdb-tv-88396-s01  # The Falcon and the Winter Soldier (2021), 9046 votes
+tmdb-tv-87108-s01  # Chernobyl (2019), 8432 votes
+tmdb-tv-1408-s01  # House (2004), 7957 votes
+tmdb-tv-44217-s01  # Vikings (2013), 7947 votes
+tmdb-tv-70523-s01  # Dark (2017), 7928 votes
+tmdb-tv-100088-s01  # The Last of Us (2023), 7429 votes
+tmdb-tv-94997-s01  # House of the Dragon (2022), 7230 votes
+tmdb-tv-60059-s01  # Better Call Saul (2015), 6992 votes
+tmdb-tv-71912-s01  # The Witcher (2019), 6961 votes
+tmdb-tv-19885-s01  # Sherlock (2010), 6779 votes
+tmdb-tv-42009-s01  # Black Mirror (2011), 6607 votes
+tmdb-tv-1412-s01  # Arrow (2012), 6513 votes
+tmdb-tv-63247-s01  # Westworld (2016), 6437 votes
+tmdb-tv-1413-s01  # American Horror Story (2011), 6250 votes
+tmdb-tv-2288-s01  # Prison Break (2005), 6214 votes
+tmdb-tv-46260-s01  # Naruto (2002), 6159 votes
+tmdb-tv-95557-s01  # INVINCIBLE (2021), 6124 votes
+tmdb-tv-1100-s01  # How I Met Your Mother (2005), 6011 votes
+tmdb-tv-37680-s01  # Suits (2011), 5965 votes
+tmdb-tv-1405-s01  # Dexter (2006), 5941 votes
+tmdb-tv-87739-s01  # The Queen's Gambit (2020), 5847 votes
+tmdb-tv-62560-s01  # Mr. Robot (2015), 5645 votes
+tmdb-tv-2316-s01  # The Office (2005), 5593 votes
+tmdb-tv-61889-s01  # Marvel's Daredevil (2015), 5443 votes
+tmdb-tv-4607-s01  # Lost (2004), 5407 votes
+tmdb-tv-62715-s01  # Dragon Ball Super (2015), 5385 votes
+tmdb-tv-62286-s01  # Fear the Walking Dead (2015), 5250 votes
+tmdb-tv-82883-s01  # The Act (2019), 5216 votes
+tmdb-tv-62104-s01  # The Seven Deadly Sins (2014), 5206 votes
+tmdb-tv-5920-s01  # The Mentalist (2008), 4874 votes
+tmdb-tv-91363-s01  # What If...? (2021), 4747 votes
+tmdb-tv-65334-s01  # Miraculous: Tales of Ladybug & Cat Noir (2015), 4690 votes
+tmdb-tv-62688-s01  # Supergirl (2015), 4479 votes
+tmdb-tv-46648-s01  # True Detective (2014), 4428 votes
+tmdb-tv-4613-s01  # Band of Brothers (2001), 4428 votes
+tmdb-tv-124364-s01  # FROM (2022), 4359 votes
+tmdb-tv-105214-s01  # Dark Desire (2020), 4283 votes
+tmdb-tv-90462-s01  # Chucky (2021), 4226 votes
+tmdb-tv-86831-s01  # Love, Death & Robots (2019), 4219 votes
+tmdb-tv-60797-s01  # Scorpion (2014), 4198 votes
+tmdb-tv-4057-s01  # Criminal Minds (2005), 4199 votes
+tmdb-tv-48891-s01  # Brooklyn Nine-Nine (2013), 4192 votes
+tmdb-tv-78191-s01  # You (2018), 4123 votes
+tmdb-tv-84773-s01  # The Lord of the Rings: The Rings of Power (2022), 3973 votes
+tmdb-tv-46331-s01  # Under the Dome (2013), 3973 votes
+tmdb-tv-1403-s01  # Marvel's Agents of S.H.I.E.L.D. (2013), 3923 votes
+tmdb-tv-88329-s01  # Hawkeye (2021), 3879 votes
+tmdb-tv-60708-s01  # Gotham (2014), 3820 votes
+tmdb-tv-2691-s01  # Two and a Half Men (2003), 3815 votes
+tmdb-tv-92749-s01  # Moon Knight (2022), 3754 votes
+tmdb-tv-46952-s01  # The Blacklist (2013), 3751 votes
+tmdb-tv-43348-s01  # Pablo Escobar: The Drug Lord (2012), 3741 votes
+tmdb-tv-44953-s01  # El Señor de los Cielos (2013), 3700 votes
+tmdb-tv-39351-s01  # Grimm (2011), 3655 votes
+tmdb-tv-1911-s01  # Bones (2005), 3608 votes
+tmdb-tv-110492-s01  # Peacemaker (2022), 3591 votes
+tmdb-tv-79744-s01  # The Rookie (2018), 3574 votes
+tmdb-tv-1421-s01  # Modern Family (2009), 3562 votes
+tmdb-tv-34307-s01  # Shameless (2011), 3552 votes
+tmdb-tv-108978-s01  # Reacher (2022), 3512 votes
+tmdb-tv-63351-s01  # Narcos (2015), 3504 votes
+tmdb-tv-57243-s01  # Doctor Who (2005), 3489 votes
+tmdb-tv-60622-s01  # Fargo (2014), 3478 votes
+tmdb-tv-69478-s01  # The Handmaid's Tale (2017), 3466 votes
+tmdb-tv-71886-s01  # Siren (2018), 3439 votes
+tmdb-tv-1409-s01  # Sons of Anarchy (2008), 3430 votes
+tmdb-tv-91239-s01  # Bridgerton (2020), 3422 votes
+tmdb-tv-80213-s01  # The Purge (2018), 3418 votes
+tmdb-tv-67178-s01  # Marvel's The Punisher (2017), 3405 votes
+tmdb-tv-73586-s01  # Yellowstone (2018), 3384 votes
+tmdb-tv-1425-s01  # House of Cards (2013), 3344 votes
+tmdb-tv-52814-s01  # Halo (2022), 3302 votes
+tmdb-tv-15260-s01  # Adventure Time (2010), 3237 votes
+tmdb-tv-106379-s01  # Fallout (2024), 3182 votes
+tmdb-tv-80020-s01  # Super Dragon Ball Heroes (2018), 3159 votes
+tmdb-tv-67744-s01  # MINDHUNTER (2017), 3154 votes
+tmdb-tv-104877-s01  # Love Is in the Air (2020), 3146 votes
+tmdb-tv-67915-s01  # Guardian: The Lonely and Great God (2016), 3138 votes
+tmdb-tv-115036-s01  # The Book of Boba Fett (2021), 3135 votes
+tmdb-tv-40008-s01  # Hannibal (2013), 3095 votes
+tmdb-tv-46296-s01  # Spartacus (2010), 3085 votes
+tmdb-tv-79460-s01  # Legacies (2018), 3058 votes
+tmdb-tv-95396-s01  # Severance (2022), 3047 votes
+tmdb-tv-56570-s01  # Outlander (2014), 3005 votes
+tmdb-tv-61222-s01  # BoJack Horseman (2014), 2996 votes
+tmdb-tv-60866-s01  # iZombie (2015), 2978 votes
+tmdb-tv-63639-s01  # The Expanse (2015), 2967 votes
+tmdb-tv-113988-s01  # DAHMER - Monster: The Jeffrey Dahmer Story (2022), 2961 votes
+tmdb-tv-69740-s01  # Ozark (2017), 2959 votes
+tmdb-tv-1705-s01  # Fringe (2008), 2957 votes
+tmdb-tv-80752-s01  # See (2019), 2951 votes
+tmdb-tv-67335-s01  # Sin senos sí hay paraíso (2016), 2944 votes
+tmdb-tv-1424-s01  # Orange Is the New Black (2013), 2922 votes
+tmdb-tv-75450-s01  # Titans (2018), 2912 votes
+tmdb-tv-72844-s01  # The Haunting of Hill House (2018), 2887 votes
+tmdb-tv-75219-s01  # 9-1-1 (2018), 2875 votes
+tmdb-tv-1438-s01  # The Wire (2002), 2868 votes
+tmdb-tv-110316-s01  # Alice in Borderland (2020), 2863 votes
+tmdb-tv-153312-s01  # Tulsa King (2022), 2838 votes
+tmdb-tv-125988-s01  # Silo (2023), 2811 votes
+tmdb-tv-95057-s01  # Superman & Lois (2021), 2775 votes
+tmdb-tv-90802-s01  # The Sandman (2022), 2773 votes
+tmdb-tv-97546-s01  # Ted Lasso (2020), 2772 votes
+tmdb-tv-62127-s01  # Marvel's Iron Fist (2017), 2769 votes
+tmdb-tv-38472-s01  # Marvel's Jessica Jones (2015), 2744 votes
+tmdb-tv-1407-s01  # Homeland (2011), 2741 votes
+tmdb-tv-112888-s01  # True Beauty (2020), 2735 votes
+tmdb-tv-96677-s01  # Lupin (2021), 2688 votes
+tmdb-tv-58841-s01  # Chicago P.D. (2014), 2647 votes
+tmdb-tv-92783-s01  # She-Hulk: Attorney at Law (2022), 2618 votes
+tmdb-tv-61374-s01  # Tokyo Ghoul (2014), 2616 votes
+tmdb-tv-31911-s01  # Fullmetal Alchemist: Brotherhood (2009), 2612 votes
+tmdb-tv-16997-s01  # The Pacific (2010), 2611 votes
+tmdb-tv-62710-s01  # Blindspot (2015), 2594 votes
+tmdb-tv-4614-s01  # NCIS (2003), 2595 votes
+tmdb-tv-39272-s01  # Once Upon a Time (2011), 2563 votes
+tmdb-tv-62455-s01  # Locked Up (2015), 2539 votes
+tmdb-tv-1437-s01  # Firefly (2002), 2540 votes
+tmdb-tv-62643-s01  # DC's Legends of Tomorrow (2016), 2530 votes
+tmdb-tv-70881-s01  # Boruto: Naruto Next Generations (2017), 2529 votes
+tmdb-tv-71914-s01  # The Wheel of Time (2021), 2513 votes
+tmdb-tv-1433-s01  # American Dad! (2005), 2465 votes
+tmdb-tv-71915-s01  # Good Omens (2019), 2453 votes
+tmdb-tv-44006-s01  # Chicago Fire (2012), 2451 votes
+tmdb-tv-4194-s01  # Star Wars: The Clone Wars (2008), 2449 votes
+tmdb-tv-65494-s01  # The Crown (2016), 2448 votes
+tmdb-tv-68421-s01  # Altered Carbon (2018), 2405 votes
+tmdb-tv-92830-s01  # Obi-Wan Kenobi (2022), 2389 votes
+tmdb-tv-102903-s01  # Control Z (2020), 2366 votes
+tmdb-tv-31132-s01  # Regular Show (2010), 2328 votes
+tmdb-tv-107113-s01  # Only Murders in the Building (2021), 2310 votes
+tmdb-tv-30984-s01  # Bleach (2004), 2296 votes
+tmdb-tv-27240-s01  # Seven Deadly Sins (2008), 2285 votes
+tmdb-tv-83867-s01  # Andor (2022), 2281 votes
+tmdb-tv-73223-s01  # Black Clover (2017), 2247 votes
+tmdb-tv-46298-s01  # Hunter x Hunter (2011), 2235 votes
+tmdb-tv-18347-s01  # Community (2009), 2207 votes
+tmdb-tv-95594-s01  # Fast & Furious Spy Racers (2019), 2206 votes
+tmdb-tv-1411-s01  # Person of Interest (2011), 2197 votes
+tmdb-tv-45782-s01  # Sword Art Online (2012), 2195 votes
+tmdb-tv-1419-s01  # Castle (2009), 2163 votes
+tmdb-tv-10545-s01  # True Blood (2008), 2159 votes
+tmdb-tv-693-s01  # Desperate Housewives (2004), 2154 votes
+tmdb-tv-11250-s01  # Pasión de Gavilanes (2003), 2143 votes
+tmdb-tv-154521-s01  # The Kardashians (2022), 2138 votes
+tmdb-tv-67198-s01  # Star Trek: Discovery (2017), 2116 votes
+tmdb-tv-62126-s01  # Marvel's Luke Cage (2016), 2109 votes
+tmdb-tv-66573-s01  # The Good Place (2016), 2106 votes
+tmdb-tv-45950-s01  # High School DxD (2012), 2081 votes
+tmdb-tv-74428-s01  # Rosario Tijeras (Mexico) (2016), 2073 votes
+tmdb-tv-61550-s01  # Marvel's Agent Carter (2015), 2070 votes
+tmdb-tv-47640-s01  # The Strain (2014), 2069 votes
+tmdb-tv-63333-s01  # The Last Kingdom (2015), 2064 votes
+tmdb-tv-60573-s01  # Silicon Valley (2014), 2061 votes
+tmdb-tv-89641-s01  # Love Alarm (2019), 2051 votes
+tmdb-tv-127532-s01  # Solo Leveling (2024), 2043 votes
+tmdb-tv-90239-s01  # The Game of Keys (2019), 2041 votes
+tmdb-tv-105248-s01  # Cyberpunk: Edgerunners (2022), 2024 votes
+tmdb-tv-45871-s01  # Locked Up: The Oasis (2020), 2018 votes
+tmdb-tv-136315-s01  # The Bear (2022), 1981 votes
+tmdb-tv-67070-s01  # Fleabag (2016), 1979 votes
+tmdb-tv-111110-s01  # ONE PIECE (2023), 1973 votes
+tmdb-tv-31586-s01  # La Reina del Sur (2011), 1973 votes
+tmdb-tv-68507-s01  # His Dark Materials (2019), 1973 votes
+tmdb-tv-85949-s01  # Star Trek: Picard (2020), 1967 votes
+tmdb-tv-8592-s01  # Parks and Recreation (2009), 1955 votes
+tmdb-tv-76121-s01  # DARLING in the FRANXX (2018), 1952 votes
+tmdb-tv-61664-s01  # Sense8 (2015), 1950 votes
+tmdb-tv-75758-s01  # Lost in Space (2018), 1942 votes
+tmdb-tv-126308-s01  # Shōgun (2024), 1939 votes
+tmdb-tv-114868-s01  # Record of Ragnarok (2021), 1923 votes
+tmdb-tv-1606-s01  # Ghost Whisperer (2005), 1923 votes
+tmdb-tv-93741-s01  # Jurassic World Camp Cretaceous (2020), 1919 votes
+tmdb-tv-73375-s01  # Tom Clancy's Jack Ryan (2018), 1913 votes
+tmdb-tv-32798-s01  # Hawaii Five-0 (2010), 1912 votes
+tmdb-tv-1415-s01  # Elementary (2012), 1910 votes
+tmdb-tv-1973-s01  # 24 (2001), 1909 votes
+tmdb-tv-96815-s01  # Sex, Explained (2020), 1882 votes
+tmdb-tv-1972-s01  # Battlestar Galactica (2004), 1878 votes
+tmdb-tv-63401-s01  # We Bare Bears (2015), 1874 votes
+tmdb-tv-79696-s01  # Manifest (2018), 1869 votes
+tmdb-tv-85723-s01  # Raised by Wolves (2020), 1866 votes
+tmdb-tv-16420-s01  # Boys Over Flowers (2009), 1862 votes
+tmdb-tv-46639-s01  # American Gods (2017), 1850 votes
+tmdb-tv-92685-s01  # The Owl House (2020), 1849 votes
+tmdb-tv-93740-s01  # Foundation (2021), 1849 votes
+tmdb-tv-46786-s01  # Bates Motel (2013), 1843 votes
+tmdb-tv-4686-s01  # Ben 10 (2005), 1842 votes
+tmdb-tv-64464-s01  # 11.22.63 (2016), 1840 votes
+tmdb-tv-61617-s01  # Over the Garden Wall (2014), 1837 votes
+tmdb-tv-61056-s01  # How to Get Away with Murder (2014), 1834 votes
+tmdb-tv-12926-s01  # Teresa (2010), 1834 votes
+tmdb-tv-62046-s01  # Scream Queens (2015), 1833 votes
+tmdb-tv-249042-s01  # Adolescence (2025), 1831 votes
+tmdb-tv-62264-s01  # Ash vs Evil Dead (2015), 1815 votes
+tmdb-tv-76331-s01  # Succession (2018), 1814 votes
+tmdb-tv-37606-s01  # The Amazing World of Gumball (2011), 1808 votes
+tmdb-tv-86031-s01  # Dr. STONE (2019), 1806 votes
+tmdb-tv-39340-s01  # 2 Broke Girls (2011), 1802 votes
+tmdb-tv-115004-s01  # Mare of Easttown (2021), 1788 votes
+tmdb-tv-94664-s01  # Mushoku Tensei: Jobless Reincarnation (2021), 1785 votes
+tmdb-tv-4589-s01  # Arrested Development (2003), 1779 votes
+tmdb-tv-84661-s01  # The Outsider (2020), 1776 votes
+tmdb-tv-77606-s01  # The Boss Baby: Back in Business (2018), 1774 votes
+tmdb-tv-66292-s01  # Big Little Lies (2017), 1758 votes
+tmdb-tv-1620-s01  # CSI: Miami (2002), 1755 votes
+tmdb-tv-58474-s01  # Cosmos (2014), 1755 votes
+tmdb-tv-8358-s01  # Lie to Me (2009), 1752 votes
+tmdb-tv-1420-s01  # New Girl (2011), 1746 votes
+tmdb-tv-62285-s01  # Marvel's The Defenders (2017), 1742 votes
+tmdb-tv-131927-s01  # Dexter: New Blood (2021), 1734 votes
+tmdb-tv-64432-s01  # The Magicians (2015), 1732 votes
+tmdb-tv-86430-s01  # Your Honor (2020), 1719 votes
+tmdb-tv-80743-s01  # Insatiable (2018), 1715 votes
+tmdb-tv-79788-s01  # Watchmen (2019), 1714 votes
+tmdb-tv-200875-s01  # IT: Welcome to Derry (2025), 1713 votes
+tmdb-tv-108545-s01  # 3 Body Problem (2024), 1713 votes
+tmdb-tv-2490-s01  # The IT Crowd (2006), 1710 votes
+tmdb-tv-113962-s01  # Lioness (2023), 1707 votes
+tmdb-tv-42035-s01  # The Boat (2011), 1700 votes
+tmdb-tv-71789-s01  # SEAL Team (2017), 1688 votes
+tmdb-tv-71411-s01  # El Chapo (2017), 1684 votes
+tmdb-tv-67136-s01  # This Is Us (2016), 1680 votes
+tmdb-tv-45790-s01  # JoJo's Bizarre Adventure (2012), 1683 votes
+tmdb-tv-103768-s01  # Sweet Tooth (2021), 1674 votes
+tmdb-tv-60743-s01  # Constantine (2014), 1671 votes
+tmdb-tv-94954-s01  # Hazbin Hotel (2024), 1670 votes
+tmdb-tv-205715-s01  # Gen V (2023), 1655 votes
+tmdb-tv-87784-s01  # Defending Jacob (2020), 1632 votes
+tmdb-tv-128839-s01  # La Brea (2021), 1631 votes
+tmdb-tv-89456-s01  # Primal (2019), 1631 votes
+tmdb-tv-96648-s01  # Sweet Home (2020), 1628 votes
+tmdb-tv-67195-s01  # Legion (2017), 1625 votes
+tmdb-tv-21510-s01  # White Collar (2009), 1625 votes
+tmdb-tv-79699-s01  # La hija del Mariachi (2006), 1622 votes
+tmdb-tv-71024-s01  # Castlevania (2017), 1622 votes
+tmdb-tv-1104-s01  # Mad Men (2007), 1620 votes
+tmdb-tv-69629-s01  # The Gifted (2017), 1618 votes
+tmdb-tv-89247-s01  # Batwoman (2019), 1615 votes
+tmdb-tv-90669-s01  # 1899 (2022), 1614 votes
+tmdb-tv-71790-s01  # S.W.A.T. (2017), 1612 votes
+tmdb-tv-83095-s01  # The Rising of the Shield Hero (2019), 1603 votes
+tmdb-tv-72305-s01  # Kakegurui (2017), 1602 votes
+tmdb-tv-82596-s01  # Emily in Paris (2020), 1600 votes
+tmdb-tv-1891-s01  # Rome (2005), 1597 votes
+tmdb-tv-97180-s01  # Selena: The Series (2020), 1585 votes
+tmdb-tv-80240-s01  # The Queen of Flow (2018), 1583 votes
+tmdb-tv-54671-s01  # Penny Dreadful (2014), 1580 votes
+tmdb-tv-111803-s01  # The White Lotus (2021), 1579 votes
+tmdb-tv-100049-s01  # TONIKAWA: Over the Moon for You (2020), 1578 votes
+tmdb-tv-72750-s01  # Killing Eve (2018), 1577 votes
+tmdb-tv-62017-s01  # The Man in the High Castle (2015), 1576 votes
+tmdb-tv-76773-s01  # Station 19 (2018), 1563 votes
+tmdb-tv-80968-s01  # Narcos: Mexico (2018), 1553 votes
+tmdb-tv-65708-s01  # Taboo (2017), 1552 votes
+tmdb-tv-79525-s01  # The Last Dance (2020), 1548 votes
+tmdb-tv-71740-s01  # 40 y 20 (2016), 1539 votes
+tmdb-tv-47665-s01  # Black Sails (2014), 1539 votes
+tmdb-tv-194764-s01  # The Penguin (2024), 1538 votes
+tmdb-tv-72637-s01  # Once (2017), 1537 votes
+tmdb-tv-61923-s01  # Star vs. the Forces of Evil (2015), 1535 votes
+tmdb-tv-96462-s01  # It's Okay to Not Be Okay (2020), 1527 votes
+tmdb-tv-56296-s01  # Orphan Black (2013), 1506 votes
+tmdb-tv-86248-s01  # Upload (2020), 1505 votes
+tmdb-tv-79501-s01  # Doom Patrol (2019), 1505 votes
+tmdb-tv-42671-s01  # Elfen Lied (2004), 1504 votes
+tmdb-tv-79680-s01  # Snowpiercer (2020), 1502 votes
+tmdb-tv-10283-s01  # Archer (2009), 1500 votes
+tmdb-tv-109958-s01  # The Haunting of Bly Manor (2020), 1499 votes
+tmdb-tv-71738-s01  # The Orville (2017), 1494 votes
+tmdb-tv-92396-s01  # Lady, la vendedora de rosas (2015), 1491 votes
+tmdb-tv-114472-s01  # Secret Invasion (2023), 1487 votes
+tmdb-tv-65844-s01  # KONOSUBA - God's blessing on this wonderful world! (2016), 1487 votes
+tmdb-tv-61459-s01  # Parasyte -the maxim- (2014), 1482 votes
+tmdb-tv-41727-s01  # Banshee (2013), 1479 votes
+tmdb-tv-69061-s01  # The OA (2016), 1478 votes
+tmdb-tv-90027-s01  # Carnival Row (2019), 1466 votes
+tmdb-tv-2710-s01  # It's Always Sunny in Philadelphia (2005), 1441 votes
+tmdb-tv-66276-s01  # The Night Of (2016), 1437 votes
+tmdb-tv-100834-s01  # Veneno (2020), 1432 votes
+tmdb-tv-202411-s01  # Monarch: Legacy of Monsters (2023), 1416 votes
+tmdb-tv-90461-s01  # Monsters at Work (2021), 1416 votes
+tmdb-tv-89905-s01  # Normal People (2020), 1415 votes
+tmdb-tv-95403-s01  # The Peripheral (2022), 1412 votes
+tmdb-tv-61859-s01  # The Night Manager (2016), 1410 votes
+tmdb-tv-126280-s01  # Sex/Life (2021), 1408 votes
+tmdb-tv-34967-s01  # Falling Skies (2011), 1402 votes
+tmdb-tv-80623-s01  # BAKI (2018), 1399 votes
+tmdb-tv-61175-s01  # Steven Universe (2013), 1397 votes
+tmdb-tv-5451-s01  # Without Breasts There Is No Paradise (2008), 1395 votes
+tmdb-tv-1215-s01  # Californication (2007), 1392 votes
+tmdb-tv-67075-s01  # Mob Psycho 100 (2016), 1386 votes
+tmdb-tv-58450-s01  # What Life Took From Me (2013), 1382 votes
+tmdb-tv-4336-s01  # Drawn Together (2004), 1382 votes
+tmdb-tv-222766-s01  # The Day of the Jackal (2024), 1383 votes
+tmdb-tv-76719-s01  # The Rain (2018), 1375 votes
+tmdb-tv-64230-s01  # Preacher (2016), 1373 votes
+tmdb-tv-73021-s01  # Disenchantment (2018), 1372 votes
+tmdb-tv-604-s01  # Teen Titans (2003), 1369 votes
+tmdb-tv-83100-s01  # Dororo (2019), 1366 votes
+tmdb-tv-105009-s01  # Tokyo Revengers (2021), 1363 votes
+tmdb-tv-90937-s01  # BEASTARS (2019), 1358 votes
+tmdb-tv-94667-s01  # De viaje con los Derbez (2019), 1349 votes
+tmdb-tv-74016-s01  # The Resident (2018), 1348 votes
+tmdb-tv-1621-s01  # Boardwalk Empire (2010), 1345 votes
+tmdb-tv-82739-s01  # Rascal Does Not Dream of Bunny Girl Senpai (2018), 1345 votes
+tmdb-tv-114461-s01  # Ahsoka (2023), 1343 votes
+tmdb-tv-97400-s01  # Midnight Mass (2021), 1342 votes
+tmdb-tv-87689-s01  # Warrior Nun (2020), 1343 votes
+tmdb-tv-1695-s01  # Monk (2002), 1333 votes
+tmdb-tv-83097-s01  # The Promised Neverland (2019), 1323 votes
+tmdb-tv-39852-s01  # The Sinner (2017), 1322 votes
+tmdb-tv-54650-s01  # Power (2014), 1316 votes
+tmdb-tv-54344-s01  # The Leftovers (2014), 1310 votes
+tmdb-tv-65249-s01  # ERASED (2016), 1307 votes
+tmdb-tv-1044-s01  # Planet Earth (2006), 1306 votes
+tmdb-tv-81354-s01  # Ratched (2020), 1289 votes
+tmdb-tv-241259-s01  # Baby Reindeer (2024), 1285 votes
+tmdb-tv-129552-s01  # The Night Agent (2023), 1288 votes
+tmdb-tv-70593-s01  # Kingdom (2019), 1283 votes
+tmdb-tv-62650-s01  # Chicago Med (2015), 1283 votes
+tmdb-tv-33907-s01  # Downton Abbey (2010), 1271 votes
+tmdb-tv-17610-s01  # NCIS: Los Angeles (2009), 1270 votes
+tmdb-tv-62110-s01  # Assassination Classroom (2015), 1270 votes
+tmdb-tv-61223-s01  # Akame ga Kill! (2014), 1269 votes
+tmdb-tv-1426-s01  # Luther (2010), 1268 votes
+tmdb-tv-31268-s01  # El Capo (2009), 1267 votes
+tmdb-tv-1404-s01  # Chuck (2007), 1267 votes
+tmdb-tv-115857-s01  # Daughter from Another Mother (2021), 1262 votes
+tmdb-tv-33217-s01  # Young Justice (2010), 1261 votes
+tmdb-tv-2290-s01  # Stargate Atlantis (2004), 1254 votes
+tmdb-tv-89393-s01  # 9-1-1: Lone Star (2020), 1246 votes
+tmdb-tv-120911-s01  # The Terminal List (2022), 1243 votes
+tmdb-tv-80307-s01  # Bodyguard (2018), 1239 votes
+tmdb-tv-73107-s01  # Barry (2018), 1238 votes
+tmdb-tv-127235-s01  # Invasion (2021), 1237 votes
+tmdb-tv-60948-s01  # 12 Monkeys (2015), 1234 votes
+tmdb-tv-120168-s01  # Who Killed Sara? (2021), 1231 votes
+tmdb-tv-94305-s01  # The Walking Dead: World Beyond (2020), 1230 votes
+tmdb-tv-224372-s01  # A Knight of the Seven Kingdoms (2026), 1229 votes
+tmdb-tv-63407-s01  # Mi corazón es tuyo (2014), 1219 votes
+tmdb-tv-93812-s01  # The Great (2020), 1209 votes
+tmdb-tv-105971-s01  # Star Wars: The Bad Batch (2021), 1208 votes
+tmdb-tv-67026-s01  # Designated Survivor (2016), 1200 votes
+tmdb-tv-6040-s01  # Ben 10: Alien Force (2008), 1198 votes
+tmdb-tv-61663-s01  # Your Lie in April (2014), 1197 votes
+tmdb-tv-70828-s01  # Surviving Escobar - Alias JJ (2017), 1197 votes
+tmdb-tv-5178-s01  # Stairway to Heaven (2003), 1196 votes
+tmdb-tv-74440-s01  # Harley Quinn (2019), 1194 votes
+tmdb-tv-62823-s01  # Scream: The TV Series (2015), 1193 votes
+tmdb-tv-2317-s01  # My Name Is Earl (2005), 1193 votes
+tmdb-tv-62914-s01  # Merlí (2015), 1190 votes
+tmdb-tv-1274-s01  # Six Feet Under (2001), 1189 votes
+tmdb-tv-2309-s01  # Danny Phantom (2004), 1186 votes
+tmdb-tv-157239-s01  # Alien: Earth (2025), 1182 votes
+tmdb-tv-110070-s01  # Horimiya (2021), 1180 votes
+tmdb-tv-68267-s01  # Trollhunters: Tales of Arcadia (2016), 1178 votes
+tmdb-tv-79410-s01  # After Life (2019), 1160 votes
+tmdb-tv-225171-s01  # Pluribus (2025), 1157 votes
+tmdb-tv-91557-s01  # Ragnarok (2020), 1155 votes
+tmdb-tv-32726-s01  # Bob's Burgers (2011), 1152 votes
+tmdb-tv-70453-s01  # Sharp Objects (2018), 1150 votes
+tmdb-tv-4630-s01  # The Fairly OddParents (2001), 1150 votes
+tmdb-tv-63109-s01  # Moses and the Ten Commandments (2015), 1147 votes
+tmdb-tv-79649-s01  # Project Blue Book (2019), 1147 votes
+tmdb-tv-202555-s01  # Daredevil: Born Again (2025), 1143 votes
+tmdb-tv-13027-s01  # Amor Real (2003), 1143 votes
+tmdb-tv-18123-s01  # Scooby-Doo! Mystery Incorporated (2010), 1142 votes
+tmdb-tv-50825-s01  # Sleepy Hollow (2013), 1141 votes
+tmdb-tv-66203-s01  # Soy Luna (2016), 1138 votes
+tmdb-tv-64196-s01  # Overlord (2015), 1138 votes
+tmdb-tv-81146-s01  # Rosario Tijeras (2010), 1136 votes
+tmdb-tv-46533-s01  # The Americans (2013), 1126 votes
+tmdb-tv-80350-s01  # New Amsterdam (2018), 1118 votes
+tmdb-tv-117376-s01  # Vincenzo (2021), 1115 votes
+tmdb-tv-116135-s01  # Vikings: Valhalla (2022), 1105 votes
+tmdb-tv-155537-s01  # Black Bird (2022), 1103 votes
+tmdb-tv-110356-s01  # My Name (2021), 1098 votes
+tmdb-tv-42589-s01  # Another (2012), 1098 votes
+tmdb-tv-73481-s01  # Ecomoda (2001), 1097 votes
+tmdb-tv-37863-s01  # Fullmetal Alchemist (2003), 1095 votes
+tmdb-tv-18011-s01  # Vecinos (2005), 1095 votes
+tmdb-tv-86848-s01  # Evil (2019), 1094 votes

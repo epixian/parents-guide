@@ -53,6 +53,40 @@ export async function searchTmdb(query: string): Promise<SearchResult[]> {
     });
 }
 
+interface DiscoverItem {
+  id: number;
+  title?: string;
+  name?: string;
+  release_date?: string;
+  first_air_date?: string;
+}
+
+/** Sort orders for discoverPage. "votes" finds well-known titles of any age; "popular" finds new ones. */
+export type DiscoverSort = "votes" | "popular";
+
+/**
+ * One page (20 titles) of TMDB's released movies or TV series, in English,
+ * without adult titles. TMDB gives at most 500 pages for one query.
+ * "popular" keeps titles with 50 votes or more, so obscure titles that TMDB
+ * calls popular for a day stay out.
+ */
+export async function discoverPage(
+  kind: "movie" | "tv",
+  sort: DiscoverSort,
+  page: number,
+  today: string,
+): Promise<{ id: number; title: string; year: number | null }[]> {
+  const released = kind === "movie" ? `primary_release_date.lte=${today}` : `first_air_date.lte=${today}`;
+  const order = sort === "votes" ? "sort_by=vote_count.desc" : "sort_by=popularity.desc&vote_count.gte=50";
+  const data = await tmdb<{ results: DiscoverItem[] }>(
+    `/discover/${kind}?include_adult=false&language=en-US&${order}&${released}&page=${page}`,
+  );
+  return data.results.flatMap((r) => {
+    const title = (kind === "movie" ? r.title : r.name)?.trim();
+    return title ? [{ id: r.id, title, year: yearOf(kind === "movie" ? r.release_date : r.first_air_date) }] : [];
+  });
+}
+
 interface Named {
   id?: number;
   name: string;

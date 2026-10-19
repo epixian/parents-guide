@@ -1,7 +1,15 @@
 import { CATEGORIES, SCORE_MAX, SCORE_MIN, TREATMENTS, type CategoryId, type TreatmentId } from "./categories.js";
 import { MOOD_SCALES, type MoodScale } from "./mood.js";
 import { THEME_TAGS, type ThemeTag } from "./themes.js";
-import type { BrowseResponse, BrowseSort, IndexEntry, MediaKind, Suggestion } from "./types.js";
+import type {
+  BrowseResponse,
+  BrowseSort,
+  CatalogEntry,
+  CatalogResponse,
+  IndexEntry,
+  MediaKind,
+  Suggestion,
+} from "./types.js";
 
 // Browse filters, read from the query string. The client keeps the same
 // query string in its URL, so a filtered list can be bookmarked or shared.
@@ -196,26 +204,142 @@ export function browseTitles(titles: readonly IndexEntry[], f: BrowseFilters): B
 /** Folded, with punctuation as spaces, so "spider man" matches "Spider-Man". */
 const words = (s: string) => fold(s).replace(/[^\p{L}\p{N}]+/gu, " ").trim();
 
-/** 0 exact, 1 starts with q, 2 a word starts with q, 3 contains q, null no match. */
-function suggestRank(title: string, q: string): number | null {
-  if (title === q) return 0;
-  if (title.startsWith(q)) return 1;
-  if (` ${title}`.includes(` ${q}`)) return 2;
-  if (title.includes(q)) return 3;
+/** Roman numerals as numbers, so "rocky 2" matches "Rocky II". Not "i": it is also a word. */
+const ROMAN: Record<string, string> = { ii: "2", iii: "3", iv: "4", v: "5", vi: "6", vii: "7", viii: "8", ix: "9", x: "10" };
+
+/** Title or query text for suggestions: folded words, "&" as "and", and roman numerals as numbers. */
+function tokens(s: string): string[] {
+  const text = words(s.replace(/&/g, " and "));
+  return text ? text.split(" ").map((w) => ROMAN[w] ?? w) : [];
+}
+
+interface Matchable {
+  /** The tokens joined with spaces. */
+  text: string;
+  tokens: string[];
+  /** The tokens with no spaces, so "spiderman" matches "Spider-Man". */
+  compact: string;
+  /** Where each token starts in compact. */
+  starts: number[];
+}
+
+function matchable(s: string): Matchable {
+  const list = tokens(s);
+  const starts: number[] = [];
+  let at = 0;
+  for (const t of list) {
+    starts.push(at);
+    at += t.length;
+  }
+  return { text: list.join(" "), tokens: list, compact: list.join(""), starts };
+}
+
+/** matchable() of each title, kept per entry: the catalog has about 10,000 titles to match on each keystroke. */
+const matchables = new WeakMap<object, Matchable>();
+function matchableOf(entry: { title: string }): Matchable {
+  let m = matchables.get(entry);
+  if (!m) matchables.set(entry, (m = matchable(entry.title)));
+  return m;
+}
+
+/**
+ * Edit distance with swapped neighbors as one edit (optimal string alignment),
+ * or max + 1 when it is more than max.
+ */
+function editDistance(a: string, b: string, max: number): number {
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  let prev2: number[] = [];
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const row = [i];
+    let best = i;
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      let d = Math.min(prev[j]! + 1, row[j - 1]! + 1, prev[j - 1]! + cost);
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d = Math.min(d, prev2[j - 2]! + 1);
+      row.push(d);
+      best = Math.min(best, d);
+    }
+    if (best > max) return max + 1; // Every later row is at least as large.
+    prev2 = prev;
+    prev = row;
+  }
+  return prev[b.length]!;
+}
+
+/** True when the typed word is a title word, or its start, with a small typo: 1 letter in 4-7 letters, 2 in more. */
+function nearWord(typed: string, word: string): boolean {
+  if (word.startsWith(typed)) return true;
+  // Short words have too many neighbors. A typo in the first letter is rare, and the check is much faster.
+  if (typed.length < 4 || typed[0] !== word[0]) return false;
+  const max = typed.length >= 8 ? 2 : 1;
+  // The whole word ("fablemans": "fabelmans"), or its start while the visitor types ("oppenhiem": "oppenheimer").
+  if (editDistance(typed, word, max) <= max) return true;
+  return word.length > typed.length && editDistance(typed, word.slice(0, typed.length), max) <= max;
+}
+
+/**
+ * How well a title matches the query, from best to worst, or null for no match:
+ * 0 the same, 1 starts with it, 2 a word starts with it, 3 contains it (each
+ * with or without spaces), 4 every typed word starts a title word, in any
+ * order, 5 the same with small typos (only when fuzzy is true).
+ */
+function suggestRank(title: Matchable, q: Matchable, fuzzy: boolean): number | null {
+  const { compact } = title;
+  if (compact === q.compact) return 0;
+  if (compact.startsWith(q.compact)) return 1;
+  if (title.starts.some((at) => compact.startsWith(q.compact, at))) return 2;
+  if (compact.includes(q.compact)) return 3;
+  if (q.tokens.length > 1 && q.tokens.every((typed) => title.tokens.some((w) => w.startsWith(typed)))) return 4;
+  if (fuzzy && q.tokens.every((typed) => title.tokens.some((w) => nearWord(typed, w)))) return 5;
   return null;
 }
 
-/** Rated titles for the search box as the visitor types: best matches first, then shorter titles. */
-export function suggestTitles(titles: readonly IndexEntry[], q: string, limit: number): Suggestion[] {
-  const query = words(q);
-  if (!query) return [];
-  return titles
-    .flatMap((t) => {
-      const title = words(t.title);
-      const rank = suggestRank(title, query);
-      return rank === null ? [] : [{ t, rank, length: title.length }];
-    })
-    .sort((a, b) => a.rank - b.rank || a.length - b.length || a.t.title.localeCompare(b.t.title))
+/** The rows of GET /api/catalog as entries. */
+export function catalogEntries(res: CatalogResponse): CatalogEntry[] {
+  return (["movie", "tv"] as const).flatMap((kind) =>
+    (res[kind] ?? []).map(([id, title, year]) => ({ id: `tmdb-${kind}-${id}`, kind, title, year })),
+  );
+}
+
+/**
+ * Titles for the search box as the visitor types: best matches first (see
+ * suggestRank), then shorter titles. Popular titles from the catalog fill in
+ * where no rated title matches as well; a rated title wins a tie, and a
+ * catalog title that is already rated is left out.
+ */
+export function suggestTitles(
+  titles: readonly IndexEntry[],
+  q: string,
+  limit: number,
+  catalog: readonly CatalogEntry[] = [],
+): Suggestion[] {
+  const query = matchable(q);
+  if (!query.compact) return [];
+  const ratedIds = new Set(titles.map((t) => t.id));
+  const found: { s: Suggestion; rank: number; length: number }[] = [];
+  const search = (fuzzy: boolean) => {
+    const add = (entry: IndexEntry | CatalogEntry, toSuggestion: () => Suggestion) => {
+      const title = matchableOf(entry);
+      const rank = suggestRank(title, query, fuzzy);
+      if (rank !== null && (!fuzzy || rank === 5)) found.push({ s: toSuggestion(), rank, length: title.text.length });
+    };
+    for (const t of titles) {
+      add(t, () => ({ id: t.id, kind: t.kind, title: t.title, years: t.years, imageUrl: t.imageUrl, rated: true }));
+    }
+    for (const c of catalog) {
+      if (ratedIds.has(c.id)) continue;
+      add(c, () => ({ id: c.id, kind: c.kind, title: c.title, years: c.year?.toString() ?? null, imageUrl: null, rated: false }));
+    }
+  };
+  search(false);
+  // Typos only fill a short list: the check is slower, and its matches are the least sure.
+  if (found.length < limit) search(true);
+  return found
+    .sort(
+      (a, b) =>
+        a.rank - b.rank || Number(b.s.rated) - Number(a.s.rated) || a.length - b.length || a.s.title.localeCompare(b.s.title),
+    )
     .slice(0, limit)
-    .map(({ t }) => ({ id: t.id, kind: t.kind, title: t.title, years: t.years, imageUrl: t.imageUrl }));
+    .map(({ s }) => s);
 }

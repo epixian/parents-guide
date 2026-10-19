@@ -182,6 +182,31 @@ h2 {
   background: var(--bg);
 }
 
+.suggestions .unrated {
+  display: block;
+}
+
+/* The last row: search the catalogs for the text. A line above it sets it apart from the titles. */
+.suggestions .search-all {
+  color: var(--accent);
+}
+
+.suggestions .search-all:not(:first-child) {
+  margin-top: 4px;
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 6px 6px;
+}
+
+.suggestions .search-all svg {
+  flex: none;
+  /* Centered in the 32px thumbnail column, so the text lines up with the titles. */
+  margin: 0 8px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
 .suggestions img,
 .suggestions .noimg {
   flex: none;

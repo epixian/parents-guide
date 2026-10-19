@@ -1,10 +1,11 @@
 import { getConnInfo } from "@hono/node-server/conninfo";
 import { Hono, type Context } from "hono";
-import type { ApiError, SearchResult } from "../shared/types.js";
+import type { ApiError, CatalogResponse, SearchResult } from "../shared/types.js";
 import { acceptsBrotli, BrotliCache } from "./brotliCache.js";
 import { BrowseQueryError, parseBrowseQuery } from "../shared/browse.js";
 import { searchOpenLibrary } from "./catalog/openlibrary.js";
 import { searchTmdb } from "./catalog/tmdb.js";
+import type { CatalogIndex } from "./catalogIndex.js";
 import { config } from "./config.js";
 import { HttpError } from "./http.js";
 import type { ReportService } from "./reports.js";
@@ -37,12 +38,45 @@ function clientKey(c: Context): string {
   return clientAddress((name) => c.req.header(name), getConnInfo(c).remote.address, config.trustProxy);
 }
 
+/**
+ * A large JSON list that changes now and then, with an ETag. "no-cache" with
+ * an ETag: the browser keeps its copy and asks again on each use, and the
+ * answer is an empty 304 until the list changes. Browsers that accept Brotli
+ * get a copy compressed once per version (see BrotliCache). That copy has its
+ * own ETag ("-br"), as each content coding must; either ETag of the current
+ * version gets a 304.
+ */
+function sendList(c: Context, tag: string, text: () => string, brotli: BrotliCache): Response {
+  const plainTag = `W/"${tag}"`;
+  const brTag = `W/"${tag}-br"`;
+  c.header("Cache-Control", "no-cache");
+  c.header("Vary", "Accept-Encoding");
+  const known = c.req.header("if-none-match")?.split(",").map((t) => t.trim()) ?? [];
+  const match = known.find((t) => t === plainTag || t === brTag);
+  if (match) {
+    c.header("ETag", match);
+    return c.body(null, 304);
+  }
+  c.header("Content-Type", "application/json; charset=UTF-8");
+  const br = acceptsBrotli(c.req.header("accept-encoding")) ? brotli.get(tag, text) : null;
+  if (br) {
+    c.header("ETag", brTag);
+    c.header("Content-Encoding", "br");
+    // A view of the same memory, not a copy. zlib output is never a SharedArrayBuffer.
+    return c.body(new Uint8Array(br.buffer as ArrayBuffer, br.byteOffset, br.byteLength));
+  }
+  c.header("ETag", plainTag);
+  return c.body(text());
+}
+
 export function createApi(
   reports: ReportService,
   searchCache: SearchCache,
   watch: WatchService,
   similar: SimilarService,
+  catalog: CatalogIndex | null = null,
   titlesBrotli = new BrotliCache(),
+  catalogBrotli = new BrotliCache(),
 ): Hono {
   const api = new Hono();
   /** The title list as JSON text for one version, so each version is converted only once. */
@@ -70,11 +104,11 @@ export function createApi(
     return c.json({ results, warnings });
   });
 
-  // Rated titles only: instant, and every suggestion opens a page that already exists.
+  // Rated titles, then popular titles from the catalog list: instant, with no catalog request.
   api.get("/suggest", async (c) => {
     const q = (c.req.query("q") ?? "").trim();
     if (q.length < 2 || q.length > 200) throw new HttpError(400, "Query must be 2-200 characters");
-    return c.json(await reports.suggest(q, 8));
+    return c.json(await reports.suggest(q, 8, catalog?.titles()));
   });
 
   api.get("/recent", async (c) => c.json(await reports.getRecent(12)));
@@ -82,35 +116,19 @@ export function createApi(
   api.get("/trending", async (c) => c.json(await reports.getTrending(12)));
 
   // Every saved title in one list. The browser filters it with src/shared/browse.ts.
-  // "no-cache" with an ETag: the browser keeps its copy and asks again on each
-  // use, and the answer is an empty 304 until a title is added or changed.
-  // Browsers that accept Brotli get a copy compressed once per version (see
-  // BrotliCache). That copy has its own ETag ("-br"), as each content coding
-  // must; either ETag of the current version gets a 304.
   api.get("/titles", async (c) => {
     const { tag, titles } = await reports.titles();
-    const plainTag = `W/"${tag}"`;
-    const brTag = `W/"${tag}-br"`;
-    c.header("Cache-Control", "no-cache");
-    c.header("Vary", "Accept-Encoding");
-    const known = c.req.header("if-none-match")?.split(",").map((t) => t.trim()) ?? [];
-    const match = known.find((t) => t === plainTag || t === brTag);
-    if (match) {
-      c.header("ETag", match);
-      return c.body(null, 304);
-    }
     if (titlesJson?.tag !== tag) titlesJson = { tag, text: JSON.stringify(titles) };
     const text = titlesJson.text;
-    c.header("Content-Type", "application/json; charset=UTF-8");
-    const br = acceptsBrotli(c.req.header("accept-encoding")) ? titlesBrotli.get(tag, () => text) : null;
-    if (br) {
-      c.header("ETag", brTag);
-      c.header("Content-Encoding", "br");
-      // A view of the same memory, not a copy. zlib output is never a SharedArrayBuffer.
-      return c.body(new Uint8Array(br.buffer as ArrayBuffer, br.byteOffset, br.byteLength));
-    }
-    c.header("ETag", plainTag);
-    return c.body(text);
+    return sendList(c, tag, () => text, titlesBrotli);
+  });
+
+  // Popular TMDB titles for the search suggestions (see CatalogIndex). The same
+  // list for every visitor, rebuilt once a week. Empty until the first build.
+  api.get("/catalog", (c) => {
+    const list = catalog?.response();
+    if (!list) return c.json({ movie: [], tv: [] } satisfies CatalogResponse);
+    return sendList(c, list.tag, () => list.text, catalogBrotli);
   });
 
   // Browse and suggest on the server: the fallback when the browser asks to save data.

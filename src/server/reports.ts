@@ -2,6 +2,7 @@ import { CATEGORIES } from "../shared/categories.js";
 import { hasMood } from "../shared/mood.js";
 import type {
   BrowseResponse,
+  CatalogEntry,
   IndexEntry,
   Mood,
   RecentItem,
@@ -111,10 +112,10 @@ export class ReportService {
     return browseTitles(this.index.titles(), filters);
   }
 
-  /** Saved titles for the search box as the visitor types. No catalog or AI calls. */
-  async suggest(q: string, limit: number): Promise<Suggestion[]> {
+  /** Saved titles, then popular titles from the catalog list, for the search box as the visitor types. No catalog or AI calls. */
+  async suggest(q: string, limit: number, catalog: readonly CatalogEntry[] = []): Promise<Suggestion[]> {
     await this.loadIndex();
-    return suggestTitles(this.index.titles(), q, limit);
+    return suggestTitles(this.index.titles(), q, limit, catalog);
   }
 
   /** Every saved title, for browsing and suggestions in the browser. The tag changes when the list changes. */

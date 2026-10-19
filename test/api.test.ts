@@ -3,6 +3,7 @@ import zlib from "node:zlib";
 import assert from "node:assert/strict";
 import { clientAddress, createApi } from "../src/server/app.js";
 import { acceptsBrotli, BrotliCache } from "../src/server/brotliCache.js";
+import type { CatalogIndex } from "../src/server/catalogIndex.js";
 import type { ReportService } from "../src/server/reports.js";
 import type { SearchCache } from "../src/server/searchCache.js";
 import type { SimilarService } from "../src/server/similar.js";
@@ -27,7 +28,7 @@ function apiWith(tag: { value: string }, brotli = new BrotliCache()) {
     titles: async () => ({ tag: tag.value, titles: [TITLE] }),
     browse: async () => ({ total: 0, offset: 0, items: [], tags: [] }),
   } as unknown as ReportService;
-  return createApi(reports, {} as SearchCache, {} as WatchService, {} as SimilarService, brotli);
+  return createApi(reports, {} as SearchCache, {} as WatchService, {} as SimilarService, null, brotli);
 }
 
 test("GET /titles sends the list with an ETag, then 304 until the list changes", async () => {
@@ -116,4 +117,33 @@ test("GET /similar/:id answers with the rated titles only, in TMDB's order", asy
   const ids = ((await res.json()) as IndexEntry[]).map((t) => t.id);
   assert.equal(ids.length, 22);
   assert.deepEqual(ids.slice(0, 3), ["tmdb-movie-3", "tmdb-movie-1", "tmdb-movie-100"]);
+});
+
+test("GET /catalog sends the list with an ETag, and an empty list before the first build", async () => {
+  const reports = {} as ReportService;
+  let list: { tag: string; text: string } | null = null;
+  const catalog = { response: () => list } as unknown as CatalogIndex;
+  const api = createApi(reports, {} as SearchCache, {} as WatchService, {} as SimilarService, catalog);
+  const empty = await api.request("/catalog");
+  assert.deepEqual(await empty.json(), { movie: [], tv: [] });
+  assert.equal(empty.headers.get("etag"), null);
+
+  list = { tag: "123", text: '{"movie":[[603,"The Matrix",1999]],"tv":[]}' };
+  const first = await api.request("/catalog");
+  assert.equal(first.headers.get("etag"), 'W/"123"');
+  assert.deepEqual(await first.json(), { movie: [[603, "The Matrix", 1999]], tv: [] });
+  const again = await api.request("/catalog", { headers: { "if-none-match": 'W/"123"' } });
+  assert.equal(again.status, 304);
+});
+
+test("GET /suggest passes the catalog titles to the search", async () => {
+  const titles = [{ id: "tmdb-movie-603", kind: "movie", title: "The Matrix", year: 1999 }];
+  let passed: unknown = null;
+  const reports = {
+    suggest: async (_q: string, _limit: number, catalog: unknown) => ((passed = catalog), []),
+  } as unknown as ReportService;
+  const catalog = { titles: () => titles } as unknown as CatalogIndex;
+  const api = createApi(reports, {} as SearchCache, {} as WatchService, {} as SimilarService, catalog);
+  assert.equal((await api.request("/suggest?q=matrix")).status, 200);
+  assert.equal(passed, titles);
 });

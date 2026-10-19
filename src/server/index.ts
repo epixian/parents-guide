@@ -7,6 +7,7 @@ import { Hono } from "hono";
 import { createApi } from "./app.js";
 import { backup } from "./backup.js";
 import { FileReportCache } from "./cache.js";
+import { CatalogIndex } from "./catalogIndex.js";
 import { config } from "./config.js";
 import { Popularity } from "./popularity.js";
 import { RateLimiter } from "./rateLimit.js";
@@ -99,7 +100,16 @@ const similar = new SimilarService(config.cacheDir);
 setInterval(() => void similar.prune(), 60 * 60 * 1000).unref();
 void similar.prune();
 
-app.route("/api", createApi(reports, searchCache, watch, similar));
+// Popular TMDB titles for search suggestions. Rebuilt when older than a week
+// (about 550 TMDB requests, 3 minutes); checked at startup, then once a day.
+const catalog = new CatalogIndex(config.cacheDir);
+await catalog.load();
+if (config.tmdbApiKey) {
+  setInterval(() => void catalog.refresh(), 24 * 60 * 60 * 1000).unref();
+  void catalog.refresh();
+}
+
+app.route("/api", createApi(reports, searchCache, watch, similar, catalog));
 
 // Production: serve the built client. In development, Vite serves it instead.
 const clientDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../client");

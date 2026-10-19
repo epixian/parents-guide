@@ -1,5 +1,6 @@
 import type {
   BrowseResponse,
+  CatalogResponse,
   IndexEntry,
   Mood,
   RecentItem,
@@ -21,7 +22,7 @@ async function get<T>(url: string): Promise<T> {
 
 export const api = {
   search: (q: string) => get<{ results: SearchResult[]; warnings: string[] }>(`/api/search?q=${encodeURIComponent(q)}`),
-  /** Rated titles that match q, for the search box as the visitor types. */
+  /** Rated and popular titles that match q, for the search box as the visitor types. */
   suggest: (q: string) => get<Suggestion[]>(`/api/suggest?q=${encodeURIComponent(q)}`),
   /** Mood of a saved result. The server rates it first if the result has none (a few seconds). */
   mood: (id: string) => get<Mood>(`/api/mood/${encodeURIComponent(id)}`),
@@ -30,6 +31,8 @@ export const api = {
   trending: () => get<RecentItem[]>("/api/trending"),
   /** Every rated title, for browse and suggestions in the browser. Use src/client/titles.ts, not this. */
   titles: () => get<IndexEntry[]>("/api/titles"),
+  /** Popular TMDB titles, for suggestions in the browser. Use src/client/titles.ts, not this. */
+  catalog: () => get<CatalogResponse>("/api/catalog"),
   /** query: the browse filters as a query string (see src/shared/browse.ts). */
   browse: (query: string) => get<BrowseResponse>(`/api/browse?${query}`),
   /** Streaming services for a movie, TV series, or season (the series' services). */

@@ -156,7 +156,7 @@ export interface RecentItem {
 
 export type RecentResponse = Record<MediaKind, RecentItem[]>;
 
-/** One search suggestion: a rated title that matches what the visitor is typing. */
+/** One search suggestion: a rated or popular title that matches what the visitor is typing. */
 export interface Suggestion {
   /** Page to open: a report id, or a series id (tmdb-tv-1399) for TV. */
   id: string;
@@ -164,7 +164,23 @@ export interface Suggestion {
   title: string;
   years: string | null;
   imageUrl: string | null;
+  /** False for a popular TMDB title with no saved result: opening it starts an AI lookup. */
+  rated: boolean;
 }
+
+/** One popular movie or TV series from TMDB, for search suggestions. Id as in IndexEntry (tmdb-movie-603, tmdb-tv-1399). */
+export interface CatalogEntry {
+  id: string;
+  kind: "movie" | "tv";
+  title: string;
+  year: number | null;
+}
+
+/**
+ * GET /api/catalog: popular TMDB titles as [tmdb id, title, year] rows, without
+ * key names, so the list stays small (see src/server/catalogIndex.ts).
+ */
+export type CatalogResponse = Record<CatalogEntry["kind"], [number, string, number | null][]>;
 
 /** One title in the browse index. TV series merge their rated seasons. */
 export interface IndexEntry {

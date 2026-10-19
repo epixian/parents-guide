@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import type { IndexEntry } from "../src/shared/types.js";
-import { browseTitles, parseBrowseQuery, suggestTitles } from "../src/shared/browse.js";
+import type { CatalogEntry, IndexEntry } from "../src/shared/types.js";
+import { browseTitles, catalogEntries, parseBrowseQuery, suggestTitles } from "../src/shared/browse.js";
 
 function entry(id: string, extra: Partial<IndexEntry> = {}): IndexEntry {
   return {
@@ -142,14 +142,97 @@ test("suggestTitles ignores case, accents, and punctuation", () => {
   const titles = [entry("a", { title: "Amélie" }), entry("s", { title: "Spider-Man: No Way Home" })];
   assert.deepEqual(suggestTitles(titles, "AMEL", 10).map((s) => s.id), ["a"]);
   assert.deepEqual(suggestTitles(titles, "spider man", 10).map((s) => s.id), ["s"]);
-  assert.deepEqual(suggestTitles(titles, "spiderman", 10).map((s) => s.id), []);
+  assert.deepEqual(suggestTitles(titles, "spiderman", 10).map((s) => s.id), ["s"]);
   assert.deepEqual(suggestTitles(titles, "!!", 10), []);
+});
+
+test("suggestTitles reads & as and, and roman numerals as numbers", () => {
+  const titles = [
+    entry("ff", { title: "Fast & Furious" }),
+    entry("rocky2", { title: "Rocky II" }),
+    entry("gf2", { title: "The Godfather Part II" }),
+    entry("i-robot", { title: "I, Robot" }),
+  ];
+  assert.deepEqual(suggestTitles(titles, "fast and furious", 10).map((s) => s.id), ["ff"]);
+  assert.deepEqual(suggestTitles(titles, "rocky 2", 10).map((s) => s.id), ["rocky2"]);
+  assert.deepEqual(suggestTitles(titles, "godfather part ii", 10).map((s) => s.id), ["gf2"]);
+  // "I" stays a word.
+  assert.deepEqual(suggestTitles(titles, "i robot", 10).map((s) => s.id), ["i-robot"]);
+});
+
+test("suggestTitles matches typed words in any order, below the other matches", () => {
+  const titles = [
+    entry("hp3", { title: "Harry Potter and the Prisoner of Azkaban" }),
+    entry("azk", { title: "Azkaban Harry" }),
+    entry("other", { title: "Harry and the Hendersons" }),
+  ];
+  assert.deepEqual(suggestTitles(titles, "potter azkaban", 10).map((s) => s.id), ["hp3"]);
+  // A word start ("azkaban harry") ranks above the words in another order.
+  assert.deepEqual(suggestTitles(titles, "azkaban har", 10).map((s) => s.id), ["azk", "hp3"]);
+});
+
+test("suggestTitles accepts small typos only when the list is short, and lists them last", () => {
+  const titles = [
+    entry("fabel", { title: "The Fabelmans" }),
+    entry("opp", { title: "Oppenheimer" }),
+    entry("dune", { title: "Dune" }),
+    entry("dunk", { title: "Dunkirk" }),
+  ];
+  // Swapped letters, a missing letter, and a typo in a word that is not finished.
+  assert.deepEqual(suggestTitles(titles, "fablemans", 10).map((s) => s.id), ["fabel"]);
+  assert.deepEqual(suggestTitles(titles, "oppenheimr", 10).map((s) => s.id), ["opp"]);
+  assert.deepEqual(suggestTitles(titles, "oppenhiem", 10).map((s) => s.id), ["opp"]);
+  // "dune" is one letter from "dunk": a typo match, after the real one, and gone when the list is full.
+  assert.deepEqual(suggestTitles(titles, "dune", 10).map((s) => s.id), ["dune", "dunk"]);
+  assert.deepEqual(suggestTitles(titles, "dune", 1).map((s) => s.id), ["dune"]);
+  // No typos in short words or in the first letter.
+  assert.deepEqual(suggestTitles(titles, "dum", 10), []);
+  assert.deepEqual(suggestTitles(titles, "pppenheimer", 10), []);
 });
 
 test("suggestTitles keeps the limit and returns only the card fields", () => {
   const titles = ["Cars", "Cars 2", "Cars 3"].map((t) => entry(t, { title: t, imageUrl: "x.jpg" }));
   assert.deepEqual(suggestTitles(titles, "cars", 2), [
-    { id: "Cars", kind: "movie", title: "Cars", years: "2000", imageUrl: "x.jpg" },
-    { id: "Cars 2", kind: "movie", title: "Cars 2", years: "2000", imageUrl: "x.jpg" },
+    { id: "Cars", kind: "movie", title: "Cars", years: "2000", imageUrl: "x.jpg", rated: true },
+    { id: "Cars 2", kind: "movie", title: "Cars 2", years: "2000", imageUrl: "x.jpg", rated: true },
+  ]);
+});
+
+const popular = (id: string, title: string, year: number | null = 2001): CatalogEntry => ({
+  id,
+  kind: id.startsWith("tmdb-tv-") ? "tv" : "movie",
+  title,
+  year,
+});
+
+test("suggestTitles adds catalog titles, marked as not rated, without the ones already rated", () => {
+  const titles = [entry("tmdb-tv-1399", { kind: "tv", title: "Game of Thrones", years: "2011-2019" })];
+  const catalog = [popular("tmdb-tv-1399", "Game of Thrones", 2011), popular("tmdb-movie-1", "The Game", 1997)];
+  assert.deepEqual(suggestTitles(titles, "game", 10, catalog), [
+    { id: "tmdb-tv-1399", kind: "tv", title: "Game of Thrones", years: "2011-2019", imageUrl: null, rated: true },
+    { id: "tmdb-movie-1", kind: "movie", title: "The Game", years: "1997", imageUrl: null, rated: false },
+  ]);
+  assert.equal(suggestTitles([], "game", 10, [popular("tmdb-movie-2", "Game Night", null)])[0]!.years, null);
+});
+
+test("suggestTitles puts a better catalog match above a rated one, and a rated one first in a tie", () => {
+  const titles = [
+    entry("rated-contains", { title: "Paradune" }),
+    entry("rated-start", { title: "Dune Messiah" }),
+  ];
+  const catalog = [popular("tmdb-movie-438631", "Dune", 2021), popular("tmdb-movie-9", "Dune Warrior", 1991)];
+  assert.deepEqual(
+    suggestTitles(titles, "dune", 10, catalog).map((s) => s.id),
+    // "Dune Messiah" and "Dune Warrior" tie on rank and length: the rated title goes first.
+    ["tmdb-movie-438631", "rated-start", "tmdb-movie-9", "rated-contains"],
+  );
+  // The limit counts both lists.
+  assert.deepEqual(suggestTitles(titles, "dune", 1, catalog).map((s) => s.id), ["tmdb-movie-438631"]);
+});
+
+test("catalogEntries reads the rows of GET /api/catalog", () => {
+  assert.deepEqual(catalogEntries({ movie: [[603, "The Matrix", 1999]], tv: [[1399, "Game of Thrones", null]] }), [
+    { id: "tmdb-movie-603", kind: "movie", title: "The Matrix", year: 1999 },
+    { id: "tmdb-tv-1399", kind: "tv", title: "Game of Thrones", year: null },
   ]);
 });

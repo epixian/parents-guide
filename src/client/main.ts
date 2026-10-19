@@ -34,7 +34,7 @@ import { recommend } from "../shared/recommend.js";
 import { rankSimilar } from "../shared/similar.js";
 import { type Fit, fitFor, markSignals, MIN_MARKED } from "../shared/taste.js";
 import { parseBrowseQuery, withinLimits } from "../shared/browse.js";
-import { browse, prefetchTitles, preloadTitles, suggest, titlesById, titlesReady } from "./titles.js";
+import { browse, prefetchTitles, preloadSearch, suggest, titlesById, titlesReady } from "./titles.js";
 import {
   loadHidden,
   loadLimits,
@@ -2325,7 +2325,11 @@ async function restoreScroll(saved: PageState | null, seq: number): Promise<void
 
 // ---------- Search suggestions ----------
 
-/** Rated titles that match the search box, shown below it as the visitor types. */
+/**
+ * Rated and popular titles that match the search box, shown below it as the
+ * visitor types. The last row always searches the catalogs for the text, so a
+ * visitor who does not see the title knows the next step.
+ */
 const suggestBox = document.querySelector<HTMLUListElement>("#suggestions")!;
 let suggestions: Suggestion[] = [];
 /** Index of the highlighted suggestion, or -1. */
@@ -2352,12 +2356,11 @@ function closeSuggestions(): void {
 /** The smallest poster size each catalog has (TMDB w92, Open Library S), for the 32px thumbnails. */
 const thumbUrl = (url: string) => url.replace("/t/p/w185/", "/t/p/w92/").replace(/-M\.jpg$/, "-S.jpg");
 
-function showSuggestions(items: Suggestion[]): void {
-  if (!items.length) return closeSuggestions();
+function showSuggestions(items: Suggestion[], q: string): void {
   suggestions = items;
   activeSuggestion = -1;
   searchInput.removeAttribute("aria-activedescendant");
-  suggestBox.innerHTML = items
+  suggestBox.innerHTML = `${items
     .map(
       (s, i) => `
       <li role="option" id="suggestion-${i}" data-index="${i}" aria-selected="false">
@@ -2365,10 +2368,15 @@ function showSuggestions(items: Suggestion[]): void {
         <span>
           ${esc(s.title)}${s.years ? ` <span class="muted">(${esc(s.years)})</span>` : ""}
           <span class="badge">${KIND_LABEL[s.kind]}</span>
+          ${s.rated ? "" : `<span class="unrated muted small">Not rated yet</span>`}
         </span>
       </li>`,
     )
-    .join("");
+    .join("")}
+      <li role="option" id="suggestion-${items.length}" data-index="${items.length}" aria-selected="false" class="search-all">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.35-4.35" /></svg>
+        <span>Search all movies, TV shows, and books for “${esc(q)}”</span>
+      </li>`;
   suggestBox.hidden = false;
   searchInput.setAttribute("aria-expanded", "true");
 }
@@ -2378,7 +2386,7 @@ async function loadSuggestions(q: string): Promise<void> {
   const items = await suggest(q).catch(() => [] as Suggestion[]);
   // Skip the answer if the text changed, the list was closed, or the box lost focus meanwhile.
   if (seq !== suggestSeq || document.activeElement !== searchInput) return;
-  showSuggestions(items);
+  showSuggestions(items, q);
 }
 
 function highlightSuggestion(i: number): void {
@@ -2396,7 +2404,11 @@ function highlightSuggestion(i: number): void {
 
 function openSuggestion(i: number): void {
   const s = suggestions[i];
-  if (!s) return;
+  // The last row: search the catalogs for the text.
+  if (!s) {
+    searchInput.blur(); // Phones: close the keyboard, as for a title.
+    return searchForm.requestSubmit();
+  }
   // The list closes now; a copy of the thumbnail stays for the poster animation.
   holdPoster(document.querySelector<HTMLImageElement>(`#suggestion-${i} img`), pageHref(s).slice(1));
   closeSuggestions();
@@ -2418,14 +2430,14 @@ searchInput.addEventListener("input", () => {
   else suggestTimer = setTimeout(() => void loadSuggestions(q), 150);
 });
 
-searchInput.addEventListener("focus", preloadTitles);
+searchInput.addEventListener("focus", preloadSearch);
 
 searchInput.addEventListener("keydown", (e) => {
   const open = !suggestBox.hidden;
   if (e.key === "ArrowDown" || e.key === "ArrowUp") {
     if (!open) return;
     e.preventDefault();
-    const n = suggestions.length;
+    const n = suggestions.length + 1; // With the "Search all" row.
     // Wraps through "none highlighted" (-1), so the visitor can go back to the typed text.
     const next = e.key === "ArrowDown" ? activeSuggestion + 1 : activeSuggestion - 1;
     highlightSuggestion(next >= n ? -1 : next < -1 ? n - 1 : next);

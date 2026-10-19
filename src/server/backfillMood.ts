@@ -94,8 +94,9 @@ async function main(): Promise<void> {
   }
 
   const requests = todo.map((r) => ({ custom_id: r.id, params: buildMoodRequest(r) }));
-  // About 1,000 input and 100 output tokens each (Haiku 4.5: $1 and $5 per million), half price in a batch.
-  const estimate = (requests.length * (1000 * 1 + 100 * 5)) / 1_000_000 / 2;
+  // About 1,300 input and 400 output tokens each (answer and thinking) on Haiku 5.5, at batch prices.
+  const usage = { input_tokens: 1300, output_tokens: 400 };
+  const estimate = requests.length * (estimateCost({ id: "estimate", mode: "batch", model: config.model, usage }) ?? 0);
   console.log(`${requests.length} moods to rate. Estimated cost ≈ $${estimate.toFixed(2)} at batch prices.`);
   if (args.includes("--dry-run")) {
     console.log("Dry run: no batch sent. First titles:");

@@ -22,9 +22,10 @@ function message(text: string, stop: Anthropic.Message["stop_reason"] = "end_tur
     id: "msg_test",
     type: "message",
     role: "assistant",
-    model: "claude-haiku-4-5",
+    model: "claude-haiku-5-5",
     stop_reason: stop,
-    content: [{ type: "text", text }],
+    // Haiku 5.5 thinks by default: the answer comes after an (empty) thinking block.
+    content: [{ type: "thinking", thinking: "", signature: "sig" }, { type: "text", text }],
     usage: { input_tokens: 3000, output_tokens: 1500 },
   } as unknown as Anthropic.Message;
 }
@@ -44,7 +45,13 @@ const output = {
 
 test("buildRequest uses a plain JSON schema, so it also works in a batch", () => {
   const req = buildRequest(work);
-  assert.equal(req.model, "claude-haiku-4-5");
+  assert.equal(req.model, "claude-haiku-5-5");
+  assert.equal(req.output_config?.effort, "high");
+  // Haiku 5.5 must use its own knowledge (summaries leave out storylines), and keep doubts out of the summary.
+  assert.match(String(req.system), /Do not score a category 0 only because the metadata does not mention it/);
+  assert.match(String(req.system), /never in the summary/);
+  assert.equal(req.thinking, undefined); // Adaptive thinking, the default.
+  assert.ok(req.max_tokens >= 16000);
   const format = req.output_config?.format as { type: string; schema: unknown; parse?: unknown };
   assert.equal(format.type, "json_schema");
   assert.equal(typeof format.schema, "object");
@@ -70,9 +77,11 @@ test("reportFromMessage rejects refusals, cut-off output, and bad JSON", () => {
 
 test("estimateCost uses Haiku prices and halves batch requests", () => {
   const usage = { input_tokens: 3000, output_tokens: 1500 };
-  const live = estimateCost({ id: "x", mode: "live", model: "claude-haiku-4-5", usage })!;
-  assert.ok(Math.abs(live - 0.0105) < 1e-9);
-  assert.ok(Math.abs(estimateCost({ id: "x", mode: "batch", model: "claude-haiku-4-5", usage })! - live / 2) < 1e-9);
+  const live = estimateCost({ id: "x", mode: "live", model: "claude-haiku-5-5", usage })!;
+  assert.ok(Math.abs(live - 0.00105) < 1e-9);
+  // Older usage lines keep their Haiku 4.5 price.
+  assert.ok(Math.abs(estimateCost({ id: "x", mode: "live", model: "claude-haiku-4-5", usage })! - 0.0105) < 1e-9);
+  assert.ok(Math.abs(estimateCost({ id: "x", mode: "batch", model: "claude-haiku-5-5", usage })! - live / 2) < 1e-9);
   assert.equal(estimateCost({ id: "x", mode: "live", model: "other-model", usage }), null);
 });
 
@@ -93,8 +102,10 @@ test("normalizeMood rounds and clamps each scale to 1-5, adds the version, and k
 test("buildMoodRequest sends the saved summary and themes, with a small JSON schema", () => {
   const saved = reportFromMessage("tmdb-tv-1-s02", "tv-season", { ...work, subtitle: "Season 2" }, new Date(), message(JSON.stringify(output)));
   const req = buildMoodRequest(saved);
-  assert.equal(req.model, "claude-haiku-4-5");
-  assert.ok(req.max_tokens <= 500);
+  assert.equal(req.model, "claude-haiku-5-5");
+  assert.equal(req.output_config?.effort, "low");
+  // Room for thinking, which counts toward max_tokens.
+  assert.ok(req.max_tokens >= 2000);
   assert.match(String(req.system), /tone \(1 to 5\)/);
   assert.match(String(req.system), /feeling \(1 to 5\)/);
   const user = String(req.messages[0]?.content);

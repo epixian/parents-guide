@@ -5,8 +5,13 @@ import { config } from "./config.js";
 // Token usage of every AI call: one line in the server log, and one JSON line
 // in <CACHE_DIR>/usage.jsonl for totals later (outside git, like the cache).
 
-/** List prices per million tokens (USD). Batch requests cost half. */
+/**
+ * List prices per million tokens (USD). Batch requests cost half. Haiku 5.5:
+ * prompts up to 100K tokens (a rating prompt is about 5,000); longer prompts
+ * cost $0.50 / $2.50. Haiku 4.5 stays for older lines in usage.jsonl.
+ */
 const PRICES: Record<string, { input: number; output: number }> = {
+  "claude-haiku-5-5": { input: 0.1, output: 0.5 },
   "claude-haiku-4-5": { input: 1, output: 5 },
 };
 

@@ -182,8 +182,10 @@ async function main(): Promise<void> {
   }
 
   const requests = [...work.entries()].map(([id, details]) => ({ custom_id: id, params: buildRequest(details) }));
-  // Rough estimate from earlier live lookups: ~3,500 input and ~1,500 output tokens each.
-  const estimate = (requests.length * (3500 * 1 + 1500 * 5)) / 1_000_000 / 2;
+  // Rough estimate per title: ~4,600 input and ~3,500 output tokens (answer and thinking) on Haiku 5.5.
+  // Check it against the real costs in usage.jsonl after a batch.
+  const usage = { input_tokens: 4600, output_tokens: 3500 };
+  const estimate = requests.length * (estimateCost({ id: "estimate", mode: "batch", model: config.model, usage }) ?? 0);
   console.log(`${requests.length} titles to rate. Estimated cost ≈ $${estimate.toFixed(2)} at batch prices.`);
   if (args.includes("--dry-run")) {
     console.log("Dry run: no batch sent.");

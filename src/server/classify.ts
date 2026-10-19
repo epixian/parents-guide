@@ -19,7 +19,7 @@ import { HttpError } from "./http.js";
 import { recordUsage } from "./usage.js";
 
 /** Bump when the prompt or the category list changes. Stored in each cached result. */
-export const PROMPT_VERSION = 6;
+export const PROMPT_VERSION = 7;
 
 // The API does not enforce numeric ranges or enums inside nested objects; the
 // SDK only checks them after the response arrives, and a failed check wastes
@@ -79,6 +79,7 @@ Treatment rules:
 
 Other rules:
 - Use the catalog metadata provided and your own knowledge of the work.
+- Episode summaries and other metadata are short and leave out many storylines. Use your own knowledge of the work for every category. Do not score a category 0 only because the metadata does not mention it. If you are not sure whether the content is present, say so in the notes.
 - Be factual and neutral. Describe what is in the work; do not moralize or tell parents what to decide.
 - In each category's notes, give one to three short sentences with specific examples (scenes, words, themes). Mild spoilers are acceptable when needed to describe content. If a score is 0, say briefly that the content is absent or negligible.
 - themes lists three to six major themes of the work in a few words each, such as "grief and loss", "coming of age", "friendship", "redemption", or "power and corruption".
@@ -86,6 +87,7 @@ Other rules:
 - original_publisher: for a book, the publisher of the first edition (e.g. "George Allen & Unwin" for The Hobbit), or an empty string if you are not sure. For movies and TV, always an empty string.
 - positives lists up to five short positive elements, such as courage, honesty, sacrifice, forgiveness, faith, strong family bonds, or educational value. Use an empty list if there are none.
 - The summary is three to five sentences: the overall content profile and the most important concerns.
+- The summary is shown to parents: state what the work contains. Put any doubt about details in the category notes, never in the summary.
 - Set confidence to "high" if you know the work well, "medium" if you know it partly, and "low" if you rely mostly on the metadata. Never invent specific scenes you do not know about; with low confidence, say in the notes that details are uncertain.
 
 ${MOOD_RULES}`;
@@ -144,7 +146,8 @@ export function getClient(): Anthropic {
   return client;
 }
 
-const MAX_TOKENS = 8000;
+/** Room for adaptive thinking (on by default on Haiku 5.5) plus the JSON answer of about 2,000 tokens. */
+const MAX_TOKENS = 16000;
 
 function userMessage(work: WorkDetails): string {
   return `Rate this work.\n\nCatalog metadata:\n${work.context.join("\n")}`;
@@ -159,7 +162,9 @@ export function buildRequest(work: WorkDetails): Anthropic.MessageCreateParamsNo
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userMessage(work) }],
     // Plain JSON schema (no parse helper), so the request can also go into a batch.
-    output_config: { format: { type: "json_schema", schema: format.schema } },
+    // "high", not the Haiku 5.5 default "medium": in a test, its scores matched its own notes better,
+    // for about $0.0008 more per rating.
+    output_config: { effort: "high", format: { type: "json_schema", schema: format.schema } },
   };
 }
 
@@ -259,10 +264,12 @@ function moodUserMessage(r: Report): string {
 export function buildMoodRequest(report: Report): Anthropic.MessageCreateParamsNonStreaming {
   return {
     model: config.model,
-    max_tokens: 400,
+    // Thinking counts toward max_tokens: room for it plus the short answer.
+    max_tokens: 4000,
     system: MOOD_SYSTEM_PROMPT,
     messages: [{ role: "user", content: moodUserMessage(report) }],
-    output_config: { format: { type: "json_schema", schema: zodOutputFormat(moodSchema).schema } },
+    // Three numbers and a note from a saved summary: little thinking needed.
+    output_config: { effort: "low", format: { type: "json_schema", schema: zodOutputFormat(moodSchema).schema } },
   };
 }
 

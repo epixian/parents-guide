@@ -90,7 +90,7 @@ export const config = {
   // Contact URL or email for the Open Library User-Agent. With a contact,
   // Open Library allows about 3 requests per second; without one, about 1.
   openLibraryContact: process.env.OPENLIBRARY_CONTACT || "",
-  model: "claude-haiku-4-5",
+  model: "claude-haiku-5-5",
   /** Off-site backup bucket, or null when the backup is off (no S3_BUCKET, or bad settings). */
   s3: s3Config(),
 };

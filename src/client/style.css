@@ -103,6 +103,31 @@ h2 {
   border-bottom: 1px solid var(--border);
 }
 
+/* Back button of the installed app, left of the logo. The negative margin keeps the logo close. */
+.back-button {
+  display: block;
+  margin-right: -8px;
+  padding: 6px;
+  border: none;
+  background: none;
+  color: var(--text);
+  line-height: 0;
+}
+
+.back-button[hidden] {
+  display: none;
+}
+
+/* Installed app, first page: invisible, but it keeps its space (and is out of the tab order). */
+.back-button.away {
+  visibility: hidden;
+}
+
+.back-button svg {
+  width: 24px;
+  height: 24px;
+}
+
 .brand {
   display: block;
   color: var(--text);

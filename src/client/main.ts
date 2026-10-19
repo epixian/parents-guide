@@ -1832,7 +1832,7 @@ let browseSeq = 0;
 async function updateBrowse(form: HTMLFormElement): Promise<void> {
   const seq = ++browseSeq;
   const params = browseParams(form);
-  history.replaceState(null, "", `#/browse${params.size ? `?${params}` : ""}`);
+  history.replaceState({ scrollY: 0, depth } satisfies PageState, "", `#/browse${params.size ? `?${params}` : ""}`);
   document.querySelector("#tag-count")!.textContent = tagCount(params.getAll("tag").length);
   const moods = moodFilterCount(params);
   document.querySelector("#mood-count")!.textContent = moods ? `(${moods} set)` : "";
@@ -1974,6 +1974,7 @@ async function route(): Promise<void> {
   // Read before the view replaces the page: the loading message makes the
   // page short, and the browser then moves the scroll position.
   const saved = history.state as PageState | null;
+  trackDepth(saved);
   routing = true;
   closeSuggestions();
   pageMeta = "";
@@ -2265,7 +2266,47 @@ interface PageState {
   scrollY: number;
   /** Browse cards on the page, so that many load again before the scroll. */
   cards?: number;
+  /** Pages of the app before this one in history: 0 for the first page. For the back button. */
+  depth?: number;
 }
+
+/** The depth of the current history entry (see PageState). */
+let depth = 0;
+let firstRoute = true;
+
+/**
+ * Give a new history entry its depth, or read it from an entry that has one
+ * (Back, Forward, or a reload). Call at the start of each route.
+ */
+function trackDepth(saved: PageState | null): void {
+  if (typeof saved?.depth === "number") depth = saved.depth;
+  else {
+    depth = firstRoute ? 0 : depth + 1;
+    try {
+      history.replaceState({ ...(saved ?? { scrollY: 0 }), depth } satisfies PageState, "");
+    } catch {
+      // Safari limits replaceState: the button may then be missing on this page.
+    }
+  }
+  firstRoute = false;
+  updateBackButton();
+}
+
+const backButton = document.querySelector<HTMLButtonElement>("#back-button")!;
+/** The installed app: no browser bar, so no browser back button. navigator.standalone: iOS. */
+const installed = () =>
+  matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+
+/**
+ * In a browser tab the button is gone. In the installed app it always keeps
+ * its space, so the logo does not move, and is only invisible on the first page.
+ */
+function updateBackButton(): void {
+  backButton.hidden = !installed();
+  backButton.classList.toggle("away", depth === 0);
+}
+
+backButton.addEventListener("click", () => history.back());
 
 /** True from the start of route() until the scroll position is set, so no wrong position is saved. */
 let routing = false;
@@ -2275,7 +2316,7 @@ const browseCardCount = () => app.querySelectorAll("#browse-results .cards > li"
 
 function saveScroll(): void {
   if (routing) return;
-  const state: PageState = { scrollY: Math.round(window.scrollY) };
+  const state: PageState = { scrollY: Math.round(window.scrollY), depth };
   const cards = browseCardCount();
   if (cards) state.cards = cards;
   try {

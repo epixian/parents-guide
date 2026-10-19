@@ -6,6 +6,13 @@
     <title>Parents' Guide</title>
     <meta name="description" content="AI summaries of parental concerns for movies, TV shows, and books." />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Install as an app: the manifest for Chrome, Edge, and Android; the touch icon for iOS "Add to Home Screen". -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Parents' Guide" />
+    <!-- The header color (--surface) in each color scheme, for the browser bar and the installed app's title bar. -->
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1e2026" media="(prefers-color-scheme: dark)" />
     <!--
       Fredoka 600, cut down to the letters of the logo (PARENTS' GUIDE), about 2 KB.
       It is served from this site, so the page does not wait for Google Fonts.
@@ -23,6 +30,17 @@
   </head>
   <body>
     <header class="site-header">
+      <!--
+        Back, for the installed app: it has no browser back button (iOS has no
+        back gesture either). main.ts shows it only there, and makes it
+        invisible (it keeps its space) when no earlier page of the app exists.
+      -->
+      <button type="button" class="back-button" id="back-button" aria-label="Back" title="Back" hidden>
+        <!-- Chevron icon from Feather (MIT license). -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
+      </button>
       <a href="#/" class="brand" aria-label="Parents' Guide home">
         <!--
           Logo: PARENTS' over GUIDE. The A of PARENTS' sits on the I of GUIDE,

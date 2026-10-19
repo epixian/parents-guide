@@ -163,10 +163,30 @@ export async function browse(query: string, fresh = false): Promise<BrowseRespon
   return titles ? browseTitles(titles, filters) : api.browse(query);
 }
 
-/** Every rated title by id, or null when the list does not load (or with data saver). */
+/** The map of each list version, and the list of each map: the same objects until the list changes. */
+const mapOfList = new WeakMap<readonly IndexEntry[], Map<string, IndexEntry>>();
+const listOfMap = new WeakMap<Map<string, IndexEntry>, readonly IndexEntry[]>();
+
+/** Every rated title by id, or null when the list does not load (or with data saver). Callers must not change the map. */
 export async function titlesById(): Promise<Map<string, IndexEntry> | null> {
   const titles = await load(MAX_AGE_MS)?.catch(() => null);
-  return titles ? new Map(titles.map((t) => [t.id, t])) : null;
+  if (!titles) return null;
+  let map = mapOfList.get(titles);
+  if (!map) {
+    map = new Map(titles.map((t) => [t.id, t]));
+    mapOfList.set(titles, map);
+    listOfMap.set(map, titles);
+  }
+  return map;
+}
+
+/**
+ * The list behind a map from titlesById: the same array until the list
+ * changes, so the taste model keeps its work (see prepare in
+ * src/shared/taste.ts).
+ */
+export function titleList(index: Map<string, IndexEntry>): readonly IndexEntry[] {
+  return listOfMap.get(index) ?? [...index.values()];
 }
 
 /**

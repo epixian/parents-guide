@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { fitFor, markSignals, MIN_FIT } from "../src/shared/taste.js";
+import { fitFor, markSignals, MIN_FIT, modelFromTable, scoreTable } from "../src/shared/taste.js";
 import type { ThemeTag } from "../src/shared/themes.js";
 import type { IndexEntry } from "../src/shared/types.js";
 
@@ -98,4 +98,22 @@ test("fitFor ranks genre above theme tags and mood", () => {
   assert.ok(fit);
   assert.deepEqual(fit.likedNear.map((t) => t.id).sort(), ["t1", "t2", "t3", "t4"]);
   assert.equal(fitFor("c5", genreCatalog, marks), null);
+});
+
+test("fitFor uses the new marks on the same catalog array (the kept scores reset)", () => {
+  assert.ok(fitFor("f5", catalog, clear));
+  const flipped = { f1: "down", f2: "down", f3: "down", f4: "down", g1: "up", g2: "up" } as const;
+  assert.equal(fitFor("f5", catalog, flipped), null);
+  assert.ok(fitFor("g3", catalog, flipped));
+  assert.ok(fitFor("f5", catalog, clear));
+});
+
+test("a score table (as the worker sends it) gives the same fits as the model", () => {
+  const signals = markSignals(clear);
+  const slim = catalog.map(({ id, themeTags, genres, mood }) => ({ id, themeTags, genres, mood }));
+  const table = structuredClone(scoreTable(slim, signals));
+  assert.ok(table);
+  const model = modelFromTable(table, new Map(catalog.map((t) => [t.id, t])));
+  for (const t of catalog) assert.deepEqual(fitFor(t.id, catalog, clear, {}, model), fitFor(t.id, catalog, clear));
+  assert.equal(scoreTable(slim, markSignals({ f1: "up" })), null);
 });

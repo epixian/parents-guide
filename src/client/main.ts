@@ -32,9 +32,10 @@ import type {
 import { api } from "./api.js";
 import { recommend } from "../shared/recommend.js";
 import { rankSimilar } from "../shared/similar.js";
-import { type Fit, fitFor, markSignals, MIN_MARKED } from "../shared/taste.js";
+import { type Fit, fitFor, markSignals, MIN_MARKED, type TasteModel } from "../shared/taste.js";
 import { parseBrowseQuery, withinLimits } from "../shared/browse.js";
-import { browse, prefetchTitles, preloadSearch, suggest, titlesById, titlesReady } from "./titles.js";
+import { tasteModelFor } from "./tasteClient.js";
+import { browse, prefetchTitles, preloadSearch, suggest, titleList, titlesById, titlesReady } from "./titles.js";
 import {
   loadHidden,
   loadLimits,
@@ -539,9 +540,10 @@ async function refreshFit(): Promise<void> {
   // Too few marks for a fit: do not load the rated titles for nothing.
   const enough = markSignals(thumbs, notInterested).size >= MIN_MARKED;
   const index = enough ? await titlesById().catch(() => null) : null;
-  // The user left the page while the list loaded.
+  const model = index ? await tasteModelFor(index, thumbs, notInterested) : null;
+  // The user left the page while the list loaded or the titles were scored.
   if (!slot.isConnected) return;
-  const fit = index ? fitFor(slot.dataset.id!, [...index.values()], thumbs, notInterested) : null;
+  const fit = index ? fitFor(slot.dataset.id!, titleList(index), thumbs, notInterested, model) : null;
   slot.innerHTML = fit ? fitHtml(fit) : "";
   slot.hidden = !fit;
 }
@@ -1484,13 +1486,14 @@ async function showWatchlist(): Promise<string> {
  * Rated titles picked from the user's thumbs (see recommend), not ones on the
  * watchlist. Empty without a thumbs up or the rated titles.
  */
-function recommendedHtml(index: Map<string, IndexEntry> | null): string {
+function recommendedHtml(index: Map<string, IndexEntry> | null, model: TasteModel | null): string {
   if (!index) return "";
-  const picks = recommend([...index.values()], thumbs, {
+  const picks = recommend(titleList(index), thumbs, {
     exclude: new Set(Object.keys(watchlist)),
     notInterested,
     categories: visibleCategories(hidden).map((c) => c.id),
     limit: 12,
+    model,
   });
   if (!picks.length) return "";
   return `
@@ -1511,9 +1514,10 @@ function recommendedHtml(index: Map<string, IndexEntry> | null): string {
 /** Rated titles from the last home page render, to draw its watchlist and recommendations again. */
 let homeIndex: Map<string, IndexEntry> | null = null;
 
-/** The home page rows that depend on the user's choices. */
-function personalHtml(): string {
-  return `<div id="home-personal">${watchlistHtml(homeIndex)}${recommendedHtml(homeIndex)}</div>`;
+/** The home page rows that depend on the user's choices, after the taste model for the current marks is ready. */
+async function personalHtml(): Promise<string> {
+  const model = homeIndex ? await tasteModelFor(homeIndex, thumbs, notInterested) : null;
+  return `<div id="home-personal">${watchlistHtml(homeIndex)}${recommendedHtml(homeIndex, model)}</div>`;
 }
 
 /** Draw every card's watchlist toggle for this title again, with the current state. */
@@ -1562,14 +1566,19 @@ function cardAction(button: HTMLButtonElement): void {
     const section = box.closest("#home-personal section");
     const kind = section?.classList.contains("recommended") ? "recommended" : section ? "watchlist" : null;
     const position = kind ? [...section!.querySelectorAll(".card-actions")].indexOf(box) : -1;
-    personal.outerHTML = personalHtml();
-    if (kind) {
-      // The card may have left its row: focus the card now in its place.
-      const cards = document.querySelectorAll<HTMLElement>(`#home-personal .${kind} .cards > li`);
-      const card = cards[position] ?? cards[cards.length - 1];
-      card?.querySelector<HTMLElement>(`[data-card-action="${button.dataset.cardAction}"]`)?.focus({ preventScroll: true }) ??
-        card?.querySelector<HTMLElement>("a")?.focus({ preventScroll: true });
-    }
+    void personalHtml().then((html) => {
+      // The user may have left the home page while the titles were scored.
+      const now = document.querySelector("#home-personal");
+      if (!now) return;
+      now.outerHTML = html;
+      if (kind) {
+        // The card may have left its row: focus the card now in its place.
+        const cards = document.querySelectorAll<HTMLElement>(`#home-personal .${kind} .cards > li`);
+        const card = cards[position] ?? cards[cards.length - 1];
+        card?.querySelector<HTMLElement>(`[data-card-action="${button.dataset.cardAction}"]`)?.focus({ preventScroll: true }) ??
+          card?.querySelector<HTMLElement>("a")?.focus({ preventScroll: true });
+      }
+    });
   } else {
     // The button was drawn again: put focus back on it.
     document.querySelector<HTMLElement>(`.card-actions[data-id="${CSS.escape(id)}"] [data-card-action="list"]`)?.focus({ preventScroll: true });
@@ -1602,15 +1611,22 @@ async function showHome(): Promise<string> {
     api.trending().catch(() => []),
     api.recent().catch(() => null),
     // The rated titles give watchlist cards their bars and the recommendations. Loaded only when needed.
-    Object.keys(watchlist).length || Object.values(thumbs).includes("up") ? titlesById() : null,
+    // Scoring for the recommendations starts when they arrive, while the other lists load.
+    Object.keys(watchlist).length || Object.values(thumbs).includes("up")
+      ? titlesById().then((index) => {
+          if (index) void tasteModelFor(index, thumbs, notInterested);
+          return index;
+        })
+      : null,
   ]);
   homeIndex = index;
+  const personal = await personalHtml();
   return `
     <section class="hero">
       <h1>Know what is in it before your kids see it.</h1>
       <p>AI-generated summaries of movies, TV shows, and books for content that parents may want to know about.</p>
     </section>
-    ${personalHtml()}
+    ${personal}
     ${trendingHtml(trending)}
     ${recent ? recentHtml(recent) : ""}`;
 }

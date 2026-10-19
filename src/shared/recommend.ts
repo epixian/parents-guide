@@ -1,5 +1,5 @@
 import type { CategoryId } from "./categories.js";
-import { markSignals, tagWeights, tasteModel } from "./taste.js";
+import { markSignals, tagWeights, tasteModel, type TasteModel } from "./taste.js";
 import type { IndexEntry } from "./types.js";
 
 /** Liked titles needed before high concern scores count against a title. */
@@ -15,6 +15,8 @@ export interface RecommendOptions {
   /** Categories the user cares about (not hidden). Only these limit scores. */
   categories: readonly CategoryId[];
   limit: number;
+  /** The taste model for these marks, made already (see src/client/tasteClient.ts). Without it, recommend makes it. */
+  model?: TasteModel | null;
 }
 
 /**
@@ -22,7 +24,7 @@ export interface RecommendOptions {
  * thumbs never leave it.
  *
  * - Match, with a strong enough signal (see tasteModel): the fit score, from
- *   theme tags (rare ones weighted more) and mood.
+ *   genres, theme tags (rare ones weighted more), and mood.
  * - Match, without one: each tag gets the sum of the signals of the marked
  *   titles with it (see markSignals): +1 liked, -1 disliked, less for "Not
  *   interested". A title's match is the sum over its tags.
@@ -44,7 +46,7 @@ export function recommend(
   if (!liked.length) return [];
   const notInterested = opts.notInterested ?? {};
   const signals = markSignals(thumbs, notInterested);
-  const model = tasteModel(catalog, signals);
+  const model = opts.model === undefined ? tasteModel(catalog, signals) : opts.model;
   const weight = model ? null : tagWeights(signals, (id) => byId.get(id)?.themeTags);
 
   const limits = new Map<CategoryId, number>();

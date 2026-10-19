@@ -182,6 +182,13 @@ export interface CatalogEntry {
  */
 export type CatalogResponse = Record<CatalogEntry["kind"], [number, string, number | null][]>;
 
+/**
+ * GET /api/titles/changes?since=<tag>: the titles that changed after the
+ * browser's copy with that tag, or reset when the browser must load the whole
+ * list (GET /api/titles) again.
+ */
+export type TitleChanges = { tag: string; changed: IndexEntry[] } | { tag: string; reset: true };
+
 /** One title in the browse index. TV series merge their rated seasons. */
 export interface IndexEntry {
   /** Report id, or series id (tmdb-tv-1399) for TV. */

@@ -9,6 +9,7 @@ import type {
   SearchResult,
   SeriesResponse,
   Suggestion,
+  TitleChanges,
   WatchProvider,
   WatchResponse,
 } from "../shared/types.js";
@@ -29,8 +30,15 @@ export const api = {
   report: (id: string) => get<ReportResponse>(`/api/report/${encodeURIComponent(id)}`),
   recent: () => get<RecentResponse>("/api/recent"),
   trending: () => get<RecentItem[]>("/api/trending"),
-  /** Every rated title, for browse and suggestions in the browser. Use src/client/titles.ts, not this. */
-  titles: () => get<IndexEntry[]>("/api/titles"),
+  /** Every rated title and the tag of this version, for browse and suggestions in the browser. Use src/client/titles.ts, not this. */
+  titles: async () => {
+    const res = await fetch("/api/titles", { headers: { accept: "application/json" } });
+    if (!res.ok) throw new Error(`Request failed (${res.status})`);
+    const titles = (await res.json()) as IndexEntry[];
+    return { tag: res.headers.get("x-titles-tag"), titles };
+  },
+  /** The titles that changed after the copy with this tag. Use src/client/titles.ts, not this. */
+  titleChanges: (since: string) => get<TitleChanges>(`/api/titles/changes?since=${encodeURIComponent(since)}`),
   /** Popular TMDB titles, for suggestions in the browser. Use src/client/titles.ts, not this. */
   catalog: () => get<CatalogResponse>("/api/catalog"),
   /** query: the browse filters as a query string (see src/shared/browse.ts). */

@@ -1,7 +1,11 @@
 // Browse and search suggestions run in the browser, on the full list of rated
-// titles from GET /api/titles (about 60 KB gzipped per 1,000 titles). The list
-// loads one time. Later uses ask the server for changes with the list's ETag,
-// and the answer is an empty 304 until a title is added or changed.
+// titles from GET /api/titles (about 85 KB gzipped per 1,000 titles). The
+// browser keeps the list in IndexedDB (titleStore.ts) with the server's tag
+// for that version. Later uses, also on a later visit, ask only for the titles
+// that changed since that tag (GET /api/titles/changes), and add them to the
+// copy. Tags stay valid after a server restart. The server answers "reset",
+// and the browser loads the whole list again, only for a bad tag or when most
+// titles changed (see TitleChangeLog in src/server/titleChanges.ts).
 //
 // Suggestions also match about 10,000 popular movies and TV series from
 // GET /api/catalog (about 125 KB compressed; the server rebuilds it each week).
@@ -15,6 +19,7 @@
 import { browseTitles, catalogEntries, parseBrowseQuery, suggestTitles } from "../shared/browse.js";
 import type { BrowseResponse, CatalogEntry, IndexEntry, Suggestion } from "../shared/types.js";
 import { api } from "./api.js";
+import { readTitles, writeChanges, writeTitles, type StoredTitles } from "./titleStore.js";
 
 /** Use a loaded list for this long before asking the server for changes. */
 const MAX_AGE_MS = 60_000;
@@ -30,11 +35,64 @@ function saveData(): boolean {
   return connection()?.saveData === true;
 }
 
+/** The newest copy of the list in this page, with its tag. */
+let current: StoredTitles | null = null;
+/** The saved copy from IndexedDB, read once per page. */
+let stored: Promise<StoredTitles | null> | null = null;
+/** False after a failed write: IndexedDB then has an older copy than current, so the next write replaces it all. */
+let storeInSync = true;
+
+/** Save current: only the changes when the saved copy is one step behind, else the whole list. */
+function save(changed: IndexEntry[] | null): void {
+  if (!current) return;
+  const write = changed && storeInSync ? writeChanges(current.tag, changed) : writeTitles(current);
+  storeInSync = false; // Until the write ends; a sync meanwhile replaces it all.
+  void write.then((ok) => (storeInSync = ok));
+}
+
+/** The copy with the changed titles: replaced in place, new ones at the end. Unchanged entries stay the same objects. */
+export function applyChanges(base: StoredTitles, tag: string, changed: IndexEntry[]): StoredTitles {
+  if (!changed.length) return { tag, titles: base.titles };
+  const byId = new Map(changed.map((t) => [t.id, t]));
+  const titles = base.titles.map((t) => {
+    const next = byId.get(t.id);
+    if (next) byId.delete(t.id);
+    return next ?? t;
+  });
+  return { tag, titles: [...titles, ...byId.values()] };
+}
+
+/**
+ * The current list: the copy in this page or in IndexedDB plus the changes
+ * since it, or the whole list when there is no copy or the server says reset.
+ * When the server cannot be reached, a saved copy is used as it is.
+ */
+async function sync(): Promise<IndexEntry[]> {
+  const base = current ?? (await (stored ??= readTitles()));
+  if (base) {
+    try {
+      const res = await api.titleChanges(base.tag);
+      if (!("reset" in res)) {
+        current = applyChanges(base, res.tag, res.changed);
+        if (current.tag !== base.tag) save(res.changed);
+        return current.titles;
+      }
+    } catch {
+      current = base;
+      return base.titles;
+    }
+  }
+  const { tag, titles } = await api.titles();
+  current = tag ? { tag, titles } : null;
+  save(null);
+  return titles;
+}
+
 /** The list, loaded or checked again when older than maxAge. Null when the server must filter. */
 function load(maxAge: number): Promise<IndexEntry[]> | null {
   if (saveData()) return null;
   if (!list || Date.now() - list.at > maxAge) {
-    const entry = { at: Date.now(), titles: api.titles(), ready: false };
+    const entry = { at: Date.now(), titles: sync(), ready: false };
     list = entry;
     entry.titles.then(
       () => (entry.ready = true),

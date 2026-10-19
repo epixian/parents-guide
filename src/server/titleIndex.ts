@@ -1,7 +1,9 @@
+import { createHash } from "node:crypto";
 import { CATEGORIES, type CategoryId, type TreatmentId } from "../shared/categories.js";
 import { hasMood } from "../shared/mood.js";
 import type { ThemeTag } from "../shared/themes.js";
 import type { IndexEntry, MediaKind, RecentItem, RecentResponse, Report } from "../shared/types.js";
+import { TitleChangeLog } from "./titleChanges.js";
 
 const KIND: Record<Report["kind"], MediaKind> = { movie: "movie", "tv-season": "tv", book: "book" };
 
@@ -106,11 +108,26 @@ function toItem(t: IndexEntry): RecentItem {
  * SQLite instead; callers do not need to change.
  */
 export class TitleIndex {
+  /**
+   * log: when each title last changed (see TitleChangeLog). clock: the time
+   * for a change (tests).
+   */
+  constructor(
+    private readonly log = new TitleChangeLog(null),
+    private readonly clock: () => number = Date.now,
+  ) {}
+
   private readonly results = new Map<string, ResultEntry>();
   /** Streaming service ids per title id. Kept apart from results: they come from TMDB, not the saved files. */
   private readonly streaming = new Map<string, number[]>();
   /** Goes up on every add, so clients can tell when their copy is out of date. */
   private changes = 0;
+  /** Title ids (series ids for TV) with a change that the log has not checked yet. */
+  private readonly dirty = new Set<string>();
+  /** False until startTracking(): at startup the entries are not complete yet. */
+  private tracking = false;
+  /** The newest change time of any title: the tag for GET /api/titles/changes. */
+  private newest = 0;
   private merged: { changes: number; titles: IndexEntry[] } | null = null;
 
   /** Add or replace a result. A save that changes nothing in the index (a refresh with the same scores) keeps the version. */
@@ -119,6 +136,7 @@ export class TitleIndex {
     const old = this.results.get(report.id);
     if (old && JSON.stringify(old) === JSON.stringify(entry)) return;
     this.results.set(report.id, entry);
+    this.dirty.add(entry.titleId);
     this.changes++;
   }
 
@@ -128,6 +146,7 @@ export class TitleIndex {
     if ((this.streaming.get(titleId) ?? []).join() === sorted.join()) return;
     if (sorted.length) this.streaming.set(titleId, sorted);
     else this.streaming.delete(titleId);
+    this.dirty.add(titleId);
     this.changes++;
   }
 
@@ -141,10 +160,44 @@ export class TitleIndex {
     return this.changes;
   }
 
+  /**
+   * Start to record changes in the log. Call when the entries are complete
+   * (results and streaming services loaded), so a half-built entry at startup
+   * does not count as a change. The first check covers every title.
+   */
+  startTracking(): void {
+    this.tracking = true;
+    this.titles();
+  }
+
+  /** The newest change time (ms) of any title. Titles that change later get a larger time. */
+  get newestChange(): number {
+    this.titles();
+    return this.newest;
+  }
+
+  /** Titles that changed after the time. Titles are never removed, so these are all the changes. */
+  changedSince(time: number): IndexEntry[] {
+    return this.titles().filter((t) => this.log.at(t.id) > time);
+  }
+
   /** One entry per title; TV seasons merged by series. Callers must not change the array. */
   titles(): readonly IndexEntry[] {
     if (this.merged?.changes !== this.changes) this.merged = { changes: this.changes, titles: this.merge() };
+    if (this.tracking && this.dirty.size) this.check(this.merged.titles);
     return this.merged.titles;
+  }
+
+  /** Compare each changed title's entry with its hash in the log. */
+  private check(titles: readonly IndexEntry[]): void {
+    // Always after the newest change, so a client with that tag never misses a change in the same millisecond.
+    const now = Math.max(this.clock(), this.newest + 1);
+    for (const t of titles) {
+      if (!this.dirty.has(t.id)) continue;
+      this.log.update(t.id, createHash("sha1").update(JSON.stringify(t)).digest("base64url"), now);
+    }
+    this.dirty.clear();
+    this.newest = titles.reduce((max, t) => Math.max(max, this.log.at(t.id)), 0);
   }
 
   private merge(): IndexEntry[] {

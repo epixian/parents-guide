@@ -10,6 +10,7 @@ import type {
   Report,
   ReportResponse,
   SeriesResponse,
+  TitleChanges,
   Suggestion,
   WorkInfo,
 } from "../shared/types.js";
@@ -22,6 +23,7 @@ import { classify, rateMood } from "./classify.js";
 import { HttpError } from "./http.js";
 import type { Popularity } from "./popularity.js";
 import type { RateLimiter } from "./rateLimit.js";
+import { TitleChangeLog } from "./titleChanges.js";
 import { TitleIndex } from "./titleIndex.js";
 import { isReleased, shouldRefresh } from "./refreshPolicy.js";
 
@@ -69,17 +71,27 @@ export class ReportService {
   private readonly inFlight = new Map<string, Promise<ReportResponse>>();
   private readonly moodInFlight = new Map<string, Promise<Mood>>();
 
-  private readonly index = new TitleIndex();
+  private readonly index: TitleIndex;
   /** Loads the title index from the cache folder on first use. */
   private indexReady: Promise<void> | null = null;
   /** Start time, so an ETag from before a restart never matches. */
   private readonly started = Date.now().toString(36);
 
+  /**
+   * changeLog: when each title last changed, kept across restarts.
+   * storedProviders: gives the saved streaming services of the titles to
+   * setProviders before the change log checks the entries at startup, so
+   * services that are not loaded yet do not count as a change.
+   */
   constructor(
     private readonly cache: ReportCache,
     private readonly limiter: RateLimiter,
     private readonly popularity: Popularity,
-  ) {}
+    private readonly changeLog = new TitleChangeLog(null),
+    private readonly storedProviders?: (ids: string[], save: (id: string, providers: number[]) => void) => Promise<void>,
+  ) {
+    this.index = new TitleIndex(changeLog);
+  }
 
   /** Most viewed titles of the last week that have a saved result. */
   async getTrending(limit: number): Promise<RecentItem[]> {
@@ -119,9 +131,27 @@ export class ReportService {
   }
 
   /** Every saved title, for browsing and suggestions in the browser. The tag changes when the list changes. */
-  async titles(): Promise<{ tag: string; titles: readonly IndexEntry[] }> {
+  async titles(): Promise<{ tag: string; changeTag: string; titles: readonly IndexEntry[] }> {
     await this.loadIndex();
-    return { tag: `${this.started}-${this.index.version}`, titles: this.index.titles() };
+    const titles = this.index.titles();
+    return { tag: `${this.started}-${this.index.version}`, changeTag: String(this.index.newestChange), titles };
+  }
+
+  /**
+   * The titles that changed since a client's copy, by the tag of that copy.
+   * reset: the tag is not valid or newer than the list (a lost change log), or
+   * most titles changed (new entry fields), so the whole list, which is
+   * compressed once per version, is smaller.
+   */
+  async titleChanges(since: string): Promise<TitleChanges> {
+    await this.loadIndex();
+    const newest = this.index.newestChange;
+    const tag = String(newest);
+    const time = /^\d{1,15}$/.test(since) ? Number(since) : NaN;
+    if (!(time <= newest)) return { tag, reset: true };
+    const changed = this.index.changedSince(time);
+    if (changed.length > this.index.titles().length / 2) return { tag, reset: true };
+    return { tag, changed };
   }
 
   /** Ids of every saved movie and TV series. */
@@ -137,10 +167,13 @@ export class ReportService {
 
   /** Build the index from the cache folder one time. Call at startup to avoid a slow first request. */
   loadIndex(): Promise<void> {
-    this.indexReady ??= this.cache.listAll().then((all) => {
+    this.indexReady ??= (async () => {
+      const [all] = await Promise.all([this.cache.listAll(), this.changeLog.load()]);
       all.forEach((r) => this.index.add(r));
+      await this.storedProviders?.(this.index.screenIds(), (id, providers) => this.setProviders(id, providers));
+      this.index.startTracking();
       console.log(`Title index: ${all.length} saved results`);
-    });
+    })();
     return this.indexReady;
   }
 

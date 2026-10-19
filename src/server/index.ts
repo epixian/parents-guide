@@ -14,6 +14,7 @@ import { RateLimiter } from "./rateLimit.js";
 import { ReportService } from "./reports.js";
 import { SearchCache } from "./searchCache.js";
 import { SimilarService } from "./similar.js";
+import { TitleChangeLog } from "./titleChanges.js";
 import { WatchService } from "./watchProviders.js";
 
 fs.mkdirSync(config.cacheDir, { recursive: true });
@@ -24,10 +25,17 @@ setInterval(() => limiter.sweep(), 10 * 60 * 1000).unref();
 const popularity = new Popularity(path.join(config.cacheDir, "popularity.json"));
 await popularity.load();
 
+const watch = new WatchService(config.cacheDir);
+// When each title last changed, so browsers load only the changes, also after a restart.
+const changeLog = new TitleChangeLog(path.join(config.cacheDir, "title-changes.json"));
+
 const reports = new ReportService(
   new FileReportCache(config.cacheDir, (rel) => backup?.queue(rel)),
   limiter,
   popularity,
+  changeLog,
+  // The saved streaming services at any age, with no TMDB request (maxFetches 0).
+  async (ids, save) => void (await watch.sweep(ids, save, { maxFetches: 0 })),
 );
 
 // The view counts and the usage log change often; copy them off-site every 10 minutes if changed.
@@ -48,8 +56,7 @@ void reports.loadIndex();
 // Save pending view counts when Supervisor (or Ctrl+C) stops the server.
 for (const signal of ["SIGTERM", "SIGINT"] as const) {
   process.once(signal, () => {
-    void popularity
-      .flush()
+    void Promise.all([popularity.flush(), changeLog.flush()])
       .then(() => {
         backupLogs();
         return backup?.flush(10_000);
@@ -64,7 +71,6 @@ const searchCache = new SearchCache(config.cacheDir);
 setInterval(() => void searchCache.prune(), 60 * 60 * 1000).unref();
 void searchCache.prune();
 
-const watch = new WatchService(config.cacheDir);
 // Streaming answers are refetched after one day; files are deleted after a week.
 setInterval(() => void watch.prune(), 60 * 60 * 1000).unref();
 void watch.prune();

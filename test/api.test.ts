@@ -147,3 +147,17 @@ test("GET /suggest passes the catalog titles to the search", async () => {
   assert.equal((await api.request("/suggest?q=matrix")).status, 200);
   assert.equal(passed, titles);
 });
+
+test("GET /titles names its version, and GET /titles/changes passes the tag on", async () => {
+  let since: string | null = null;
+  const reports = {
+    titles: async () => ({ tag: "k1-7", changeTag: "1700", titles: [TITLE] }),
+    titleChanges: async (tag: string) => ((since = tag), { tag: "1900", changed: [TITLE] }),
+  } as unknown as ReportService;
+  const api = createApi(reports, {} as SearchCache, {} as WatchService, {} as SimilarService);
+  assert.equal((await api.request("/titles")).headers.get("x-titles-tag"), "1700");
+  const res = await api.request("/titles/changes?since=1700");
+  assert.equal(res.headers.get("cache-control"), "no-store");
+  assert.deepEqual(await res.json(), { tag: "1900", changed: [TITLE] });
+  assert.equal(since, "1700");
+});

@@ -116,11 +116,20 @@ export function createApi(
   api.get("/trending", async (c) => c.json(await reports.getTrending(12)));
 
   // Every saved title in one list. The browser filters it with src/shared/browse.ts.
+  // X-Titles-Tag names this version for GET /titles/changes. A 304 from the
+  // browser's HTTP cache gives the saved copy with its saved header.
   api.get("/titles", async (c) => {
-    const { tag, titles } = await reports.titles();
+    const { tag, changeTag, titles } = await reports.titles();
     if (titlesJson?.tag !== tag) titlesJson = { tag, text: JSON.stringify(titles) };
     const text = titlesJson.text;
+    c.header("X-Titles-Tag", changeTag);
     return sendList(c, tag, () => text, titlesBrotli);
+  });
+
+  // The titles that changed after the browser's copy (see src/client/titles.ts).
+  api.get("/titles/changes", async (c) => {
+    c.header("Cache-Control", "no-store");
+    return c.json(await reports.titleChanges(c.req.query("since") ?? ""));
   });
 
   // Popular TMDB titles for the search suggestions (see CatalogIndex). The same

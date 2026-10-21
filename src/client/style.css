@@ -360,10 +360,28 @@ button,
   font-size: 0.85rem;
 }
 
-/* Phones: anchor the tip to the header (16px from each edge) instead of to the small gear. */
+/* Phones: anchor the tip to the header (16px from each edge) instead of to the small gear.
+   The logo has its own row, centered; the search box starts the next row.
+   The back button stays top left, out of the row, so the logo is centered on the page. */
 @media (max-width: 640px) {
   .site-header {
     position: relative;
+  }
+
+  .brand {
+    margin: 0 auto;
+  }
+
+  .search {
+    flex-basis: 100%;
+  }
+
+  /* Its 36px box centered on the 40px logo row; the icon lines up with the search box. */
+  .back-button {
+    position: absolute;
+    top: 14px;
+    left: 10px;
+    margin: 0;
   }
 
   .prefs-anchor {

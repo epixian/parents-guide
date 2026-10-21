@@ -1528,33 +1528,71 @@ app.addEventListener("change", (e) => {
   renderWatchlistGrid();
 });
 
+/** Recommendations on the home page; the rest are on the recommendations page. */
+const RECOMMEND_HOME = 12;
+/** Most titles on the recommendations page. */
+const RECOMMEND_PAGE = 100;
+
 /**
  * Rated titles picked from the user's thumbs (see recommend), not ones on the
- * watchlist. Empty without a thumbs up or the rated titles.
+ * watchlist, best match first. Empty without a thumbs up or the rated titles.
  */
-function recommendedHtml(index: Map<string, IndexEntry> | null, model: TasteModel | null): string {
-  if (!index) return "";
-  const picks = recommend(titleList(index), thumbs, {
+function recommendations(index: Map<string, IndexEntry> | null, model: TasteModel | null, limit: number): IndexEntry[] {
+  if (!index) return [];
+  return recommend(titleList(index), thumbs, {
     exclude: new Set(Object.keys(watchlist)),
     notInterested,
     categories: visibleCategories(hidden).map((c) => c.id),
-    limit: 12,
+    limit,
     model,
   });
+}
+
+/** The home page row, with "Show more" when there are more. Empty with no recommendations. */
+function recommendedHtml(index: Map<string, IndexEntry> | null, model: TasteModel | null): string {
+  const picks = recommendations(index, model, RECOMMEND_HOME + 1);
   if (!picks.length) return "";
   return `
     <section class="recent recommended">
-      <h2 class="with-info">
-        Recommended for you
-        <span class="info-wrap">
-          <button type="button" class="info-icon" aria-label="About recommendations" aria-describedby="recommend-info">
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></svg>
-          </button>
-          <span class="info-tip" id="recommend-info" role="tooltip">Recommendations are automatically generated based on titles you liked/disliked or marked "Not interested" and never leave the browser.</span>
-        </span>
-      </h2>
-      <ul class="cards">${picks.map((t) => cardHtml(t, true, miniComposites(t), { notInterested: true })).join("")}</ul>
+      <div class="row-head">
+        <h2 class="with-info">
+          Recommended for you
+          <span class="info-wrap">
+            <button type="button" class="info-icon" aria-label="About recommendations" aria-describedby="recommend-info">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></svg>
+            </button>
+            <span class="info-tip" id="recommend-info" role="tooltip">Recommendations are automatically generated based on titles you liked/disliked or marked "Not interested" and never leave the browser.</span>
+          </span>
+        </h2>
+        ${picks.length > RECOMMEND_HOME ? `<a href="#/recommended">Show more recommendations →</a>` : ""}
+      </div>
+      <ul class="cards">${picks
+        .slice(0, RECOMMEND_HOME)
+        .map((t) => cardHtml(t, true, miniComposites(t), { notInterested: true }))
+        .join("")}</ul>
     </section>`;
+}
+
+/** Count line of the recommendations page, from the cards on it. */
+function recommendedCount(n: number): string {
+  return n ? `${n} title${n === 1 ? "" : "s"} picked from your thumbs up and down, best match first.` : "No more recommendations.";
+}
+
+/** Up to RECOMMEND_PAGE recommendations, best match first. */
+async function showRecommended(): Promise<string> {
+  searchInput.value = "";
+  pageTitle = "Recommended for you";
+  const index = await titlesById().catch(() => null);
+  const model = index ? await tasteModelFor(index, thumbs, notInterested) : null;
+  const picks = recommendations(index, model, RECOMMEND_PAGE);
+  return `
+    <h1>Recommended for you</h1>
+    ${
+      picks.length
+        ? `<p class="muted" id="recommended-count">${esc(recommendedCount(picks.length))}</p>
+           <ul class="cards grid" id="recommended-grid">${picks.map((t) => cardHtml(t, true, miniComposites(t), { notInterested: true, grid: true })).join("")}</ul>`
+        : `<p class="muted">No recommendations yet. Give a title a thumbs up on its page to get some.</p>`
+    }`;
 }
 
 /** Rated titles from the last home page render, to draw its watchlist and recommendations again. */
@@ -1601,6 +1639,13 @@ function cardAction(button: HTMLButtonElement): void {
   if (grid && removed) {
     box.closest("li")?.remove();
     document.querySelector("#watchlist-count")!.textContent = watchlistCount();
+  }
+
+  // Recommendations page: a title marked "Not interested" leaves the grid.
+  const recommendedGrid = document.querySelector("#recommended-grid");
+  if (recommendedGrid && button.dataset.cardAction === "hide") {
+    box.closest("li")?.remove();
+    document.querySelector("#recommended-count")!.textContent = recommendedCount(recommendedGrid.children.length);
   }
 
   // Home page: the watchlist row and the recommendations change.
@@ -2048,6 +2093,7 @@ async function route(): Promise<void> {
     else if ((m = /^\/tv\/(\d+)$/.exec(hash))) html = await showSeries(m[1]!);
     else if ((m = /^\/browse(?:\?(.*))?$/.exec(hash))) html = await showBrowse(m[1] ?? "");
     else if ((m = /^\/watchlist(?:\?(.*))?$/.exec(hash))) html = await showWatchlist(new URLSearchParams(m[1] ?? ""));
+    else if (hash === "/recommended") html = await showRecommended();
     else if (hash === "/preferences") html = showPreferences();
     else html = await showHome();
   } catch (err) {

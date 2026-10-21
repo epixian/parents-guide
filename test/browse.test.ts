@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { CatalogEntry, IndexEntry } from "../src/shared/types.js";
-import { browseTitles, catalogEntries, parseBrowseQuery, suggestTitles } from "../src/shared/browse.js";
+import { browseTitles, catalogEntries, onMyServices, parseBrowseQuery, suggestTitles } from "../src/shared/browse.js";
 
 function entry(id: string, extra: Partial<IndexEntry> = {}): IndexEntry {
   return {
@@ -235,4 +235,12 @@ test("catalogEntries reads the rows of GET /api/catalog", () => {
     { id: "tmdb-movie-603", kind: "movie", title: "The Matrix", year: 1999 },
     { id: "tmdb-tv-1399", kind: "tv", title: "Game of Thrones", year: null },
   ]);
+});
+
+test("onMyServices: true when any service is not hidden; never without services", () => {
+  assert.equal(onMyServices([8, 15], new Set()), true);
+  assert.equal(onMyServices([8, 15], new Set([8])), true);
+  assert.equal(onMyServices([8, 15], new Set([8, 15])), false);
+  assert.equal(onMyServices([], new Set()), false);
+  assert.equal(onMyServices(undefined, new Set()), false);
 });

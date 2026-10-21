@@ -1281,6 +1281,10 @@ a.audience:focus-visible .audience-badge {
   margin-bottom: 24px;
 }
 
+.watchlist-filters {
+  margin-bottom: 8px;
+}
+
 /* Header links to the browse and watchlist pages */
 .nav-link {
   font-weight: 600;
@@ -1336,13 +1340,15 @@ a.audience:focus-visible .audience-badge {
   color: var(--muted);
 }
 
-.browse-row .kind-toggles .chip-check {
+.browse-row .kind-toggles .chip-check,
+.watchlist-filters .chip-check {
   flex-direction: row;
   padding: 6px 12px;
   color: var(--text);
 }
 
-.browse-row .kind-toggles .chip-check:has(input:checked) {
+.browse-row .kind-toggles .chip-check:has(input:checked),
+.watchlist-filters .chip-check:has(input:checked) {
   color: var(--accent-text);
 }
 

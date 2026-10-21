@@ -150,10 +150,13 @@ export function withinLimits(t: IndexEntry, f: Pick<BrowseFilters, "max" | "hide
   return true;
 }
 
+/** True when the title streams on a service not in hidden. Books and titles with no services never do. */
+export const onMyServices = (providers: number[] | undefined, hidden: Set<number>) => !!providers?.some((id) => !hidden.has(id));
+
 function matches(t: IndexEntry, f: BrowseFilters, q: string): boolean {
   if (f.kinds.length && !f.kinds.includes(t.kind)) return false;
   if (q && !fold(t.title).includes(q)) return false;
-  if (f.streaming && !t.providers?.some((id) => !f.hiddenServices.has(id))) return false;
+  if (f.streaming && !onMyServices(t.providers, f.hiddenServices)) return false;
   if (f.tags.some((tag) => !t.themeTags.includes(tag))) return false;
   for (const [id, levels] of Object.entries(f.mood) as [MoodScale, number[]][]) {
     if (!t.mood || !levels.includes(t.mood[id])) return false;

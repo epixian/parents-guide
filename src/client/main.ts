@@ -33,7 +33,7 @@ import { api } from "./api.js";
 import { recommend } from "../shared/recommend.js";
 import { rankSimilar } from "../shared/similar.js";
 import { type Fit, fitFor, markSignals, MIN_MARKED, type TasteModel } from "../shared/taste.js";
-import { parseBrowseQuery, withinLimits } from "../shared/browse.js";
+import { onMyServices, parseBrowseQuery, withinLimits } from "../shared/browse.js";
 import { tasteModelFor } from "./tasteClient.js";
 import { browse, prefetchTitles, preloadSearch, suggest, titleList, titlesById, titlesReady } from "./titles.js";
 import {
@@ -1440,9 +1440,13 @@ function trendingHtml(items: RecentItem[]): string {
 /** Watchlist titles shown on the home page; the rest are on the watchlist page. */
 const WATCHLIST_HOME = 8;
 
-/** Watchlist cards, most recently added first. index: rated titles, for the bars. */
-function watchlistCards(index: Map<string, IndexEntry> | null, limit = Infinity, grid = false): string[] {
+/**
+ * Watchlist cards, most recently added first. index: rated titles, for the
+ * bars and the streaming services. mine: only titles on the user's services.
+ */
+function watchlistCards(index: Map<string, IndexEntry> | null, limit = Infinity, grid = false, mine = false): string[] {
   return Object.entries(watchlist)
+    .filter(([id]) => !mine || onMyServices(index?.get(id)?.providers, hiddenProviders))
     .sort((a, b) => b[1].addedAt.localeCompare(a[1].addedAt))
     .slice(0, limit)
     .map(([id, e]) => {
@@ -1466,21 +1470,63 @@ function watchlistHtml(index: Map<string, IndexEntry> | null): string {
     </section>`;
 }
 
-/** Every watchlist title, most recently added first. */
-async function showWatchlist(): Promise<string> {
+/** Rated titles for the watchlist page, for the bars and the services filter. Null when they do not load. */
+let watchlistIndex: Map<string, IndexEntry> | null = null;
+/** The watchlist page shows only titles on the user's services (streaming=mine in the URL). */
+let watchlistMine = false;
+
+/** Count line of the watchlist page. */
+function watchlistCount(): string {
+  const total = Object.keys(watchlist).length;
+  if (!total) return "Your watchlist is empty.";
+  const titles = (n: number) => `${n} title${n === 1 ? "" : "s"}`;
+  if (!watchlistMine) return `${titles(total)}, most recently added first.`;
+  const shown = Object.keys(watchlist).filter((id) => onMyServices(watchlistIndex?.get(id)?.providers, hiddenProviders)).length;
+  return shown
+    ? `${shown} of ${titles(total)} stream on my services, most recently added first.`
+    : `None of the ${titles(total)} stream on my services.`;
+}
+
+/** Draw the watchlist page's count and cards again, e.g. after the services filter changes. */
+function renderWatchlistGrid(): void {
+  const grid = document.querySelector("#watchlist-grid");
+  if (!grid) return;
+  grid.innerHTML = watchlistCards(watchlistIndex, Infinity, true, watchlistMine).join("");
+  document.querySelector("#watchlist-count")!.textContent = watchlistCount();
+}
+
+/** Every watchlist title, most recently added first. params: streaming=mine shows only titles on the user's services. */
+async function showWatchlist(params: URLSearchParams): Promise<string> {
   searchInput.value = "";
   pageTitle = "My watchlist";
   const total = Object.keys(watchlist).length;
-  const index = total ? await titlesById().catch(() => null) : null;
+  watchlistIndex = total ? await titlesById().catch(() => null) : null;
+  // Without the rated titles, no title has services to filter on.
+  watchlistMine = params.get("streaming") === "mine" && watchlistIndex !== null;
   return `
     <h1>My watchlist</h1>
     ${
       total
-        ? `<p class="muted" id="watchlist-count">${total} title${total === 1 ? "" : "s"}, most recently added first.</p>
-           <ul class="cards grid" id="watchlist-grid">${watchlistCards(index, Infinity, true).join("")}</ul>`
+        ? `${
+            watchlistIndex
+              ? `<fieldset class="kind-toggles watchlist-filters"><legend>Streaming</legend>
+                  <label class="chip-check" title="Rated movies and TV series that stream on a service checked in My services"><input type="checkbox" name="streaming" value="mine"${watchlistMine ? " checked" : ""} />On my services</label>
+                </fieldset>`
+              : ""
+          }
+           <p class="muted" id="watchlist-count">${esc(watchlistCount())}</p>
+           <ul class="cards grid" id="watchlist-grid">${watchlistCards(watchlistIndex, Infinity, true, watchlistMine).join("")}</ul>`
         : `<p class="muted">Your watchlist is empty. Select the bookmark on a title's page to add it.</p>`
     }`;
 }
+
+app.addEventListener("change", (e) => {
+  const box = e.target as HTMLInputElement;
+  if (box.name !== "streaming" || !box.closest(".watchlist-filters")) return;
+  watchlistMine = box.checked;
+  history.replaceState({ scrollY: 0, depth } satisfies PageState, "", `#/watchlist${watchlistMine ? "?streaming=mine" : ""}`);
+  renderWatchlistGrid();
+});
 
 /**
  * Rated titles picked from the user's thumbs (see recommend), not ones on the
@@ -1554,10 +1600,7 @@ function cardAction(button: HTMLButtonElement): void {
   const grid = document.querySelector("#watchlist-grid");
   if (grid && removed) {
     box.closest("li")?.remove();
-    const total = Object.keys(watchlist).length;
-    document.querySelector("#watchlist-count")!.textContent = total
-      ? `${total} title${total === 1 ? "" : "s"}, most recently added first.`
-      : "Your watchlist is empty.";
+    document.querySelector("#watchlist-count")!.textContent = watchlistCount();
   }
 
   // Home page: the watchlist row and the recommendations change.
@@ -2004,7 +2047,7 @@ async function route(): Promise<void> {
     else if ((m = /^\/r\/([\w-]+)$/.exec(hash))) html = await showReport(m[1]!);
     else if ((m = /^\/tv\/(\d+)$/.exec(hash))) html = await showSeries(m[1]!);
     else if ((m = /^\/browse(?:\?(.*))?$/.exec(hash))) html = await showBrowse(m[1] ?? "");
-    else if (hash === "/watchlist") html = await showWatchlist();
+    else if ((m = /^\/watchlist(?:\?(.*))?$/.exec(hash))) html = await showWatchlist(new URLSearchParams(m[1] ?? ""));
     else if (hash === "/preferences") html = showPreferences();
     else html = await showHome();
   } catch (err) {

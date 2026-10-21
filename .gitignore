@@ -18,3 +18,7 @@ BATCH.md
 
 # Local Lighthouse reports
 .lighthouse/
+
+# Playwright output
+test-results/
+playwright-report/

@@ -80,6 +80,22 @@ npm start            # production server (serves the built client too)
 npm run backup:sync  # copy CACHE_DIR to the S3 backup bucket (--restore to copy back)
 ```
 
+### Browser tests
+
+The Playwright tests in `e2e/` run against the local dev servers. Start both
+servers first, then run:
+
+```sh
+npm run test:e2e     # browser tests against http://127.0.0.1:5188
+```
+
+CI does not run them: they need the rated titles in your local `CACHE_DIR`
+and a TMDB key. The tests open only rated titles 2 or more years old, so they
+never ask the AI for a new rating. Keep it that way when you add tests (see
+`e2e/helpers.ts`). The first run needs Chromium and its system libraries:
+`npx playwright install chromium`, then
+`sudo npx playwright install-deps chromium`.
+
 A production build needs only `npm ci`, `npm run build`, and `npm start`, with a
 `.env` beside it. Set `CACHE_DIR` to an absolute path outside the checkout, so
 deploys never touch saved results. Behind a reverse proxy, set `TRUST_PROXY=1`

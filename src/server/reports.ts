@@ -1,7 +1,6 @@
 import { CATEGORIES } from "../shared/categories.js";
 import { hasMood } from "../shared/mood.js";
 import type {
-  CatalogEntry,
   IndexEntry,
   Mood,
   RecentItem,
@@ -10,10 +9,8 @@ import type {
   ReportResponse,
   SeriesResponse,
   TitleChanges,
-  Suggestion,
   WorkInfo,
 } from "../shared/types.js";
-import { suggestTitles } from "../shared/browse.js";
 import { cachePathFor, type ReportCache } from "./cache.js";
 import { getBook } from "./catalog/openlibrary.js";
 import { getMovie, getTvSeason, getTvSeries } from "./catalog/tmdb.js";
@@ -116,12 +113,6 @@ export class ReportService {
   async getRecent(limit: number): Promise<RecentResponse> {
     await this.loadIndex();
     return this.index.recent(limit);
-  }
-
-  /** Saved titles, then popular titles from the catalog list, for the search box as the visitor types. No catalog or AI calls. */
-  async suggest(q: string, limit: number, catalog: readonly CatalogEntry[] = []): Promise<Suggestion[]> {
-    await this.loadIndex();
-    return suggestTitles(this.index.titles(), q, limit, catalog);
   }
 
   /** Every saved title, for browsing and suggestions in the browser. The tag changes when the list changes. */

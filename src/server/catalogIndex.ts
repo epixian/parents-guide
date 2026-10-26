@@ -55,7 +55,7 @@ export class CatalogIndex {
     }
   }
 
-  /** Every title, for suggestions on the server (GET /api/suggest). Empty until the first build. */
+  /** Every title of the last build. Empty until the first build. */
   titles(): readonly CatalogEntry[] {
     return this.entries;
   }

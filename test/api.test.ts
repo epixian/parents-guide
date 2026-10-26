@@ -130,18 +130,6 @@ test("GET /catalog sends the list with an ETag, and an empty list before the fir
   assert.equal(again.status, 304);
 });
 
-test("GET /suggest passes the catalog titles to the search", async () => {
-  const titles = [{ id: "tmdb-movie-603", kind: "movie", title: "The Matrix", year: 1999 }];
-  let passed: unknown = null;
-  const reports = {
-    suggest: async (_q: string, _limit: number, catalog: unknown) => ((passed = catalog), []),
-  } as unknown as ReportService;
-  const catalog = { titles: () => titles } as unknown as CatalogIndex;
-  const api = createApi(reports, {} as SearchCache, {} as WatchService, {} as SimilarService, catalog);
-  assert.equal((await api.request("/suggest?q=matrix")).status, 200);
-  assert.equal(passed, titles);
-});
-
 test("GET /titles names its version, and GET /titles/changes passes the tag on", async () => {
   let since: string | null = null;
   const reports = {

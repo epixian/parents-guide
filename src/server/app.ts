@@ -103,13 +103,6 @@ export function createApi(
     return c.json({ results, warnings });
   });
 
-  // Rated titles, then popular titles from the catalog list: instant, with no catalog request.
-  api.get("/suggest", async (c) => {
-    const q = (c.req.query("q") ?? "").trim();
-    if (q.length < 2 || q.length > 200) throw new HttpError(400, "Query must be 2-200 characters");
-    return c.json(await reports.suggest(q, 8, catalog?.titles()));
-  });
-
   api.get("/recent", async (c) => c.json(await reports.getRecent(12)));
 
   api.get("/trending", async (c) => c.json(await reports.getTrending(12)));

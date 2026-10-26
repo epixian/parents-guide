@@ -7,7 +7,6 @@ import type {
   ReportResponse,
   SearchResult,
   SeriesResponse,
-  Suggestion,
   TitleChanges,
   WatchProvider,
   WatchResponse,
@@ -22,8 +21,6 @@ async function get<T>(url: string): Promise<T> {
 
 export const api = {
   search: (q: string) => get<{ results: SearchResult[]; warnings: string[] }>(`/api/search?q=${encodeURIComponent(q)}`),
-  /** Rated and popular titles that match q, for the search box as the visitor types. */
-  suggest: (q: string) => get<Suggestion[]>(`/api/suggest?q=${encodeURIComponent(q)}`),
   /** Mood of a saved result. The server rates it first if the result has none (a few seconds). */
   mood: (id: string) => get<Mood>(`/api/mood/${encodeURIComponent(id)}`),
   report: (id: string) => get<ReportResponse>(`/api/report/${encodeURIComponent(id)}`),

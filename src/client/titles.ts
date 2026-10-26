@@ -12,10 +12,10 @@
 // It loads only when the search box gets focus, so visitors who never search
 // do not pay for it.
 //
-// When the browser asks to save data, or the list does not load, the server
-// gives the suggestions instead (GET /api/suggest), with the same code
-// (src/shared/browse.ts). Browse always filters in the browser, so the
-// concern limits and the user's services never go to the server.
+// Browse and suggestions always run in the browser, also when the browser
+// asks to save data: then the lists load only when the visitor uses the search
+// box or Browse. So the concern limits, the user's services, and the typed
+// text never go to the server.
 
 import { browseTitles, catalogEntries, parseBrowseQuery, suggestTitles } from "../shared/browse.js";
 import type { BrowseResponse, CatalogEntry, IndexEntry, Suggestion } from "../shared/types.js";
@@ -115,9 +115,12 @@ export function preloadTitles(): void {
 /** The catalog list, loaded once per visit. Empty when it does not load. */
 let catalog: { titles: Promise<CatalogEntry[]>; settled: boolean; failed: boolean } | null = null;
 
-/** The catalog list, or null when the server must filter. retry: load again after a failure. */
-function loadCatalog(retry = false): Promise<CatalogEntry[]> | null {
-  if (saveData()) return null;
+/**
+ * The catalog list, or null with data saver unless always is set.
+ * retry: load again after a failure.
+ */
+function loadCatalog(retry = false, always = false): Promise<CatalogEntry[]> | null {
+  if (saveData() && !always) return null;
   if (!catalog || (retry && catalog.failed)) {
     const entry = { settled: false, failed: false, titles: Promise.resolve<CatalogEntry[]>([]) };
     entry.titles = api
@@ -134,10 +137,10 @@ function loadCatalog(retry = false): Promise<CatalogEntry[]> | null {
   return catalog.titles;
 }
 
-/** Start to load what the search suggestions need, when the search box gets focus. */
+/** Start to load what the search suggestions need, when the search box gets focus. Also with data saver: the visitor is about to search. */
 export function preloadSearch(): void {
-  preloadTitles();
-  void loadCatalog(true);
+  void load(MAX_AGE_MS, true)?.catch(() => {});
+  void loadCatalog(true, true);
 }
 
 /**
@@ -153,7 +156,7 @@ export function prefetchTitles(): void {
 
 /** True when suggestions can come from loaded lists, with no network wait. */
 export function titlesReady(): boolean {
-  return !!list?.ready && Date.now() - list.at <= MAX_AGE_MS && !saveData() && !!catalog?.settled;
+  return !!list?.ready && Date.now() - list.at <= MAX_AGE_MS && !!catalog?.settled;
 }
 
 /**
@@ -195,10 +198,11 @@ export function titleList(index: Map<string, IndexEntry>): readonly IndexEntry[]
 }
 
 /**
- * Rated and popular titles for the search box as the visitor types. Waits for
- * both lists, so the suggestions for one text are drawn only once.
+ * Rated and popular titles for the search box as the visitor types, always in
+ * the browser. Waits for both lists, so the suggestions for one text are drawn
+ * only once. A list that does not load gives no suggestions of its own.
  */
 export async function suggest(q: string): Promise<Suggestion[]> {
-  const [titles, popular] = await Promise.all([load(MAX_AGE_MS)?.catch(() => null), loadCatalog()]);
-  return titles ? suggestTitles(titles, q, SUGGEST_LIMIT, popular ?? []) : api.suggest(q);
+  const [titles, popular] = await Promise.all([load(MAX_AGE_MS, true)!.catch(() => null), loadCatalog(false, true)]);
+  return suggestTitles(titles ?? [], q, SUGGEST_LIMIT, popular ?? []);
 }

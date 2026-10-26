@@ -87,3 +87,20 @@ test("a search with no matches says so", async ({ page }) => {
   await expect(page.getByText("No matches. Try another spelling.")).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test("with data saver, suggestions still come from the browser, and the typed text is not sent", async ({ page }) => {
+  const errors = await setUp(page);
+  await page.addInitScript(() => Object.defineProperty(navigator, "connection", { value: { saveData: true } }));
+  const sent: string[] = [];
+  page.on("request", (req) => {
+    if (/matrix/i.test(req.url())) sent.push(req.url());
+  });
+  await page.goto("/");
+  await ready(page);
+  const input = page.locator("#search-input");
+  await input.click();
+  await input.pressSequentially("the matrix", { delay: 30 });
+  await expect(page.locator("#suggestions").getByRole("option", { name: /^The Matrix \(1999\)/ })).toBeVisible();
+  expect(sent).toEqual([]);
+  expect(errors).toEqual([]);
+});

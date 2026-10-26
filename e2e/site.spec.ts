@@ -111,3 +111,15 @@ test.describe("on a phone", () => {
     expect(errors).toEqual([]);
   });
 });
+
+test("the footer links to the Privacy and Terms page", async ({ page }) => {
+  const errors = await setUp(page);
+  await page.goto("/");
+  await ready(page);
+  await page.locator(".site-footer").getByRole("link", { name: "Privacy and Terms" }).click();
+  await expect(page).toHaveURL(/\/privacy\.html$/);
+  await expect(page.getByRole("heading", { name: "Privacy and Terms", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Google Drive backup (optional)" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Terms of Use" })).toBeVisible();
+  expect(errors).toEqual([]);
+});

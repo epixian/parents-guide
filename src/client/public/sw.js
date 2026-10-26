@@ -57,7 +57,8 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
-  if (req.mode === "navigate") event.respondWith(page(event));
+  // Only the app page: other pages (privacy.html) must not replace the saved copy of "/".
+  if (req.mode === "navigate" && url.pathname === "/") event.respondWith(page(event));
   else if (APP_FILE.test(url.pathname)) event.respondWith(cacheFirst(req));
   else if (API_SAVED.test(url.pathname)) event.respondWith(networkFirst(req));
 });

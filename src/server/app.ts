@@ -94,7 +94,7 @@ export function createApi(
     const [screen, books] = await Promise.allSettled([searchTmdb(q), searchOpenLibrary(q)]);
     const results: SearchResult[] = [];
     const warnings: string[] = [];
-    if (screen.status === "fulfilled") results.push(...screen.value.slice(0, 10));
+    if (screen.status === "fulfilled") results.push(...screen.value.slice(0, 20));
     else warnings.push(`Movies/TV search failed: ${(screen.reason as Error).message}`);
     if (books.status === "fulfilled") results.push(...books.value.slice(0, 8));
     else warnings.push(`Book search failed: ${(books.reason as Error).message}`);

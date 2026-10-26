@@ -32,25 +32,60 @@ interface MultiSearchItem {
   popularity?: number;
 }
 
+/**
+ * Splits a trailing year off a search, as in "bella 2006" or "bella (2006)".
+ * Returns null when the query does not end with a year after some title text.
+ */
+export function splitYear(query: string): { title: string; year: number } | null {
+  const m = /^(.*\S)\s+\(?((?:18|19|20)\d\d)\)?$/.exec(query.trim());
+  return m ? { title: m[1]!, year: Number(m[2]) } : null;
+}
+
+function toResult(r: MultiSearchItem, kind: "movie" | "tv"): SearchResult {
+  const date = kind === "movie" ? r.release_date : r.first_air_date;
+  return {
+    id: `tmdb-${kind}-${r.id}`,
+    kind,
+    title: (kind === "movie" ? r.title : r.name) ?? "Untitled",
+    year: yearOf(date),
+    released: isReleased(date || null, new Date()),
+    detail: truncate(r.overview, 140) || null,
+    imageUrl: r.poster_path ? `${IMAGE_BASE}${r.poster_path}` : null,
+  };
+}
+
+/**
+ * Movies and TV series that match the query, in TMDB's order. TMDB ranks old
+ * titles with common names low, so a trailing year ("bella 2006") also searches
+ * that title in that year and puts those matches first. The full query still
+ * runs as typed, for titles such as "Blade Runner 2049".
+ */
 export async function searchTmdb(query: string): Promise<SearchResult[]> {
   const q = encodeURIComponent(query);
-  const data = await tmdb<{ results: MultiSearchItem[] }>(
-    `/search/multi?query=${q}&include_adult=false&language=en-US&page=1`,
-  );
-  return data.results
-    .filter((r) => r.media_type === "movie" || r.media_type === "tv")
-    .map((r): SearchResult => {
-      const kind = r.media_type === "movie" ? "movie" : "tv";
-      return {
-        id: `tmdb-${kind}-${r.id}`,
-        kind,
-        title: (kind === "movie" ? r.title : r.name) ?? "Untitled",
-        year: yearOf(kind === "movie" ? r.release_date : r.first_air_date),
-        released: isReleased((kind === "movie" ? r.release_date : r.first_air_date) || null, new Date()),
-        detail: truncate(r.overview, 140) || null,
-        imageUrl: r.poster_path ? `${IMAGE_BASE}${r.poster_path}` : null,
-      };
-    });
+  const split = splitYear(query);
+  const t = split && encodeURIComponent(split.title);
+  const [all, movies, series] = await Promise.all([
+    tmdb<{ results: MultiSearchItem[] }>(`/search/multi?query=${q}&include_adult=false&language=en-US&page=1`),
+    split
+      ? tmdb<{ results: MultiSearchItem[] }>(
+          `/search/movie?query=${t}&primary_release_year=${split.year}&include_adult=false&language=en-US&page=1`,
+        )
+      : null,
+    split
+      ? tmdb<{ results: MultiSearchItem[] }>(
+          `/search/tv?query=${t}&first_air_date_year=${split.year}&include_adult=false&language=en-US&page=1`,
+        )
+      : null,
+  ]);
+  const results = [
+    ...(movies?.results ?? []).map((r) => toResult(r, "movie")),
+    ...(series?.results ?? []).map((r) => toResult(r, "tv")),
+    ...all.results
+      .filter((r) => r.media_type === "movie" || r.media_type === "tv")
+      .map((r) => toResult(r, r.media_type === "movie" ? "movie" : "tv")),
+  ];
+  const seen = new Set<string>();
+  return results.filter((r) => !seen.has(r.id) && seen.add(r.id));
 }
 
 interface DiscoverItem {

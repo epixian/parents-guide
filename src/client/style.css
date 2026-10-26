@@ -453,7 +453,8 @@ main {
   padding: 24px 0;
 }
 
-.status.error {
+.status.error,
+.backup-status.error {
   color: var(--error);
 }
 

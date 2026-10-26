@@ -22,6 +22,8 @@ export default defineConfig(({ mode }) => {
     define: {
       __BUILD_COMMIT__: JSON.stringify(commit),
       __BUILD_TIME__: JSON.stringify(new Date().toISOString().slice(0, 16).replace("T", " ")),
+      // OAuth client for the Google Drive backup. Empty turns the backup off.
+      __GOOGLE_CLIENT_ID__: JSON.stringify(env.GOOGLE_CLIENT_ID ?? ""),
     },
     plugins: [
       {

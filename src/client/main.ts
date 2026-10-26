@@ -35,6 +35,8 @@ import { rankSimilar } from "../shared/similar.js";
 import { type Fit, fitFor, markSignals, MIN_MARKED, type TasteModel } from "../shared/taste.js";
 import { onMyServices, parseBrowseQuery, withinLimits } from "../shared/browse.js";
 import { tasteModelFor } from "./tasteClient.js";
+import { makeBackup, parseBackup, restoreBackup } from "./backup.js";
+import { driveClientId, loadFromDrive, saveToDrive } from "./drive.js";
 import { browse, prefetchTitles, preloadSearch, suggest, titleList, titlesById, titlesReady } from "./titles.js";
 import {
   loadHidden,
@@ -133,8 +135,54 @@ function showPreferences(): string {
     <section class="prefs-section">
       <h2>My services</h2>
       <div id="services-body"><p class="status"><span class="spinner" aria-hidden="true"></span>Loading services…</p></div>
+    </section>${driveClientId ? backupHtml() : ""}`;
+}
+
+function backupHtml(): string {
+  return `
+    <section class="prefs-section">
+      <h2>Backup</h2>
+      <p class="muted">Save your choices, watchlist, and thumbs to a hidden app folder in your Google Drive. Restore them on another device. The app sees only its own folder, not your other files.</p>
+      <p class="pref-actions" id="backup">
+        <button type="button" data-backup="save">Back up to Google Drive</button>
+        <button type="button" data-backup="restore">Restore from Google Drive</button>
+      </p>
+      <p id="backup-status" class="backup-status muted small" role="status"></p>
     </section>`;
 }
+
+app.addEventListener("click", async (e) => {
+  const button = (e.target as HTMLElement).closest<HTMLButtonElement>("#backup button[data-backup]");
+  if (!button) return;
+  const status = document.querySelector<HTMLElement>("#backup-status")!;
+  const buttons = [...document.querySelectorAll<HTMLButtonElement>("#backup button")];
+  const say = (text: string, error = false) => {
+    status.textContent = text;
+    status.classList.toggle("error", error);
+  };
+  buttons.forEach((b) => (b.disabled = true));
+  try {
+    if (button.dataset.backup === "save") {
+      say("Backing up…");
+      await saveToDrive(JSON.stringify(makeBackup(localStorage)));
+      say(`Backed up ${new Date().toLocaleString()}.`);
+    } else {
+      say("Loading the backup…");
+      const text = await loadFromDrive();
+      const backup = text === null ? null : parseBackup(text);
+      if (!backup) return say(text === null ? "There is no backup in your Google Drive." : "The backup file is not valid.", true);
+      const when = new Date(backup.savedAt).toLocaleString();
+      if (!confirm(`Replace the choices, watchlist, and thumbs on this device with the backup from ${when}?`)) return say("");
+      restoreBackup(localStorage, backup);
+      // The page keeps the choices in memory; a reload reads the restored ones.
+      location.reload();
+    }
+  } catch (err) {
+    say((err as Error).message, true);
+  } finally {
+    buttons.forEach((b) => (b.disabled = false));
+  }
+});
 
 app.addEventListener("change", (e) => {
   const input = e.target as HTMLInputElement | HTMLSelectElement;

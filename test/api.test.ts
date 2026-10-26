@@ -50,12 +50,6 @@ test("GET /titles sends the list with an ETag, then 304 until the list changes",
   assert.equal(changed.headers.get("etag"), 'W/"a-2"');
 });
 
-test("GET /browse answers 400 for a bad filter value", async () => {
-  const res = await apiWith({ value: "x" }).request("/browse?kind=game");
-  assert.equal(res.status, 400);
-  assert.match(((await res.json()) as { error: string }).error, /kind/);
-});
-
 test("GET /titles sends plain JSON until the Brotli copy is ready, then Brotli", async () => {
   const brotli = new BrotliCache();
   const api = apiWith({ value: "b-1" }, brotli);

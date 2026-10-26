@@ -1,7 +1,6 @@
 import { CATEGORIES } from "../shared/categories.js";
 import { hasMood } from "../shared/mood.js";
 import type {
-  BrowseResponse,
   CatalogEntry,
   IndexEntry,
   Mood,
@@ -14,7 +13,7 @@ import type {
   Suggestion,
   WorkInfo,
 } from "../shared/types.js";
-import { browseTitles, suggestTitles, type BrowseFilters } from "../shared/browse.js";
+import { suggestTitles } from "../shared/browse.js";
 import { cachePathFor, type ReportCache } from "./cache.js";
 import { getBook } from "./catalog/openlibrary.js";
 import { getMovie, getTvSeason, getTvSeries } from "./catalog/tmdb.js";
@@ -117,12 +116,6 @@ export class ReportService {
   async getRecent(limit: number): Promise<RecentResponse> {
     await this.loadIndex();
     return this.index.recent(limit);
-  }
-
-  /** Saved titles that match the browse filters. No catalog or AI calls. */
-  async browse(filters: BrowseFilters): Promise<BrowseResponse> {
-    await this.loadIndex();
-    return browseTitles(this.index.titles(), filters);
   }
 
   /** Saved titles, then popular titles from the catalog list, for the search box as the visitor types. No catalog or AI calls. */

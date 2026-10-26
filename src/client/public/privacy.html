@@ -99,40 +99,28 @@
       <h3>What our server sees</h3>
       <ul>
         <li>
-          The server is hosted by EPIXIAN LLC
+          <strong>Your IP address.</strong> Like every website, the server gets your IP address with each request. The
+          app holds IP addresses in memory for up to one hour, to limit AI lookups, and does not write them to disk.
         </li>
         <li>
-          <strong>Server logs.</strong> Like most websites, the web server keeps a log of requests to stop abuse and
-          fix problems. Each line has your IP address, the time, the page or data address, the result, the referring
-          page, and your browser's name and version. Search text is left out of the log. The server deletes the log
-          after 14 days. The app itself also holds IP addresses in memory for up to one hour, to limit AI lookups.
-        </li>
-        <li>
-          <strong>Blocking attacks.</strong> The server watches the log for bots, floods, and attacks. It blocks an IP
-          address that does these things for 1 to 7 days. Records of blocks and reports are kept for about five weeks. It reports
-          blocked IP addresses to <a href="https://www.abuseipdb.com/" target="_blank" rel="noopener">AbuseIPDB</a>, a
-          shared list of abusive IP addresses that anyone can see. A report has the IP address, the type of abuse,
-          request counts, and the browser name. It does not have the pages or searches. Normal visits are never
-          reported.
+          <strong>Hosting.</strong> The web server in front of the app can keep its own logs and block abuse. For
+          pg.epixian.com, the host is EPIXIAN LLC: see the
+          <a href="https://epixian.com/privacy.html">EPIXIAN privacy policy</a> for its server logs and abuse blocking.
+          On pg.epixian.com, the web server deletes its logs after 14 days, and leaves search text out of them.
         </li>
         <li>
           <strong>Searches.</strong> The server sends your search text to TMDB and Open Library to find titles. It keeps
-          the results for up to six hours, so the same search is fast for the next person. It does not record who
-          searched: the search text is not in the server log.
+          the results for up to six hours, so the same search is fast for the next person. The app does not record who
+          searched.
         </li>
         <li>
           <strong>Trending titles.</strong> To find trending titles, the server counts title page views with a one-day
           anonymous code. It saves only the number of views per title per day, never who viewed them.
         </li>
         <li>
-          <strong>Taste-based suggestions.</strong> Your browser does the scoring for recommendations and "fit" hints.
-          Your thumbs do not go to the server.
-        </li>
-        <li>
-          <strong>Browse filters.</strong> Browse normally filters titles in your browser. When the title list is not in
-          your browser yet, or your browser asks to save data, Browse sends its filters to the server, with your concern
-          limits. The server uses them for that one answer. They are in the server log for 14 days, like the address of
-          any request, but the server does not save them anywhere else.
+          <strong>Done in your browser.</strong> Browse filters titles with your concern limits and streaming services
+          in your browser, and your browser scores the recommendations and "fit" hints. Your choices, limits, and thumbs
+          do not go to the server.
         </li>
       </ul>
 

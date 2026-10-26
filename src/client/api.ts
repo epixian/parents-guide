@@ -1,5 +1,4 @@
 import type {
-  BrowseResponse,
   CatalogResponse,
   IndexEntry,
   Mood,
@@ -41,8 +40,6 @@ export const api = {
   titleChanges: (since: string) => get<TitleChanges>(`/api/titles/changes?since=${encodeURIComponent(since)}`),
   /** Popular TMDB titles, for suggestions in the browser. Use src/client/titles.ts, not this. */
   catalog: () => get<CatalogResponse>("/api/catalog"),
-  /** query: the browse filters as a query string (see src/shared/browse.ts). */
-  browse: (query: string) => get<BrowseResponse>(`/api/browse?${query}`),
   /** Streaming services for a movie, TV series, or season (the series' services). */
   watch: (id: string) => get<WatchResponse>(`/api/watch/${encodeURIComponent(id)}`),
   /** Every streaming service, for "My services". */

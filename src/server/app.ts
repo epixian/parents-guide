@@ -2,7 +2,6 @@ import { getConnInfo } from "@hono/node-server/conninfo";
 import { Hono, type Context } from "hono";
 import type { ApiError, CatalogResponse, SearchResult } from "../shared/types.js";
 import { acceptsBrotli, BrotliCache } from "./brotliCache.js";
-import { BrowseQueryError, parseBrowseQuery } from "../shared/browse.js";
 import { searchOpenLibrary } from "./catalog/openlibrary.js";
 import { searchTmdb } from "./catalog/tmdb.js";
 import type { CatalogIndex } from "./catalogIndex.js";
@@ -140,12 +139,6 @@ export function createApi(
     return sendList(c, list.tag, () => list.text, catalogBrotli);
   });
 
-  // Browse and suggest on the server: the fallback when the browser asks to save data.
-  api.get("/browse", async (c) => {
-    const filters = parseBrowseQuery(new URL(c.req.url).searchParams);
-    return c.json(await reports.browse(filters));
-  });
-
   api.get("/report/:id", async (c) => {
     const id = c.req.param("id");
     const res = await reports.getReport(id, clientKey(c));
@@ -180,7 +173,6 @@ export function createApi(
 
   api.onError((err, c) => {
     if (err instanceof HttpError) return c.json<ApiError>({ error: err.message }, err.status);
-    if (err instanceof BrowseQueryError) return c.json<ApiError>({ error: err.message }, 400);
     console.error(err);
     return c.json<ApiError>({ error: "Internal error" }, 500);
   });

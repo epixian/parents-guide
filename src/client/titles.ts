@@ -13,8 +13,9 @@
 // do not pay for it.
 //
 // When the browser asks to save data, or the list does not load, the server
-// filters instead (GET /api/browse and GET /api/suggest), with the same code
-// (src/shared/browse.ts).
+// gives the suggestions instead (GET /api/suggest), with the same code
+// (src/shared/browse.ts). Browse always filters in the browser, so the
+// concern limits and the user's services never go to the server.
 
 import { browseTitles, catalogEntries, parseBrowseQuery, suggestTitles } from "../shared/browse.js";
 import type { BrowseResponse, CatalogEntry, IndexEntry, Suggestion } from "../shared/types.js";
@@ -88,9 +89,12 @@ async function sync(): Promise<IndexEntry[]> {
   return titles;
 }
 
-/** The list, loaded or checked again when older than maxAge. Null when the server must filter. */
-function load(maxAge: number): Promise<IndexEntry[]> | null {
-  if (saveData()) return null;
+/**
+ * The list, loaded or checked again when older than maxAge. Null when the
+ * server must filter. always: load it also when the browser asks to save data.
+ */
+function load(maxAge: number, always = false): Promise<IndexEntry[]> | null {
+  if (saveData() && !always) return null;
   if (!list || Date.now() - list.at > maxAge) {
     const entry = { at: Date.now(), titles: sync(), ready: false };
     list = entry;
@@ -153,14 +157,15 @@ export function titlesReady(): boolean {
 }
 
 /**
- * Rated titles that match the browse query (see src/shared/browse.ts).
+ * Rated titles that match the browse query (see src/shared/browse.ts), always
+ * from the list in the browser, also with data saver: the query has the user's
+ * concern limits and services, which must not go to the server.
  * fresh: ask the server for changes first, for example when a page opens.
- * Throws a BrowseQueryError for a bad filter value.
+ * Throws a BrowseQueryError for a bad filter value, or when the list does not load.
  */
 export async function browse(query: string, fresh = false): Promise<BrowseResponse> {
   const filters = parseBrowseQuery(new URLSearchParams(query));
-  const titles = await load(fresh ? 0 : MAX_AGE_MS)?.catch(() => null);
-  return titles ? browseTitles(titles, filters) : api.browse(query);
+  return browseTitles(await load(fresh ? 0 : MAX_AGE_MS, true)!, filters);
 }
 
 /** The map of each list version, and the list of each map: the same objects until the list changes. */

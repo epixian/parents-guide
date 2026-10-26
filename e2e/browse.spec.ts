@@ -111,3 +111,18 @@ test("On my services shows only titles on a service the user has", async ({ page
   expect(await count(page)).toBe(expected);
   expect(errors).toEqual([]);
 });
+
+test("with data saver, Browse still filters in the browser and sends no limits or services", async ({ page }) => {
+  const errors = await setUp(page, { concernLimits: { max: { violence: 0 }, hide: {} }, hiddenProviders: [8] });
+  await page.addInitScript(() => Object.defineProperty(navigator, "connection", { value: { saveData: true } }));
+  const sent: string[] = [];
+  page.on("request", (req) => {
+    if (/[?&](max\.|hide\.|hideService)/.test(req.url())) sent.push(req.url());
+  });
+  await page.goto("/#/browse?streaming=mine");
+  await ready(page);
+  await expect(page.locator("#browse-count")).toHaveText(/^\d+ titles?$/);
+  await expect(page.locator("#over-text")).toHaveText(/over my concern limits$/);
+  expect(sent).toEqual([]);
+  expect(errors).toEqual([]);
+});

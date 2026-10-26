@@ -113,3 +113,24 @@ export function writeTitles(value: StoredTitles): Promise<boolean> {
 export function writeChanges(tag: string, changed: IndexEntry[]): Promise<boolean> {
   return write(tag, changed, false);
 }
+
+/**
+ * Delete the saved copy and its database, for "Delete all data". Closes this
+ * tab's connection first; other open tabs hold the delete until they close.
+ */
+export async function deleteTitles(): Promise<void> {
+  const conn = await (db ?? Promise.resolve(null));
+  conn?.close();
+  db = Promise.resolve(null);
+  try {
+    await withTimeout(
+      new Promise<void>((resolve) => {
+        const req = indexedDB.deleteDatabase(DB);
+        req.onsuccess = req.onerror = req.onblocked = () => resolve();
+      }),
+      undefined,
+    );
+  } catch {
+    // No IndexedDB: nothing to delete.
+  }
+}

@@ -35,6 +35,7 @@ declare global {
             callback: (response: TokenResponse) => void;
             error_callback?: (error: { type: string; message?: string }) => void;
           }): TokenClient;
+          revoke(token: string, done?: () => void): void;
         };
       };
     };
@@ -91,11 +92,15 @@ async function drive(url: string, init: RequestInit = {}): Promise<Response> {
   return res;
 }
 
-async function findFile(): Promise<{ id: string; modifiedTime: string } | null> {
+/** The backup files, newest first. Normally one; two saves at the same time can make two. */
+async function findFiles(): Promise<{ id: string; modifiedTime: string }[]> {
   const q = encodeURIComponent(`name = '${FILE_NAME}'`);
   const res = await drive(`${FILES}?spaces=appDataFolder&q=${q}&fields=files(id,modifiedTime)&orderBy=modifiedTime desc`);
-  const { files } = (await res.json()) as { files: { id: string; modifiedTime: string }[] };
-  return files[0] ?? null;
+  return ((await res.json()) as { files: { id: string; modifiedTime: string }[] }).files;
+}
+
+async function findFile(): Promise<{ id: string; modifiedTime: string } | null> {
+  return (await findFiles())[0] ?? null;
 }
 
 /** Write the text to the backup file, or create the file. */
@@ -113,6 +118,21 @@ export async function saveToDrive(text: string): Promise<void> {
   form.append("metadata", new Blob([JSON.stringify({ name: FILE_NAME, parents: ["appDataFolder"] })], { type: "application/json" }));
   form.append("file", new Blob([text], { type: "application/json" }));
   await drive(`${UPLOAD}?uploadType=multipart`, { method: "POST", body: form });
+}
+
+/**
+ * Delete every backup file, then remove the site's access to the user's Drive,
+ * so the next backup asks for permission again. Returns the number of files deleted.
+ */
+export async function deleteFromDrive(): Promise<number> {
+  const files = await findFiles();
+  for (const file of files) await drive(`${FILES}/${file.id}`, { method: "DELETE" });
+  if (token) {
+    const value = token.value;
+    token = null;
+    await new Promise<void>((resolve) => window.google!.accounts.oauth2.revoke(value, resolve));
+  }
+  return files.length;
 }
 
 /** The backup file's text, or null if there is no backup. */

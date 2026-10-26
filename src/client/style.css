@@ -402,6 +402,7 @@ button,
 
 .pref-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin: 0 0 8px;
 }
@@ -409,6 +410,46 @@ button,
 .pref-actions button {
   padding: 4px 10px;
   font-size: 0.85rem;
+}
+
+.pref-actions button[hidden] {
+  display: none;
+}
+
+/* A dialog that asks before a change that cannot be undone. */
+.modal {
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.modal [hidden] {
+  display: none;
+}
+
+.modal::backdrop {
+  background: rgb(0 0 0 / 0.5);
+}
+
+.modal h2 {
+  margin: 0 0 8px;
+  font-size: 1.15rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 16px 0 0;
+}
+
+button.danger {
+  background: var(--error);
+  border-color: var(--error);
+  color: var(--surface);
 }
 
 .pref {
@@ -454,7 +495,7 @@ main {
 }
 
 .status.error,
-.backup-status.error {
+.data-status.error {
   color: var(--error);
 }
 

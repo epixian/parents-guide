@@ -110,3 +110,69 @@ test("My services saves the services the user does not have", async ({ page, req
   await expect(page.locator("#watch-slot .watch-list li").first()).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test("Delete backup shows after a Drive connection, and asks in a dialog first", async ({ page }) => {
+  const errors = await setUp(page);
+  const google: string[] = [];
+  page.on("request", (req) => {
+    if (/google(apis)?\.com/.test(new URL(req.url()).hostname)) google.push(req.url());
+  });
+  await page.goto("/#/preferences");
+  await ready(page);
+  const backup = page.locator("#your-data");
+  test.skip((await backup.getByRole("button", { name: "Back up to Google Drive" }).count()) === 0, "The build has no GOOGLE_CLIENT_ID");
+  const dialog = page.getByRole("dialog", { name: "Delete the backup?" });
+  // Delete shows only after this browser used the Drive backup.
+  await expect(backup.getByRole("button", { name: "Delete backup" })).toBeHidden();
+  await page.evaluate(() => localStorage.setItem("driveBackup", "1"));
+  await page.reload();
+  await ready(page);
+
+  await backup.getByRole("button", { name: "Delete backup" }).click();
+  await expect(dialog).toBeVisible();
+  // Cancel has the focus, so Enter does not delete.
+  await expect(dialog.getByRole("button", { name: "Cancel" })).toBeFocused();
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+  await expect(dialog).toBeHidden();
+
+  await backup.getByRole("button", { name: "Delete backup" }).click();
+  await expect(dialog).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+
+  await expect(page.locator("#data-status")).toHaveText("");
+  expect(google).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
+test("Delete all data asks first, then empties this browser and opens the home page", async ({ page }) => {
+  const errors = await setUp(page, { thumbs: { [MATRIX]: "up" }, hiddenCategories: ["violence"] });
+  await page.goto("/#/preferences");
+  await ready(page);
+  const section = page.locator("#your-data");
+  await expect(section.getByRole("heading", { name: "Your data" })).toBeVisible();
+  const dialog = page.getByRole("dialog", { name: "Delete all data?" });
+
+  // Cancel keeps everything.
+  await section.getByRole("button", { name: "Delete all data" }).click();
+  // This browser never used the Drive backup: no choice to delete it.
+  await expect(dialog.getByRole("checkbox", { name: "Also delete the backup in Google Drive" })).toBeHidden();
+  await expect(dialog.getByRole("button", { name: "Cancel" })).toBeFocused();
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+  await expect(dialog).toBeHidden();
+  expect(await page.evaluate(() => localStorage.getItem("thumbs"))).not.toBeNull();
+
+  // The saved title list is in IndexedDB once the page has loaded it.
+  await expect
+    .poll(() => page.evaluate(async () => (await indexedDB.databases()).some((d) => d.name === "parents-guide")))
+    .toBe(true);
+
+  await section.getByRole("button", { name: "Delete all data" }).click();
+  // With the saved copy gone, the home page loads the whole list again, not only the changes.
+  const wholeList = page.waitForRequest((req) => new URL(req.url()).pathname === "/api/titles");
+  await dialog.getByRole("button", { name: "Delete all data" }).click();
+  await expect(page.getByRole("heading", { name: "Know what is in it before your kids see it." })).toBeVisible();
+  await wholeList;
+  expect(await page.evaluate(() => [localStorage.getItem("thumbs"), localStorage.getItem("hiddenCategories")])).toEqual([null, null]);
+  expect(errors).toEqual([]);
+});

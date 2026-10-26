@@ -203,3 +203,25 @@ const NOT_INTERESTED_KEY = "notInterested";
 
 export const loadNotInterested = () => loadRecord(NOT_INTERESTED_KEY, (v): v is string => typeof v === "string");
 export const saveNotInterested = (ids: Record<string, string>) => saveRecord(NOT_INTERESTED_KEY, ids);
+
+// Set after this browser connected to Google Drive for the backup, cleared
+// after "Delete backup" removes the access. Only this flag: the page cannot
+// ask Google about the access without loading Google's script first.
+const DRIVE_KEY = "driveBackup";
+
+export function driveUsed(): boolean {
+  try {
+    return localStorage.getItem(DRIVE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function setDriveUsed(used: boolean): void {
+  try {
+    if (used) localStorage.setItem(DRIVE_KEY, "1");
+    else localStorage.removeItem(DRIVE_KEY);
+  } catch {
+    // Storage blocked: Delete backup shows only until the page reloads.
+  }
+}

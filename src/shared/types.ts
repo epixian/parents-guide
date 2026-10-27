@@ -166,8 +166,11 @@ export interface Suggestion {
   title: string;
   years: string | null;
   imageUrl: string | null;
-  /** False for a popular TMDB title with no saved result: opening it starts an AI lookup. */
-  rated: boolean;
+  /**
+   * False for a popular TMDB title with no saved result: opening it starts an AI lookup.
+   * Null when the rated list did not load, so it is not known.
+   */
+  rated: boolean | null;
 }
 
 /** One popular movie or TV series from TMDB, for search suggestions. Id as in IndexEntry (tmdb-movie-603, tmdb-tv-1399). */

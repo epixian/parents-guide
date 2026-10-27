@@ -1,7 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { CatalogEntry, CatalogResponse } from "../shared/types.js";
-import { catalogEntries } from "../shared/browse.js";
+import type { CatalogResponse } from "../shared/types.js";
 import { discoverPage, type DiscoverSort } from "./catalog/tmdb.js";
 
 // Popular TMDB movies and TV series, so search suggestions can show titles
@@ -32,7 +31,6 @@ type FetchPage = typeof discoverPage;
 export class CatalogIndex {
   private readonly file: string;
   private saved: Saved | null = null;
-  private entries: CatalogEntry[] = [];
   private json: { at: number; text: string } | null = null;
   private building = false;
 
@@ -53,11 +51,6 @@ export class CatalogIndex {
         console.warn(`Ignoring unreadable catalog list: ${(err as Error).message}`);
       }
     }
-  }
-
-  /** Every title of the last build. Empty until the first build. */
-  titles(): readonly CatalogEntry[] {
-    return this.entries;
   }
 
   /** The list as JSON text, and a tag that changes with each build. Null until the first build. */
@@ -112,6 +105,5 @@ export class CatalogIndex {
 
   private use(saved: Saved): void {
     this.saved = saved;
-    this.entries = catalogEntries(saved.titles);
   }
 }

@@ -88,6 +88,26 @@ test("a search with no matches says so", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+test("when the rated list does not load, it is not loaded again at once, and popular titles are not called \"Not rated yet\"", async ({ page }) => {
+  const errors = await setUp(page);
+  let loads = 0;
+  await page.route("**/api/titles**", (route) => {
+    loads++;
+    return route.fulfill({ status: 500 });
+  });
+  await page.route("**/api/catalog", (route) => route.fulfill({ json: { movie: [[603, "The Matrix", 1999]], tv: [] } }));
+  await page.goto("/");
+  const input = page.locator("#search-input");
+  await input.click();
+  await input.pressSequentially("the matrix", { delay: 30 });
+  const matrix = page.locator("#suggestions").getByRole("option", { name: /^The Matrix \(1999\)/ });
+  await expect(matrix).toBeVisible();
+  await expect(matrix.locator(".unrated")).toHaveCount(0);
+  // One failed load, not one per pause in typing: the next try waits 30 seconds.
+  expect(loads).toBe(1);
+  expect(errors).toEqual([]);
+});
+
 test("with data saver, suggestions still come from the browser, and the typed text is not sent", async ({ page }) => {
   const errors = await setUp(page);
   await page.addInitScript(() => Object.defineProperty(navigator, "connection", { value: { saveData: true } }));

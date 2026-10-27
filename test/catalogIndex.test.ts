@@ -4,8 +4,15 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { CatalogIndex } from "../src/server/catalogIndex.js";
+import { catalogEntries } from "../src/shared/browse.js";
 
 const DAY = 24 * 60 * 60 * 1000;
+
+/** The titles the browser gets from the index's response. */
+function titles(index: CatalogIndex) {
+  const res = index.response();
+  return res ? catalogEntries(JSON.parse(res.text)) : [];
+}
 
 async function tempDir(): Promise<string> {
   return fs.mkdtemp(path.join(os.tmpdir(), "catalog-"));
@@ -30,7 +37,7 @@ test("CatalogIndex builds the list once, saves it, and loads it after a restart"
   const index = new CatalogIndex(dir, fakeTmdb(calls), 0);
   await index.load();
   assert.equal(index.response(), null);
-  assert.deepEqual(index.titles(), []);
+  assert.deepEqual(titles(index), []);
 
   const now = Date.parse("2026-10-18T12:00:00Z");
   await index.refresh(now);
@@ -38,8 +45,8 @@ test("CatalogIndex builds the list once, saves it, and loads it after a restart"
   assert.equal(calls.length, 12);
   assert.equal(calls[0], "movie votes 1 2026-10-18");
   // 80 per kind, less the one title that both sort orders have.
-  assert.equal(index.titles().length, 2 * 79);
-  assert.deepEqual(index.titles()[0], { id: "tmdb-movie-10100", kind: "movie", title: "movie 10100", year: 2000 });
+  assert.equal(titles(index).length, 2 * 79);
+  assert.deepEqual(titles(index)[0], { id: "tmdb-movie-10100", kind: "movie", title: "movie 10100", year: 2000 });
   assert.equal(index.response()!.tag, String(now));
 
   // A week has not passed: no TMDB requests.
@@ -48,7 +55,7 @@ test("CatalogIndex builds the list once, saves it, and loads it after a restart"
 
   const restarted = new CatalogIndex(dir, fakeTmdb(), 0);
   await restarted.load();
-  assert.equal(restarted.titles().length, 2 * 79);
+  assert.equal(titles(restarted).length, 2 * 79);
   assert.equal(restarted.response()!.text, index.response()!.text);
 });
 

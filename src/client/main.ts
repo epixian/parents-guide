@@ -2732,7 +2732,7 @@ function showSuggestions(items: Suggestion[], q: string): void {
         <span>
           ${esc(s.title)}${s.years ? ` <span class="muted">(${esc(s.years)})</span>` : ""}
           <span class="badge">${KIND_LABEL[s.kind]}</span>
-          ${s.rated ? "" : `<span class="unrated muted small">Not rated yet</span>`}
+          ${s.rated === false ? `<span class="unrated muted small">Not rated yet</span>` : ""}
         </span>
       </li>`,
     )
@@ -2789,7 +2789,7 @@ searchInput.addEventListener("input", () => {
   clearTimeout(suggestTimer);
   if (q.length < 2) return closeSuggestions();
   suggestQuery = q;
-  // A loaded list answers at once; the server fallback waits for a pause in typing.
+  // Loaded lists answer at once; while they load, wait for a pause in typing.
   if (titlesReady()) void loadSuggestions(q);
   else suggestTimer = setTimeout(() => void loadSuggestions(q), 150);
 });

@@ -25,8 +25,10 @@ import { readTitles, writeChanges, writeTitles, type StoredTitles } from "./titl
 /** Use a loaded list for this long before asking the server for changes. */
 const MAX_AGE_MS = 60_000;
 const SUGGEST_LIMIT = 8;
+/** After a failed load, wait this long before the next try, so each keystroke does not load the list again. */
+const RETRY_MS = 30_000;
 
-let list: { at: number; titles: Promise<IndexEntry[]>; ready: boolean } | null = null;
+let list: { at: number; titles: Promise<IndexEntry[]>; ready: boolean; failedAt?: number } | null = null;
 
 type Connection = { saveData?: boolean; effectiveType?: string };
 const connection = () => (navigator as Navigator & { connection?: Connection }).connection;
@@ -89,38 +91,32 @@ async function sync(): Promise<IndexEntry[]> {
   return titles;
 }
 
-/**
- * The list, loaded or checked again when older than maxAge. Null when the
- * server must filter. always: load it also when the browser asks to save data.
- */
-function load(maxAge: number, always = false): Promise<IndexEntry[]> | null {
-  if (saveData() && !always) return null;
-  if (!list || Date.now() - list.at > maxAge) {
-    const entry = { at: Date.now(), titles: sync(), ready: false };
+/** The list, loaded or checked again when older than maxAge. */
+function load(maxAge: number): Promise<IndexEntry[]> {
+  const now = Date.now();
+  const stale = list?.failedAt ? now - list.failedAt > RETRY_MS : !list || now - list.at > maxAge;
+  if (stale) {
+    const entry: NonNullable<typeof list> = { at: now, titles: sync(), ready: false };
     list = entry;
     entry.titles.then(
       () => (entry.ready = true),
-      // Try again on the next use.
-      () => list === entry && (list = null),
+      // Until RETRY_MS has passed, each use gets the same failure.
+      () => (entry.failedAt = Date.now()),
     );
   }
-  return list.titles;
+  return list!.titles;
 }
 
-/** Start to load the list, for example when the search box gets focus. */
+/** Start to load the list in the background. Not with data saver: then the list loads only when the visitor needs it. */
 export function preloadTitles(): void {
-  void load(MAX_AGE_MS)?.catch(() => {});
+  if (!saveData()) void load(MAX_AGE_MS).catch(() => {});
 }
 
 /** The catalog list, loaded once per visit. Empty when it does not load. */
 let catalog: { titles: Promise<CatalogEntry[]>; settled: boolean; failed: boolean } | null = null;
 
-/**
- * The catalog list, or null with data saver unless always is set.
- * retry: load again after a failure.
- */
-function loadCatalog(retry = false, always = false): Promise<CatalogEntry[]> | null {
-  if (saveData() && !always) return null;
+/** The catalog list. retry: load again after a failure. */
+function loadCatalog(retry = false): Promise<CatalogEntry[]> {
   if (!catalog || (retry && catalog.failed)) {
     const entry = { settled: false, failed: false, titles: Promise.resolve<CatalogEntry[]>([]) };
     entry.titles = api
@@ -139,8 +135,8 @@ function loadCatalog(retry = false, always = false): Promise<CatalogEntry[]> | n
 
 /** Start to load what the search suggestions need, when the search box gets focus. Also with data saver: the visitor is about to search. */
 export function preloadSearch(): void {
-  void load(MAX_AGE_MS, true)?.catch(() => {});
-  void loadCatalog(true, true);
+  void load(MAX_AGE_MS).catch(() => {});
+  void loadCatalog(true);
 }
 
 /**
@@ -168,7 +164,7 @@ export function titlesReady(): boolean {
  */
 export async function browse(query: string, fresh = false): Promise<BrowseResponse> {
   const filters = parseBrowseQuery(new URLSearchParams(query));
-  return browseTitles(await load(fresh ? 0 : MAX_AGE_MS, true)!, filters);
+  return browseTitles(await load(fresh ? 0 : MAX_AGE_MS), filters);
 }
 
 /** The map of each list version, and the list of each map: the same objects until the list changes. */
@@ -177,7 +173,8 @@ const listOfMap = new WeakMap<Map<string, IndexEntry>, readonly IndexEntry[]>();
 
 /** Every rated title by id, or null when the list does not load (or with data saver). Callers must not change the map. */
 export async function titlesById(): Promise<Map<string, IndexEntry> | null> {
-  const titles = await load(MAX_AGE_MS)?.catch(() => null);
+  if (saveData()) return null;
+  const titles = await load(MAX_AGE_MS).catch(() => null);
   if (!titles) return null;
   let map = mapOfList.get(titles);
   if (!map) {
@@ -203,6 +200,8 @@ export function titleList(index: Map<string, IndexEntry>): readonly IndexEntry[]
  * only once. A list that does not load gives no suggestions of its own.
  */
 export async function suggest(q: string): Promise<Suggestion[]> {
-  const [titles, popular] = await Promise.all([load(MAX_AGE_MS, true)!.catch(() => null), loadCatalog(false, true)]);
-  return suggestTitles(titles ?? [], q, SUGGEST_LIMIT, popular ?? []);
+  const [titles, popular] = await Promise.all([load(MAX_AGE_MS).catch(() => null), loadCatalog()]);
+  const items = suggestTitles(titles ?? [], q, SUGGEST_LIMIT, popular);
+  // Without the rated list, a popular title can be rated: do not call it "Not rated yet".
+  return titles ? items : items.map((s) => ({ ...s, rated: null }));
 }

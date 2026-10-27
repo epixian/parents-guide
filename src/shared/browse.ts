@@ -13,9 +13,8 @@ import type {
 
 // Browse filters, read from the query string. The client keeps the same
 // query string in its URL, so a filtered list can be bookmarked or shared.
-// The client filters the list from GET /api/titles with this code. The server
-// uses it too, for GET /api/browse and GET /api/suggest (the fallback when the
-// browser asks to save data).
+// The client filters the list from GET /api/titles with this code, also when
+// the browser asks to save data, so the filters never go to the server.
 //
 //   kind=movie&kind=tv          movie | tv | book (repeat the key, or comma-separate; none = all)
 //   q=star                      title contains this text

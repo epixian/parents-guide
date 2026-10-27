@@ -33,6 +33,19 @@ export function clientAddress(
   return remote ?? "unknown";
 }
 
+/**
+ * True for search engines and other crawlers. Googlebot runs the app's
+ * JavaScript, so its visits would otherwise count as views for trending.
+ */
+export function isCrawler(userAgent: string | undefined): boolean {
+  return /bot|crawl|spider|slurp|google-inspectiontool|googleother|facebookexternalhit|headless/i.test(userAgent ?? "");
+}
+
+/** Count a view for trending, but not for a crawler. */
+function recordView(c: Context, reports: ReportService, id: string): void {
+  if (!isCrawler(c.req.header("user-agent"))) reports.recordView(id, clientKey(c));
+}
+
 function clientKey(c: Context): string {
   return clientAddress((name) => c.req.header(name), getConnInfo(c).remote.address, config.trustProxy);
 }
@@ -135,7 +148,7 @@ export function createApi(
   api.get("/report/:id", async (c) => {
     const id = c.req.param("id");
     const res = await reports.getReport(id, clientKey(c));
-    if (res.status === "ok") reports.recordView(id, clientKey(c));
+    if (res.status === "ok") recordView(c, reports, id);
     return c.json(res);
   });
 
@@ -143,7 +156,7 @@ export function createApi(
 
   api.get("/tv/:tmdbId", async (c) => {
     const series = await reports.getSeries(c.req.param("tmdbId"));
-    reports.recordView(series.id, clientKey(c));
+    recordView(c, reports, series.id);
     return c.json(series);
   });
 

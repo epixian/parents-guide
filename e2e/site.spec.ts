@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { ready, setUp } from "./helpers.js";
+import { MATRIX, ready, setUp } from "./helpers.js";
 
 // The home page, the header, and the first-visit tip.
 
@@ -23,15 +23,15 @@ test("the header links open Browse, Watchlist, and Preferences", async ({ page }
   const header = page.locator("header");
 
   await header.getByRole("link", { name: "Browse" }).click();
-  await expect(page).toHaveURL(/#\/browse$/);
+  await expect(page).toHaveURL(/:\d+\/browse$/);
   await expect(page.getByRole("heading", { name: "Browse rated titles" })).toBeVisible();
 
   await header.getByRole("link", { name: "Watchlist" }).click();
-  await expect(page).toHaveURL(/#\/watchlist$/);
+  await expect(page).toHaveURL(/:\d+\/watchlist$/);
   await expect(page.getByRole("heading", { name: "My watchlist" })).toBeVisible();
 
   await header.getByRole("link", { name: "Preferences" }).click();
-  await expect(page).toHaveURL(/#\/preferences$/);
+  await expect(page).toHaveURL(/:\d+\/preferences$/);
   await expect(page.getByRole("heading", { name: "Preferences", level: 1 })).toBeVisible();
 
   // Back returns to the previous page.
@@ -121,5 +121,53 @@ test("the footer links to the Privacy and Terms page", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Privacy and Terms", level: 1 })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Google Drive backup (optional)" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Terms of Use" })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test("links from before the real paths open the same page", async ({ page }) => {
+  const errors = await setUp(page);
+  await page.goto("/#/browse?kind=movie");
+  await expect(page.getByRole("heading", { name: "Browse rated titles" })).toBeVisible();
+  await expect(page).toHaveURL(/:\d+\/browse#kind=movie$/);
+
+  await page.goto(`/#/r/${MATRIX}`);
+  await expect(page.getByRole("heading", { level: 1, name: /The Matrix/ })).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`:\\d+/r/${MATRIX}$`));
+  expect(errors).toEqual([]);
+});
+
+test("a title link has the title in its path, and any slug opens the page", async ({ page }) => {
+  const errors = await setUp(page);
+  await page.goto("/browse#q=matrix");
+  const link = page.locator(`a[href^="/r/${MATRIX}/"]`).first();
+  await expect(link).toHaveAttribute("href", `/r/${MATRIX}/the-matrix-1999`);
+
+  // The app opens it without a page load.
+  const loads: string[] = [];
+  page.on("request", (req) => {
+    if (req.isNavigationRequest()) loads.push(req.url());
+  });
+  await link.click();
+  await expect(page.getByRole("heading", { level: 1, name: /The Matrix/ })).toBeVisible();
+  expect(loads).toEqual([]);
+  await page.goBack();
+  await expect(page.getByRole("heading", { name: "Browse rated titles" })).toBeVisible();
+
+  await page.goto(`/r/${MATRIX}/an-old-name`);
+  await expect(page.getByRole("heading", { level: 1, name: /The Matrix/ })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test("a reload of a filtered page sends no filter to the server", async ({ page }) => {
+  const errors = await setUp(page);
+  const sent: string[] = [];
+  page.on("request", (req) => {
+    if (/violence|matrix/i.test(req.url())) sent.push(req.url());
+  });
+  await page.goto("/browse#max.violence=2&q=matrix");
+  await expect(page.getByRole("heading", { name: "Browse rated titles" })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Browse rated titles" })).toBeVisible();
+  expect(sent).toEqual([]);
   expect(errors).toEqual([]);
 });

@@ -9,6 +9,7 @@ import { backup } from "./backup.js";
 import { FileReportCache } from "./cache.js";
 import { CatalogIndex } from "./catalogIndex.js";
 import { config } from "./config.js";
+import { createPages } from "./pages.js";
 import { Popularity } from "./popularity.js";
 import { RateLimiter } from "./rateLimit.js";
 import { ReportService } from "./reports.js";
@@ -120,6 +121,9 @@ app.route("/api", createApi(reports, searchCache, watch, similar, catalog));
 // Production: serve the built client. In development, Vite serves it instead.
 const clientDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../client");
 if (fs.existsSync(path.join(clientDir, "index.html"))) {
+  // The app's pages (/, /r/..., /browse, ...) and robots.txt and sitemap.xml, before the static files.
+  const shell = fs.readFileSync(path.join(clientDir, "index.html"), "utf8");
+  app.route("/", createPages(reports, shell, config.siteUrl));
   app.use(
     "/*",
     serveStatic({

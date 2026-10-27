@@ -91,6 +91,9 @@ export const config = {
   // Open Library allows about 3 requests per second; without one, about 1.
   openLibraryContact: process.env.OPENLIBRARY_CONTACT || "",
   model: "claude-haiku-5-5",
+  // Public origin (https://example.com), for canonical links, the sitemap, and
+  // the Sitemap line in robots.txt. Empty: the request's host, and no Sitemap line.
+  siteUrl: (process.env.SITE_URL || "").replace(/\/+$/, ""),
   /** Off-site backup bucket, or null when the backup is off (no S3_BUCKET, or bad settings). */
   s3: s3Config(),
 };

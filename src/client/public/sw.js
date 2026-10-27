@@ -1,8 +1,10 @@
 // Service worker: offline use, in the installed app and in browser tabs.
 // Registered by main.ts in production builds only.
 //
-// - The page (index.html): network first, so a deploy reaches every visitor
-//   who is online. With no answer in 3 seconds, or no network, the saved copy.
+// - App pages (/, /r/..., /browse, ...): network first, so a deploy reaches
+//   every visitor who is online. With no answer in 3 seconds, or no network,
+//   the saved copy of "/". The app reads the path, so that copy draws any
+//   page. Only "/" is saved: a title page's HTML has that title's meta tags.
 // - App files (/assets/*, fonts, icons, logos): from the cache first. Vite puts
 //   a content hash in each /assets/ name, so a saved file never goes stale.
 //   Files that neither the current nor the previous page uses are deleted.
@@ -24,6 +26,8 @@ const PAGE_TIMEOUT_MS = 3000;
 /** Files that are not in index.html, saved at install. */
 const STATIC = ["/favicon.svg", "/manifest.webmanifest", "/fonts/fredoka-600-logo.woff2", "/icons/icon-192.png"];
 const APP_FILE = /^\/(assets|fonts|icons|logos)\/|^\/(favicon\.svg|manifest\.webmanifest)$/;
+/** The app's pages, as in APP_PATH in main.ts. Not privacy.html. */
+const APP_PAGE = /^\/(?:$|(?:r|tv)\/[^/]+(?:\/[^/]*)?$|(?:browse|watchlist|recommended|preferences|search)$)/;
 const API_SAVED = /^\/api\/(report|tv|mood|watch|similar|recent|trending|catalog|providers)(\/|$)/;
 
 /** The /assets/ files that a page uses. */
@@ -57,8 +61,8 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
-  // Only the app page: other pages (privacy.html) must not replace the saved copy of "/".
-  if (req.mode === "navigate" && url.pathname === "/") event.respondWith(page(event));
+  // Only app pages: other pages (privacy.html) must not replace the saved copy of "/".
+  if (req.mode === "navigate" && APP_PAGE.test(url.pathname)) event.respondWith(page(event, url.pathname));
   else if (APP_FILE.test(url.pathname)) event.respondWith(cacheFirst(req));
   else if (API_SAVED.test(url.pathname)) event.respondWith(networkFirst(req));
 });
@@ -75,10 +79,23 @@ async function savePage(cache, res) {
   }
 }
 
-async function page(event) {
+/**
+ * After a page other than "/" loads, save a new copy of "/" when the page uses
+ * other app files than the saved copy (after a deploy).
+ */
+async function refreshShell(cache, res) {
+  const saved = await cache.match("/");
+  const now = assetsIn(await res.text()).sort().join(" ");
+  if (saved && assetsIn(await saved.text()).sort().join(" ") === now) return;
+  const shell = await fetch("/", { cache: "no-cache" });
+  if (shell.ok) await savePage(cache, shell);
+}
+
+async function page(event, path) {
   const cache = await caches.open(SHELL);
   const network = fetch(event.request).then(async (res) => {
-    if (res.ok) await savePage(cache, res.clone());
+    // In the background: a failed save must not lose the page. network is still open, so the worker stays alive.
+    if (res.ok) event.waitUntil((path === "/" ? savePage(cache, res.clone()) : refreshShell(cache, res.clone())).catch(() => {}));
     return res;
   });
   // Keep saving a page that arrives after the timeout.

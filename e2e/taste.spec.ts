@@ -50,7 +50,7 @@ test("the home page shows recommendations, scored in a worker", async ({ page })
 
 test("a title page shows the fit line for a strong match", async ({ page }) => {
   const errors = await setUp(page);
-  await page.goto(`/#/r/${MATCH}`);
+  await page.goto(`/r/${MATCH}`);
   const fit = page.locator("#fit");
   await expect(fit).toBeVisible();
   await expect(fit).toContainText(/liked/i);
@@ -63,7 +63,7 @@ test("without workers, the page scores on its own thread", async ({ page }) => {
   page.on("worker", () => workers++);
   await page.goto("/");
   await expect(page.locator(".recommended .cards > li").first()).toBeVisible();
-  await page.goto(`/#/r/${MATCH}`);
+  await page.goto(`/r/${MATCH}`);
   await expect(page.locator("#fit")).toBeVisible();
   expect(workers).toBe(0);
   expect(errors).toEqual([]);

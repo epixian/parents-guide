@@ -38,6 +38,7 @@ import { tasteModelFor } from "./tasteClient.js";
 import { deleteTitles } from "./titleStore.js";
 import { makeBackup, parseBackup, restoreBackup } from "./backup.js";
 import { deleteFromDrive, driveClientId, loadFromDrive, saveToDrive } from "./drive.js";
+import { titlePath } from "../shared/paths.js";
 import { browse, prefetchTitles, preloadSearch, suggest, titleList, titlesById, titlesReady } from "./titles.js";
 import {
   driveUsed,
@@ -77,7 +78,7 @@ const KIND_LABEL: Record<SearchResult["kind"], string> = { movie: "Movie", tv: "
 
 // ---------- Preferences page ----------
 
-// #/preferences: the topics the user cares about, the concern limits that
+// /preferences: the topics the user cares about, the concern limits that
 // Browse applies, and the streaming services the user has. Every change is
 // saved at once, without rebuilding the page.
 
@@ -259,7 +260,7 @@ async function runData(action: DataAction, clearDrive = false): Promise<void> {
       say("Deleting all data…");
       await clearAllData();
       // Back to the home page, which reads the empty storage.
-      location.replace(location.pathname);
+      location.replace("/");
     } else if (action === "delete") {
       say("Deleting the backup…");
       const n = await deleteFromDrive();
@@ -1173,7 +1174,7 @@ function ratingsSection(report: Report): string {
       ${sectionHead("Ratings", false)}
       <table class="ratings">
         <thead><tr><th>Topic</th><th>Level</th><th>Details</th></tr></thead>
-        <tbody>${rows || `<tr><td colspan="3" class="muted">All topics are hidden. Change them in <a href="#/preferences">Preferences</a>.</td></tr>`}</tbody>
+        <tbody>${rows || `<tr><td colspan="3" class="muted">All topics are hidden. Change them in <a href="/preferences">Preferences</a>.</td></tr>`}</tbody>
       </table>
       ${hiddenNote()}
     </section>`;
@@ -1229,7 +1230,7 @@ function resultItem(r: SearchResult, rated?: IndexEntry): string {
   return `
     <li>
       ${cardActions(rated ?? card, { small: true })}
-      <a href="${pageHref(r)}">
+      <a href="${pageHref(card)}">
         ${r.imageUrl ? `<img src="${esc(r.imageUrl)}" alt="" width="110" height="165" loading="lazy" decoding="async" />` : `<span class="noimg" aria-hidden="true"></span>`}
         <span class="result-text">
           <strong>${esc(r.title)}</strong> ${r.year ? `<span class="muted">(${r.year})</span>` : ""}
@@ -1321,7 +1322,7 @@ async function showSearch(q: string): Promise<string> {
   const ratedIds = new Set(ratedRows.map((row) => row.r.id));
   const moreRated =
     rated && rated.total > RATED_LIMIT
-      ? `<p><a href="#/browse?${new URLSearchParams({ q })}">See all ${rated.total} rated matches →</a></p>`
+      ? `<p><a href="/browse#${new URLSearchParams({ q })}">See all ${rated.total} rated matches →</a></p>`
       : "";
 
   const seq = navSeq;
@@ -1352,7 +1353,7 @@ async function showReport(id: string): Promise<string> {
   setLoading("Getting the rating. A new title can take up to a minute…");
   const res = await api.report(id);
   const seriesMatch = /^tmdb-tv-(\d+)-s\d+$/.exec(id);
-  const back = seriesMatch ? `<p><a href="#/tv/${seriesMatch[1]}">← All seasons</a></p>` : "";
+  const back = seriesMatch ? `<p><a href="/tv/${seriesMatch[1]}">← All seasons</a></p>` : "";
   if (res.status === "unreleased") {
     pageTitle = res.title;
     return `${back}<h1>${esc(res.title)}</h1>
@@ -1427,9 +1428,9 @@ async function showSeries(tmdbId: string): Promise<string> {
           <span><strong>${esc(season.name)}</strong> <span class="muted small">${season.episodeCount} episodes${season.airDate ? ` · ${esc(season.airDate.slice(0, 4))}` : ""}</span></span>
           ${
             season.report
-              ? `<a class="button" href="#/r/${season.reportId}">View rating</a>`
+              ? `<a class="button" href="/r/${season.reportId}">View rating</a>`
               : season.released
-                ? `<a class="button primary" href="#/r/${season.reportId}">Rate this season</a>`
+                ? `<a class="button primary" href="/r/${season.reportId}">Rate this season</a>`
                 : `<span class="muted small">Not yet released</span>`
           }
         </li>`,
@@ -1501,8 +1502,8 @@ async function showSeries(tmdbId: string): Promise<string> {
 const RECENT_HEADINGS: Record<RecentItem["kind"], string> = { movie: "Movies", tv: "TV shows", book: "Books" };
 
 /** Page for a title: the series page for TV, the report page otherwise. */
-function pageHref(item: Pick<RecentItem, "id" | "kind">): string {
-  return item.kind === "tv" ? `#/tv/${item.id.replace("tmdb-tv-", "")}` : `#/r/${item.id}`;
+function pageHref(item: Pick<RecentItem, "id" | "kind" | "title" | "years">): string {
+  return titlePath(item);
 }
 
 // Feather icons (MIT): bookmark and eye-off.
@@ -1612,7 +1613,7 @@ function watchlistHtml(index: Map<string, IndexEntry> | null): string {
     <section class="recent watchlist">
       <div class="row-head">
         <h2>My watchlist</h2>
-        ${total > WATCHLIST_HOME ? `<a href="#/watchlist">Show all ${total} →</a>` : ""}
+        ${total > WATCHLIST_HOME ? `<a href="/watchlist">Show all ${total} →</a>` : ""}
       </div>
       <ul class="cards">${watchlistCards(index, WATCHLIST_HOME).join("")}</ul>
     </section>`;
@@ -1672,7 +1673,7 @@ app.addEventListener("change", (e) => {
   const box = e.target as HTMLInputElement;
   if (box.name !== "streaming" || !box.closest(".watchlist-filters")) return;
   watchlistMine = box.checked;
-  history.replaceState({ scrollY: 0, depth } satisfies PageState, "", `#/watchlist${watchlistMine ? "?streaming=mine" : ""}`);
+  history.replaceState({ scrollY: 0, depth } satisfies PageState, "", `/watchlist${watchlistMine ? "#streaming=mine" : ""}`);
   renderWatchlistGrid();
 });
 
@@ -1712,7 +1713,7 @@ function recommendedHtml(index: Map<string, IndexEntry> | null, model: TasteMode
             <span class="info-tip" id="recommend-info" role="tooltip">Recommendations are automatically generated based on titles you liked/disliked or marked "Not interested" and never leave the browser.</span>
           </span>
         </h2>
-        ${picks.length > RECOMMEND_HOME ? `<a href="#/recommended">Show more recommendations →</a>` : ""}
+        ${picks.length > RECOMMEND_HOME ? `<a href="/recommended">Show more recommendations →</a>` : ""}
       </div>
       <ul class="cards">${picks
         .slice(0, RECOMMEND_HOME)
@@ -1830,13 +1831,13 @@ function recentHtml(recent: RecentResponse): string {
       <section class="recent-row">
         <div class="row-head">
           <h3>${RECENT_HEADINGS[kind]}</h3>
-          <a href="#/browse?kind=${kind}">Browse all ${RECENT_HEADINGS[kind].toLowerCase()} →</a>
+          <a href="/browse#kind=${kind}">Browse all ${RECENT_HEADINGS[kind].toLowerCase()} →</a>
         </div>
         <ul class="cards">${recent[kind].map((item) => cardHtml(item, false, miniComposites(item))).join("")}</ul>
       </section>`,
     );
   return rows.length
-    ? `<section class="recent"><h2>Recently added</h2>${rows.join("")}<p><a href="#/browse">Browse all rated titles →</a></p></section>`
+    ? `<section class="recent"><h2>Recently added</h2>${rows.join("")}<p><a href="/browse">Browse all rated titles →</a></p></section>`
     : "";
 }
 
@@ -1869,7 +1870,7 @@ async function showHome(): Promise<string> {
 
 // ---------- Browse ----------
 
-// The filters live in the URL (#/browse?kind=movie&max.violence=2...), so a
+// The filters live in the URL (/browse#kind=movie&max.violence=2...), so a
 // filtered list can be bookmarked or shared. The browser filters the list of
 // rated titles with that query string; see src/client/titles.ts.
 
@@ -2083,7 +2084,7 @@ let browseSeq = 0;
 async function updateBrowse(form: HTMLFormElement): Promise<void> {
   const seq = ++browseSeq;
   const params = browseParams(form);
-  history.replaceState({ scrollY: 0, depth } satisfies PageState, "", `#/browse${params.size ? `?${params}` : ""}`);
+  history.replaceState({ scrollY: 0, depth } satisfies PageState, "", `/browse${params.size ? `#${params}` : ""}`);
   document.querySelector("#tag-count")!.textContent = tagCount(params.getAll("tag").length);
   const moods = moodFilterCount(params);
   document.querySelector("#mood-count")!.textContent = moods ? `(${moods} set)` : "";
@@ -2220,6 +2221,40 @@ function withYears(title: string, info: WorkInfo | undefined): string {
   return info?.years ? `${title} (${info.years})` : title;
 }
 
+// ---------- URLs ----------
+
+// Pages have real paths (see src/shared/paths.ts). In this file, a page's
+// route is its path without the slug, with its state after "?":
+// "/r/tmdb-movie-603", "/browse?kind=movie". In the URL, the state goes after
+// "#" (/browse#kind=movie), so the browser never sends it to the server.
+
+/** The route of a URL's path and fragment: "/r/<id>/<slug>" → "/r/<id>", "#kind=movie" → "?kind=movie". */
+function routeOf(pathname: string, fragment: string): string {
+  const path = pathname.replace(/^\/(r|tv)\/([^/]+)\/.*$/, "/$1/$2");
+  const state = fragment.replace(/^#/, "");
+  return state ? `${path}?${state}` : path;
+}
+
+const APP_PATH = /^\/(?:$|(?:r|tv)\/[^/]+(?:\/[^/]*)?$|(?:browse|watchlist|recommended|preferences|search)$)/;
+
+/** The route of a link to an app page on this site, or null (privacy.html, other sites, files). */
+function routeOfHref(href: string): string | null {
+  let url: URL;
+  try {
+    url = new URL(href, location.href);
+  } catch {
+    return null;
+  }
+  if ( url.origin !== location.origin || !APP_PATH.test(url.pathname)) return null;
+  return routeOf(url.pathname, url.hash);
+}
+
+/** Open an app page, with a new history entry. */
+function navigate(url: string): void {
+  history.pushState(null, "", url);
+  void route();
+}
+
 async function route(): Promise<void> {
   const seq = ++navSeq;
   // Read before the view replaces the page: the loading message makes the
@@ -2232,7 +2267,7 @@ async function route(): Promise<void> {
   pageTitle = "";
   afterRender = null;
   setWatchId(null);
-  const hash = location.hash.replace(/^#/, "") || "/";
+  const hash = routeOf(location.pathname, location.hash);
   let html: string;
   try {
     let m: RegExpExecArray | null;
@@ -2296,16 +2331,16 @@ let clickedPoster: HTMLImageElement | null = null;
 const clickedOn = new Map<string, { href: string; n: number }>();
 
 /** Poster links to a route on the page, in page order. */
-const posterLinks = (href: string) =>
-  [...app.querySelectorAll<HTMLAnchorElement>(`a[href="${CSS.escape(href)}"]`)].filter((a) => a.querySelector("img"));
+const posterLinks = (route: string) =>
+  [...app.querySelectorAll<HTMLAnchorElement>("a[href]")].filter((a) => a.querySelector("img") && routeOfHref(a.href) === route);
 
 document.addEventListener(
   "click",
   (e) => {
     const link = (e.target as HTMLElement).closest("a");
     clickedPoster = link?.querySelector("img") ?? null;
-    const href = link?.getAttribute("href");
-    if (clickedPoster && href?.startsWith("#/") && app.contains(link)) {
+    const href = link && routeOfHref(link.href);
+    if (clickedPoster && href && app.contains(link)) {
       clickedOn.set(currentHash, { href, n: posterLinks(href).indexOf(link!) });
     }
   },
@@ -2319,7 +2354,7 @@ const isTitlePage = (hash: string) => /^\/(r|tv)\//.test(hash);
  * one that was clicked on this page comes first, if it is still there.
  */
 function listPoster(hash: string): HTMLImageElement | null {
-  const href = `#${hash}`;
+  const href = hash;
   const links = posterLinks(href);
   const clicked = clickedOn.get(currentHash);
   const order = clicked?.href === href && links[clicked.n] ? [links[clicked.n]!, ...links] : links;
@@ -2461,7 +2496,7 @@ async function morphPoster(fromHash: string, toHash: string, render: () => Promi
   heldPoster = null;
   const clicked =
     held ??
-    (clickedPoster?.isConnected && clickedPoster.closest("a")?.getAttribute("href") === `#${toHash}` ? clickedPoster : null);
+    (clickedPoster?.isConnected && routeOfHref(clickedPoster.closest("a")?.href ?? "") === toHash ? clickedPoster : null);
   clickedPoster = null;
   const toTitle = clicked !== null || (isTitlePage(toHash) && !isTitlePage(fromHash));
   const source = clicked ?? (isTitlePage(fromHash) ? titlePoster() : isTitlePage(toHash) ? listPoster(toHash) : null);
@@ -2661,7 +2696,8 @@ window.addEventListener(
 document.addEventListener(
   "click",
   (e) => {
-    if (!(e.target as HTMLElement).closest('a[href^="#"]')) return;
+    const link = (e.target as HTMLElement).closest("a");
+    if (!link || !routeOfHref(link.href)) return;
     clearTimeout(scrollTimer);
     saveScroll();
   },
@@ -2774,10 +2810,10 @@ function openSuggestion(i: number): void {
     return searchForm.requestSubmit();
   }
   // The list closes now; a copy of the thumbnail stays for the poster animation.
-  holdPoster(document.querySelector<HTMLImageElement>(`#suggestion-${i} img`), pageHref(s).slice(1));
+  holdPoster(document.querySelector<HTMLImageElement>(`#suggestion-${i} img`), routeOfHref(pageHref(s))!);
   closeSuggestions();
   searchInput.blur(); // Phones: close the keyboard, so the page is visible.
-  location.hash = pageHref(s);
+  navigate(pageHref(s));
 }
 
 searchInput.addEventListener("input", () => {
@@ -2840,7 +2876,7 @@ searchForm.addEventListener("submit", (e) => {
   e.preventDefault();
   closeSuggestions();
   const q = searchInput.value.trim();
-  if (q.length >= 2) location.hash = `#/search?q=${encodeURIComponent(q)}`;
+  if (q.length >= 2) navigate(`/search#q=${encodeURIComponent(q)}`);
 });
 
 app.addEventListener("click", (e) => {
@@ -2883,10 +2919,10 @@ app.addEventListener("click", (e) => {
   }
 
   if ((e.target as HTMLElement).closest("button[data-browse-clear]")) {
-    // Filter changes replace the URL without a hashchange event, so the hash may already match.
+    // Filter changes replace the URL without a new history entry, so the URL may already match.
     clearTimeout(browseTyping);
-    if (location.hash === "#/browse") void route();
-    else location.hash = "#/browse";
+    if (location.pathname === "/browse" && !location.hash) void route();
+    else navigate("/browse");
     return;
   }
 
@@ -2923,7 +2959,25 @@ if (new URLSearchParams(location.search).has("debug")) {
   void import("./debug.js").then((m) => m.startDebugLog());
 }
 
-window.addEventListener("hashchange", () => void route());
+// Links from before the real paths: /#/r/tmdb-movie-603, /#/browse?kind=movie.
+if (location.pathname === "/" && location.hash.startsWith("#/")) {
+  const [path, state] = location.hash.slice(1).split(/\?(.*)/s);
+  history.replaceState(history.state, "", `${path}${location.search}${state ? `#${state}` : ""}`);
+}
+
+// Links to app pages change the page without a new page load.
+document.addEventListener("click", (e) => {
+  if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  const link = (e.target as HTMLElement).closest("a");
+  if (!link || link.target || link.hasAttribute("download") || !routeOfHref(link.href)) return;
+  e.preventDefault();
+  // Same page and state (the logo on the home page): no new history entry, as with a hash link before.
+  const url = new URL(link.href);
+  if (url.pathname === location.pathname && url.hash === location.hash) return;
+  navigate(url.pathname + location.search + url.hash);
+});
+
+window.addEventListener("popstate", () => void route());
 void route();
 // Load the rated titles when the browser is idle, on any first page, so search,
 // browse, and the watchlist bars need no wait later.

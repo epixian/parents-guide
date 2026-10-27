@@ -168,6 +168,12 @@ export class ReportService {
     this.index.add(report);
   }
 
+  /** The saved result, or null. Never starts an AI lookup or a catalog request: for page HTML that crawlers fetch. */
+  async savedReport(id: string): Promise<Report | null> {
+    if (!cachePathFor(id)) return null;
+    return this.cache.get(id);
+  }
+
   async getReport(id: string, clientKey: string): Promise<ReportResponse> {
     if (!cachePathFor(id)) throw new HttpError(400, "Invalid id");
     const { kind, load } = parseId(id);

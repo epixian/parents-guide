@@ -26,7 +26,7 @@ test("the home row links to the full recommendations page", async ({ page }) => 
   const first = await row.locator(".card-title").first().textContent();
 
   await row.getByRole("link", { name: "Show more recommendations →" }).click();
-  await expect(page).toHaveURL(/#\/recommended$/);
+  await expect(page).toHaveURL(/:\d+\/recommended$/);
   await expect(page.getByRole("heading", { level: 1, name: "Recommended for you" })).toBeVisible();
   const grid = page.locator("#recommended-grid > li");
   expect(await grid.count()).toBeGreaterThan(12);
@@ -43,7 +43,7 @@ test("the home row links to the full recommendations page", async ({ page }) => 
 
 test("Not interested takes a title off the recommendations page", async ({ page }) => {
   const errors = await setUp(page, { thumbs });
-  await page.goto("/#/recommended");
+  await page.goto("/recommended");
   const grid = page.locator("#recommended-grid");
   await expect(grid.locator("> li").first()).toBeVisible();
   const before = await grid.locator("> li").count();
@@ -79,7 +79,7 @@ test("a title added to the watchlist leaves the recommendations", async ({ page 
 
 test("without a thumbs up, the recommendations page says how to get some", async ({ page }) => {
   const errors = await setUp(page);
-  await page.goto("/#/recommended");
+  await page.goto("/recommended");
   await expect(page.getByText("No recommendations yet. Give a title a thumbs up on its page to get some.")).toBeVisible();
   expect(errors).toEqual([]);
 });

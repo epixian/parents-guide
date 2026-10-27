@@ -13,7 +13,7 @@ const count = async (page: Page) => {
 test("Browse lists every rated title, and the type filters go in the URL", async ({ page, request }) => {
   const errors = await setUp(page);
   const titles = await ratedTitles(request);
-  await page.goto("/#/browse");
+  await page.goto("/browse");
   await ready(page);
   expect(await count(page)).toBe(titles.length);
 
@@ -24,7 +24,7 @@ test("Browse lists every rated title, and the type filters go in the URL", async
   await expect(page).toHaveURL(/kind=book/);
   expect(await count(page)).toBe(titles.filter((t) => t.kind === "book").length);
   const hrefs = await page.locator("#browse-results .cards > li > a").evaluateAll((els) => els.map((el) => el.getAttribute("href")));
-  for (const href of hrefs) expect(href).toMatch(/^#\/r\/ol-/);
+  for (const href of hrefs) expect(href).toMatch(/^\/r\/ol-/);
 
   // The last type cannot be turned off.
   await form.getByRole("checkbox", { name: "Books" }).click();
@@ -38,7 +38,7 @@ test("Browse lists every rated title, and the type filters go in the URL", async
 
 test("the title filter and Clear filters", async ({ page }) => {
   const errors = await setUp(page);
-  await page.goto("/#/browse");
+  await page.goto("/browse");
   await ready(page);
   const all = await count(page);
   await page.locator("#browse-form").getByPlaceholder("Title contains").fill("matrix");
@@ -49,7 +49,7 @@ test("the title filter and Clear filters", async ({ page }) => {
   for (const title of await page.locator("#browse-results .card-title").allTextContents()) expect(title.toLowerCase()).toContain("matrix");
 
   await page.getByRole("button", { name: "Clear filters" }).click();
-  await expect(page).toHaveURL(/#\/browse$/);
+  await expect(page).toHaveURL(/:\d+\/browse$/);
   await expect(page.locator("#browse-form").getByPlaceholder("Title contains")).toHaveValue("");
   expect(await count(page)).toBe(all);
   expect(errors).toEqual([]);
@@ -57,7 +57,7 @@ test("the title filter and Clear filters", async ({ page }) => {
 
 test("sort by title, and Randomize for the random order", async ({ page }) => {
   const errors = await setUp(page);
-  await page.goto("/#/browse?kind=movie");
+  await page.goto("/browse#kind=movie");
   await ready(page);
   const sort = page.locator("#browse-form select[name=sort]");
   await sort.selectOption("title");
@@ -81,7 +81,7 @@ test("sort by title, and Randomize for the random order", async ({ page }) => {
 
 test("Show more adds the next page of cards", async ({ page }) => {
   const errors = await setUp(page);
-  await page.goto("/#/browse");
+  await page.goto("/browse");
   await ready(page);
   await count(page);
   const cards = page.locator("#browse-results .cards > li");
@@ -102,7 +102,7 @@ test("On my services shows only titles on a service the user has", async ({ page
   test.skip(!expected, "No rated title streams on Netflix just now.");
 
   const errors = await setUp(page, { hiddenProviders: hidden });
-  await page.goto("/#/browse");
+  await page.goto("/browse");
   await ready(page);
   await page.locator("#browse-form").getByRole("checkbox", { name: "On my services" }).check();
   await expect(page).toHaveURL(/streaming=mine/);
@@ -119,7 +119,7 @@ test("with data saver, Browse still filters in the browser and sends no limits o
   page.on("request", (req) => {
     if (/[?&](max\.|hide\.|hideService)/.test(req.url())) sent.push(req.url());
   });
-  await page.goto("/#/browse?streaming=mine");
+  await page.goto("/browse#streaming=mine");
   await ready(page);
   await expect(page.locator("#browse-count")).toHaveText(/^\d+ titles?$/);
   await expect(page.locator("#over-text")).toHaveText(/over my concern limits$/);

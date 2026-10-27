@@ -25,7 +25,7 @@ test("suggestions show rated titles as the user types, and open one with the key
   for (let i = 0; i <= index; i++) await input.press("ArrowDown");
   await expect(input).toHaveAttribute("aria-activedescendant", `suggestion-${index}`);
   await input.press("Enter");
-  await expect(page).toHaveURL(new RegExp(`#/r/${MATRIX}$`));
+  await expect(page).toHaveURL(new RegExp(`/r/${MATRIX}/the-matrix-1999$`));
   await expect(page.getByRole("heading", { level: 1, name: /The Matrix/ })).toBeVisible();
   await expect(list).toBeHidden();
   expect(errors).toEqual([]);
@@ -51,12 +51,12 @@ test("the results page lists rated titles first, with type filters", async ({ pa
   await ready(page);
   await page.locator("#search-input").fill("matrix");
   await page.locator("#search-input").press("Enter");
-  await expect(page).toHaveURL(/#\/search\?q=matrix$/);
+  await expect(page).toHaveURL(/\/search#q=matrix$/);
   await expect(page.getByRole("heading", { level: 1, name: 'Results for "matrix"' })).toBeVisible();
 
   const results = page.locator("#search-results");
   // Rated titles show at once, with the "Rated" badge.
-  const matrix = results.locator(".results > li", { has: page.locator(`a[href="#/r/${MATRIX}"]`) });
+  const matrix = results.locator(".results > li", { has: page.locator(`a[href^="/r/${MATRIX}/"]`) });
   await expect(matrix).toBeVisible();
   await expect(matrix.locator(".badge.rated")).toHaveText("Rated");
 
@@ -82,7 +82,7 @@ test("the results page lists rated titles first, with type filters", async ({ pa
 
 test("a search with no matches says so", async ({ page }) => {
   const errors = await setUp(page);
-  await page.goto("/#/search?q=zzqxjvwplk");
+  await page.goto("/search#q=zzqxjvwplk");
   await expect(page.locator("#search-results")).not.toHaveAttribute("aria-busy", "true", { timeout: 30_000 });
   await expect(page.getByText("No matches. Try another spelling.")).toBeVisible();
   expect(errors).toEqual([]);

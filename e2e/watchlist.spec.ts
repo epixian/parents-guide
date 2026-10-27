@@ -12,7 +12,7 @@ function watchlistOf(items: IndexEntry[]) {
 
 test("the bookmark on a card adds the title to the watchlist", async ({ page }) => {
   const errors = await setUp(page);
-  await page.goto("/#/browse?kind=movie&sort=title");
+  await page.goto("/browse#kind=movie&sort=title");
   await ready(page);
   const card = page.locator("#browse-results .cards > li").first();
   const title = (await card.locator(".card-title").textContent())!;
@@ -21,7 +21,7 @@ test("the bookmark on a card adds the title to the watchlist", async ({ page }) 
   await button.click();
   await expect(card.locator('[data-card-action="list"]')).toHaveAttribute("aria-pressed", "true");
 
-  await page.goto("/#/watchlist");
+  await page.goto("/watchlist");
   await expect(page.locator("#watchlist-count")).toHaveText("1 title, most recently added first.");
   await expect(page.locator("#watchlist-grid .card-title")).toHaveText([title]);
   expect(errors).toEqual([]);
@@ -38,7 +38,7 @@ test("the home page shows the newest 8, with a link to the rest", async ({ page,
   await expect(row.locator(".card-title").first()).toHaveText(movies[9]!.title);
 
   await row.getByRole("link", { name: "Show all 10 →" }).click();
-  await expect(page).toHaveURL(/#\/watchlist$/);
+  await expect(page).toHaveURL(/:\d+\/watchlist$/);
   await expect(page.locator("#watchlist-grid > li")).toHaveCount(10);
   await expect(page.locator("#watchlist-count")).toHaveText("10 titles, most recently added first.");
   expect(errors).toEqual([]);
@@ -47,7 +47,7 @@ test("the home page shows the newest 8, with a link to the rest", async ({ page,
 test("removing a title on the watchlist page takes it out of the grid", async ({ page, request }) => {
   const movies = (await ratedTitles(request)).filter((t) => t.kind === "movie").slice(0, 2);
   const errors = await setUp(page, { watchlist: watchlistOf(movies) });
-  await page.goto("/#/watchlist");
+  await page.goto("/watchlist");
   const grid = page.locator("#watchlist-grid");
   await expect(grid.locator("> li")).toHaveCount(2);
   const card = grid.locator("> li").first();
@@ -65,7 +65,7 @@ test("removing a title on the watchlist page takes it out of the grid", async ({
 
 test("an empty watchlist says how to add titles", async ({ page }) => {
   const errors = await setUp(page);
-  await page.goto("/#/watchlist");
+  await page.goto("/watchlist");
   await expect(page.getByText("Your watchlist is empty. Select the bookmark on a title's page to add it.")).toBeVisible();
   await expect(page.getByRole("checkbox", { name: "On my services" })).toHaveCount(0);
   expect(errors).toEqual([]);
@@ -85,14 +85,14 @@ test("On my services filters the watchlist page", async ({ page, request }) => {
     watchlist: watchlistOf([mine!, other!, none!, book!]),
     hiddenProviders: other!.providers!,
   });
-  await page.goto("/#/watchlist");
+  await page.goto("/watchlist");
   const grid = page.locator("#watchlist-grid");
   const count = page.locator("#watchlist-count");
   await expect(grid.locator("> li")).toHaveCount(4);
 
   const filter = page.getByRole("checkbox", { name: "On my services" });
   await filter.check();
-  await expect(page).toHaveURL(/#\/watchlist\?streaming=mine$/);
+  await expect(page).toHaveURL(/\/watchlist#streaming=mine$/);
   await expect(grid.locator(".card-title")).toHaveText([mine!.title]);
   await expect(count).toHaveText("1 of 4 titles stream on my services, most recently added first.");
 
@@ -109,7 +109,7 @@ test("On my services filters the watchlist page", async ({ page, request }) => {
 
   // Off: every title shows again.
   await page.getByRole("checkbox", { name: "On my services" }).uncheck();
-  await expect(page).toHaveURL(/#\/watchlist$/);
+  await expect(page).toHaveURL(/:\d+\/watchlist$/);
   await expect(grid.locator("> li")).toHaveCount(3);
   await expect(count).toHaveText("3 titles, most recently added first.");
   expect(errors).toEqual([]);

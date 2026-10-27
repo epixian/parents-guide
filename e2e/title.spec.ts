@@ -5,7 +5,7 @@ import { DIE_HARD, MATRIX, TED_LASSO, ready, setUp } from "./helpers.js";
 
 test("a movie page shows the ratings, summary, streaming, and similar titles", async ({ page, request }) => {
   const errors = await setUp(page);
-  await page.goto(`/#/r/${MATRIX}`);
+  await page.goto(`/r/${MATRIX}`);
   await expect(page.getByRole("heading", { level: 1, name: /The Matrix/ })).toBeVisible();
 
   const ratings = page.locator("#sec-ratings table.ratings");
@@ -30,7 +30,7 @@ test("a movie page shows the ratings, summary, streaming, and similar titles", a
 
 test("a jump link scrolls to its section", async ({ page }) => {
   const errors = await setUp(page);
-  await page.goto(`/#/r/${MATRIX}`);
+  await page.goto(`/r/${MATRIX}`);
   await ready(page);
   await page.locator("nav.jumps button[data-jump=sec-details]").first().click();
   await expect(page.locator("#sec-details")).toBeInViewport();
@@ -39,7 +39,7 @@ test("a jump link scrolls to its section", async ({ page }) => {
 
 test("the watchlist button and thumbs on a title page are saved", async ({ page }) => {
   const errors = await setUp(page);
-  await page.goto(`/#/r/${DIE_HARD}`);
+  await page.goto(`/r/${DIE_HARD}`);
   await ready(page);
   const marks = page.locator("#marks");
   const list = marks.locator('[data-mark="list"]');
@@ -75,7 +75,7 @@ test("the watchlist button and thumbs on a title page are saved", async ({ page 
 
 test("a TV series page lists its seasons and opens a rated season", async ({ page }) => {
   const errors = await setUp(page);
-  await page.goto(`/#/tv/${TED_LASSO}`);
+  await page.goto(`/tv/${TED_LASSO}`);
   await expect(page.getByRole("heading", { level: 1, name: /Ted Lasso/ })).toBeVisible();
   await expect(page.locator("#sec-ratings")).toBeVisible();
 
@@ -83,16 +83,16 @@ test("a TV series page lists its seasons and opens a rated season", async ({ pag
   await expect(view).toBeVisible();
   // Do not select "Rate this season": that asks the AI for a new rating.
   await view.click();
-  await expect(page).toHaveURL(new RegExp(`#/r/tmdb-tv-${TED_LASSO}-s\\d+$`));
+  await expect(page).toHaveURL(new RegExp(`/r/tmdb-tv-${TED_LASSO}-s\\d+$`));
   await expect(page.getByRole("heading", { level: 1, name: /Ted Lasso/ })).toBeVisible();
   await page.getByRole("link", { name: "← All seasons" }).click();
-  await expect(page).toHaveURL(new RegExp(`#/tv/${TED_LASSO}$`));
+  await expect(page).toHaveURL(new RegExp(`/tv/${TED_LASSO}$`));
   expect(errors).toEqual([]);
 });
 
 test("a TV season's marks use the series", async ({ page }) => {
   const errors = await setUp(page);
-  await page.goto(`/#/r/tmdb-tv-${TED_LASSO}-s01`);
+  await page.goto(`/r/tmdb-tv-${TED_LASSO}-s01`);
   await ready(page);
   await page.locator('#marks [data-mark="list"]').click();
   const saved = await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem("watchlist") ?? "{}") as object));

@@ -1,6 +1,6 @@
 // On-screen event log for testing on phones, where there are no dev tools.
 // Loaded only when the URL has ?debug (before the #), for example
-// https://example.com/?debug#/ . Shows focus, keyboard, and resize events.
+// https://example.com/?debug . Shows focus, keyboard, and resize events.
 
 const MAX_LINES = 40;
 

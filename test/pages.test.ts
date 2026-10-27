@@ -131,8 +131,10 @@ test("the private pages are noindex, and the canonical origin comes from the pro
 
 test("robots.txt has the Sitemap line only with SITE_URL", async () => {
   const without = await (await pagesWith().pages.request("http://x/robots.txt")).text();
-  assert.match(without, /^User-agent: \*\nDisallow: \/api\/\n/);
-  assert.match(without, /Disallow: \/search\n/);
+  // AI training crawlers get nothing; the rest may use everything but search and the private pages.
+  assert.match(without, /^User-agent: GPTBot\nUser-agent: ClaudeBot\n(User-agent: [\w-]+\n)+Disallow: \/\n\nUser-agent: \*\n/);
+  assert.match(without, /\nUser-agent: \*\nDisallow: \/api\/search\nDisallow: \/search\n/);
+  assert.doesNotMatch(without, /Disallow: \/api\/\n/);
   assert.doesNotMatch(without, /Sitemap/);
   const withUrl = await (await pagesWith([], "https://example.com/").pages.request("http://x/robots.txt")).text();
   assert.match(withUrl, /\nSitemap: https:\/\/example\.com\/sitemap\.xml\n$/);

@@ -8,6 +8,7 @@ import type { ReportService } from "../src/server/reports.js";
 import type { SearchCache } from "../src/server/searchCache.js";
 import type { SimilarService } from "../src/server/similar.js";
 import type { WatchService } from "../src/server/watchProviders.js";
+import { MOOD_VERSION } from "../src/shared/mood.js";
 import type { IndexEntry } from "../src/shared/types.js";
 
 const TITLE: IndexEntry = {
@@ -158,4 +159,28 @@ test("isCrawler finds search engines and headless browsers, not people", () => {
   ];
   for (const ua of people) assert.equal(isCrawler(ua), false, ua);
   assert.equal(isCrawler(undefined), false);
+});
+
+test("a crawler gets saved results only, and never starts an AI lookup", async () => {
+  const GOOGLEBOT = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
+  const saved = { id: "tmdb-movie-603", title: "The Matrix", mood: { version: MOOD_VERSION, tone: 2, feeling: 4, depth: 3 } };
+  const noMood = { id: "tmdb-movie-562", title: "Die Hard" };
+  const ai: string[] = [];
+  const reports = {
+    savedReport: async (id: string) => [saved, noMood].find((r) => r.id === id) ?? null,
+    getReport: async (id: string) => (ai.push(`report ${id}`), { status: "ok", report: saved }),
+    getMood: async (id: string) => (ai.push(`mood ${id}`), saved.mood),
+    recordView: (id: string) => ai.push(`view ${id}`),
+  } as unknown as ReportService;
+  const api = createApi(reports, {} as SearchCache, {} as WatchService, {} as SimilarService, null);
+  const headers = { "user-agent": GOOGLEBOT };
+
+  const rated = await api.request("/report/tmdb-movie-603", { headers });
+  assert.equal(rated.status, 200);
+  assert.deepEqual(await rated.json(), { status: "ok", report: saved });
+  assert.equal((await api.request("/report/tmdb-movie-1", { headers })).status, 404);
+
+  assert.deepEqual(await (await api.request("/mood/tmdb-movie-603", { headers })).json(), saved.mood);
+  assert.equal((await api.request("/mood/tmdb-movie-562", { headers })).status, 404);
+  assert.deepEqual(ai, []);
 });

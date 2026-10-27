@@ -13,6 +13,34 @@ import type { ReportService } from "./reports.js";
 
 const SITE_TITLE = "Parents' Guide";
 
+/**
+ * Crawlers that collect text to train AI models. The ratings are AI-generated,
+ * so they are poor training data; these crawlers get nothing. Search engines,
+ * and fetches that a person starts (ChatGPT-User, Claude-User), are not here.
+ * Google-Extended and Applebot-Extended are not crawlers: they are the tokens
+ * that keep Google's and Apple's crawled pages out of AI training.
+ */
+const AI_TRAINING_BOTS = [
+  "GPTBot",
+  "ClaudeBot",
+  "anthropic-ai",
+  "CCBot",
+  "Google-Extended",
+  "Applebot-Extended",
+  "Bytespider",
+  "Meta-ExternalAgent",
+  "FacebookBot",
+  "Amazonbot",
+  "cohere-ai",
+  "cohere-training-data-crawler",
+  "Diffbot",
+  "ImagesiftBot",
+  "Omgilibot",
+  "Timpibot",
+  "AI2Bot",
+  "PanguBot",
+];
+
 /** Pages a search engine should not list: they are empty for a crawler, or depend on the visitor. */
 const PRIVATE_PAGES = ["/search", "/watchlist", "/recommended", "/preferences"];
 
@@ -118,7 +146,17 @@ export function createPages(reports: Pick<ReportService, "titles" | "savedReport
   };
 
   pages.get("/robots.txt", (c) => {
-    const lines = ["User-agent: *", "Disallow: /api/", ...PRIVATE_PAGES.map((p) => `Disallow: ${p}`)];
+    const lines = [
+      ...AI_TRAINING_BOTS.map((bot) => `User-agent: ${bot}`),
+      "Disallow: /",
+      "",
+      "User-agent: *",
+      // Search engines run the app, so they need the API calls that draw a page.
+      // A crawler never starts an AI lookup (see isCrawler in app.ts). Search sends
+      // text to the catalogs, so it stays out.
+      "Disallow: /api/search",
+      ...PRIVATE_PAGES.map((p) => `Disallow: ${p}`),
+    ];
     if (siteUrl) lines.push("", `Sitemap: ${origin("")}/sitemap.xml`);
     c.header("Cache-Control", "public, max-age=3600");
     return c.text(`${lines.join("\n")}\n`);

@@ -1,6 +1,7 @@
 import { getConnInfo } from "@hono/node-server/conninfo";
 import { Hono, type Context } from "hono";
-import type { ApiError, CatalogResponse, SearchResult } from "../shared/types.js";
+import type { ApiError, CatalogResponse, ReportResponse, SearchResult } from "../shared/types.js";
+import { hasMood } from "../shared/mood.js";
 import { acceptsBrotli, BrotliCache } from "./brotliCache.js";
 import { searchOpenLibrary } from "./catalog/openlibrary.js";
 import { searchTmdb } from "./catalog/tmdb.js";
@@ -35,7 +36,8 @@ export function clientAddress(
 
 /**
  * True for search engines and other crawlers. Googlebot runs the app's
- * JavaScript, so its visits would otherwise count as views for trending.
+ * JavaScript, so it calls the API like a visitor. A crawler never starts an AI
+ * lookup or refresh, and its views do not count for trending.
  */
 export function isCrawler(userAgent: string | undefined): boolean {
   return /bot|crawl|spider|slurp|google-inspectiontool|googleother|facebookexternalhit|headless/i.test(userAgent ?? "");
@@ -147,12 +149,27 @@ export function createApi(
 
   api.get("/report/:id", async (c) => {
     const id = c.req.param("id");
+    // A crawler gets the saved result as it is: it never starts an AI lookup or refresh.
+    if (isCrawler(c.req.header("user-agent"))) {
+      const saved = await reports.savedReport(id);
+      if (!saved) throw new HttpError(404, "This title has no saved rating");
+      return c.json<ReportResponse>({ status: "ok", report: saved });
+    }
     const res = await reports.getReport(id, clientKey(c));
     if (res.status === "ok") recordView(c, reports, id);
     return c.json(res);
   });
 
-  api.get("/mood/:id", async (c) => c.json(await reports.getMood(c.req.param("id"))));
+  api.get("/mood/:id", async (c) => {
+    const id = c.req.param("id");
+    // A result saved before moods existed gets one from the AI, but not for a crawler.
+    if (isCrawler(c.req.header("user-agent"))) {
+      const saved = await reports.savedReport(id);
+      if (!saved || !hasMood(saved)) throw new HttpError(404, "This title has no saved mood");
+      return c.json(saved.mood);
+    }
+    return c.json(await reports.getMood(id));
+  });
 
   api.get("/tv/:tmdbId", async (c) => {
     const series = await reports.getSeries(c.req.param("tmdbId"));

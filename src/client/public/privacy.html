@@ -3,6 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      Send only the origin as the Referer, never the path or the part after "#".
+      Search text and browse filters are after "#", and some browsers (Brave on
+      iOS) sent the "#" part, so it reached the web server's logs.
+    -->
+    <meta name="referrer" content="strict-origin" />
     <title>Privacy and Terms · Parents' Guide</title>
     <meta name="description" content="How Parents' Guide handles your data, and the terms for using the site." />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />

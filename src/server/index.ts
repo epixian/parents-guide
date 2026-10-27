@@ -72,6 +72,11 @@ for (const signal of ["SIGTERM", "SIGINT"] as const) {
 }
 
 const app = new Hono();
+// Every answer: send only the origin as the Referer (see the note in index.html).
+app.use("*", async (c, next) => {
+  await next();
+  c.header("Referrer-Policy", "strict-origin");
+});
 const searchCache = new SearchCache(config.cacheDir);
 // Delete expired search answers once an hour, so the folder holds about six hours of searches.
 setInterval(() => void searchCache.prune(), 60 * 60 * 1000).unref();

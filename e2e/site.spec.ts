@@ -171,3 +171,22 @@ test("a reload of a filtered page sends no filter to the server", async ({ page 
   expect(sent).toEqual([]);
   expect(errors).toEqual([]);
 });
+
+test("requests send only the origin as the Referer, never the path or the search text", async ({ page }) => {
+  const errors = await setUp(page);
+  const referers = new Set<string>();
+  page.on("request", (req) => {
+    const referer = req.headers()["referer"];
+    // Vite's dev client loads before the meta tag. Production also sends the policy as a header.
+    if (referer && !new URL(req.url()).pathname.startsWith("/@vite/")) referers.add(referer);
+  });
+  await page.goto("/search#q=the%20matrix");
+  await expect(page.locator(".results").first()).toBeVisible();
+  await page.goto("/browse#max.violence=2&q=matrix");
+  await expect(page.getByRole("heading", { name: "Browse rated titles" })).toBeVisible();
+  await page.goto(pagePath(MATRIX));
+  await expect(page.getByRole("heading", { level: 1, name: /The Matrix/ })).toBeVisible();
+  expect(referers.size).toBeGreaterThan(0);
+  for (const referer of referers) expect(referer).toMatch(/^http:\/\/127\.0\.0\.1:5188\/$/);
+  expect(errors).toEqual([]);
+});

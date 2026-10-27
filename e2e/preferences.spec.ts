@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { MATRIX, ready, setUp } from "./helpers.js";
+import { MATRIX, pagePath, ready, setUp } from "./helpers.js";
 
 // The Preferences page: topics, concern limits, and "My services".
 
@@ -12,7 +12,7 @@ test("a hidden topic leaves the title pages", async ({ page }) => {
   await expect(row).toHaveClass(/is-hidden/);
   await expect(row.locator("select")).toBeDisabled();
 
-  await page.goto(`/r/${MATRIX}`);
+  await page.goto(pagePath(MATRIX));
   await ready(page);
   const ratings = page.locator("#sec-ratings");
   await expect(ratings.getByRole("rowheader", { name: "Violence" })).toHaveCount(0);
@@ -28,7 +28,7 @@ test("Hide all and Show all change every topic", async ({ page }) => {
   await concerns.getByRole("button", { name: "Hide all" }).click();
   await expect(concerns.locator("input[data-show]:checked")).toHaveCount(0);
 
-  await page.goto(`/r/${MATRIX}`);
+  await page.goto(pagePath(MATRIX));
   await expect(page.getByText("All topics are hidden.")).toBeVisible();
 
   await page.goto("/preferences");
@@ -53,7 +53,7 @@ test("a concern limit marks titles over it and filters Browse", async ({ page })
   });
 
   // The Matrix is violent: its violence row is over the limit.
-  await page.goto(`/r/${MATRIX}`);
+  await page.goto(pagePath(MATRIX));
   await expect(page.locator("#sec-ratings tr.over-limit", { hasText: "Violence" })).toBeVisible();
 
   // Browse leaves out the titles over the limit, and offers to show them.
@@ -97,7 +97,7 @@ test("My services saves the services the user does not have", async ({ page, req
   await expect(services.locator(".service-list input:checked")).toHaveCount(0);
   const hidden = await page.evaluate(() => JSON.parse(localStorage.getItem("hiddenProviders") ?? "[]") as number[]);
   for (const p of watch.providers) for (const id of p.ids) expect(hidden).toContain(id);
-  await page.goto(`/r/${MATRIX}`);
+  await page.goto(pagePath(MATRIX));
   await ready(page);
   await expect(page.locator("#watch-slot")).not.toHaveAttribute("aria-busy", "true");
   await expect(page.locator("#watch-slot")).toBeHidden();
@@ -106,7 +106,7 @@ test("My services saves the services the user does not have", async ({ page, req
   await page.goto("/preferences");
   await page.locator("#services-body").getByRole("button", { name: "Show all" }).click();
   await expect(page.locator("#services-body .service-list input:not(:checked)")).toHaveCount(0);
-  await page.goto(`/r/${MATRIX}`);
+  await page.goto(pagePath(MATRIX));
   await expect(page.locator("#watch-slot .watch-list li").first()).toBeVisible();
   expect(errors).toEqual([]);
 });

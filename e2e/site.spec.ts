@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { MATRIX, ready, setUp } from "./helpers.js";
+import { MATRIX, pagePath, ready, setUp } from "./helpers.js";
 
 // The home page, the header, and the first-visit tip.
 
@@ -132,15 +132,15 @@ test("links from before the real paths open the same page", async ({ page }) => 
 
   await page.goto(`/#/r/${MATRIX}`);
   await expect(page.getByRole("heading", { level: 1, name: /The Matrix/ })).toBeVisible();
-  await expect(page).toHaveURL(new RegExp(`:\\d+/r/${MATRIX}$`));
+  await expect(page).toHaveURL(new RegExp(`:\\d+${pagePath(MATRIX)}$`));
   expect(errors).toEqual([]);
 });
 
 test("a title link has the title in its path, and any slug opens the page", async ({ page }) => {
   const errors = await setUp(page);
   await page.goto("/browse#q=matrix");
-  const link = page.locator(`a[href^="/r/${MATRIX}/"]`).first();
-  await expect(link).toHaveAttribute("href", `/r/${MATRIX}/the-matrix-1999`);
+  const link = page.locator(`a[href^="${pagePath(MATRIX)}/"]`).first();
+  await expect(link).toHaveAttribute("href", `${pagePath(MATRIX)}/the-matrix-1999`);
 
   // The app opens it without a page load.
   const loads: string[] = [];
@@ -153,7 +153,7 @@ test("a title link has the title in its path, and any slug opens the page", asyn
   await page.goBack();
   await expect(page.getByRole("heading", { name: "Browse rated titles" })).toBeVisible();
 
-  await page.goto(`/r/${MATRIX}/an-old-name`);
+  await page.goto(`${pagePath(MATRIX)}/an-old-name`);
   await expect(page.getByRole("heading", { level: 1, name: /The Matrix/ })).toBeVisible();
   expect(errors).toEqual([]);
 });

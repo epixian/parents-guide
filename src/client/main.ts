@@ -38,7 +38,7 @@ import { tasteModelFor } from "./tasteClient.js";
 import { deleteTitles } from "./titleStore.js";
 import { makeBackup, parseBackup, restoreBackup } from "./backup.js";
 import { deleteFromDrive, driveClientId, loadFromDrive, saveToDrive } from "./drive.js";
-import { titlePath } from "../shared/paths.js";
+import { idPath, pathId, titlePath } from "../shared/paths.js";
 import { browse, prefetchTitles, preloadSearch, suggest, titleList, titlesById, titlesReady } from "./titles.js";
 import {
   driveUsed,
@@ -1428,9 +1428,9 @@ async function showSeries(tmdbId: string): Promise<string> {
           <span><strong>${esc(season.name)}</strong> <span class="muted small">${season.episodeCount} episodes${season.airDate ? ` · ${esc(season.airDate.slice(0, 4))}` : ""}</span></span>
           ${
             season.report
-              ? `<a class="button" href="/r/${season.reportId}">View rating</a>`
+              ? `<a class="button" href="${titlePath({ id: season.reportId, title: s.title, years: season.airDate })}">View rating</a>`
               : season.released
-                ? `<a class="button primary" href="/r/${season.reportId}">Rate this season</a>`
+                ? `<a class="button primary" href="${titlePath({ id: season.reportId, title: s.title, years: season.airDate })}">Rate this season</a>`
                 : `<span class="muted small">Not yet released</span>`
           }
         </li>`,
@@ -2224,18 +2224,22 @@ function withYears(title: string, info: WorkInfo | undefined): string {
 // ---------- URLs ----------
 
 // Pages have real paths (see src/shared/paths.ts). In this file, a page's
-// route is its path without the slug, with its state after "?":
-// "/r/tmdb-movie-603", "/browse?kind=movie". In the URL, the state goes after
-// "#" (/browse#kind=movie), so the browser never sends it to the server.
+// route is shorter, with its state after "?": "/r/<report id>" for a movie,
+// book, or TV season, "/tv/<tmdb id>" for a series, "/browse?kind=movie". In
+// the URL, the state goes after "#" (/browse#kind=movie), so the browser never
+// sends it to the server.
 
-/** The route of a URL's path and fragment: "/r/<id>/<slug>" → "/r/<id>", "#kind=movie" → "?kind=movie". */
-function routeOf(pathname: string, fragment: string): string {
-  const path = pathname.replace(/^\/(r|tv)\/([^/]+)\/.*$/, "/$1/$2");
+/** The route of a URL's path and fragment: "/movie/603/<slug>" → "/r/tmdb-movie-603", "#kind=movie" → "?kind=movie". Null when it is not an app page. */
+function routeOf(pathname: string, fragment: string): string | null {
+  const id = pathId(pathname);
+  const path = id ? (/^tmdb-tv-\d+$/.test(id) ? `/tv/${id.slice(8)}` : `/r/${id}`) : pathname;
+  if (!id && !APP_PAGE.test(path)) return null;
   const state = fragment.replace(/^#/, "");
   return state ? `${path}?${state}` : path;
 }
 
-const APP_PATH = /^\/(?:$|(?:r|tv)\/[^/]+(?:\/[^/]*)?$|(?:browse|watchlist|recommended|preferences|search)$)/;
+/** The app pages other than titles. public/sw.js has the same list in its APP_PAGE. */
+const APP_PAGE = /^\/(?:browse|watchlist|recommended|preferences|search)?$/;
 
 /** The route of a link to an app page on this site, or null (privacy.html, other sites, files). */
 function routeOfHref(href: string): string | null {
@@ -2245,8 +2249,7 @@ function routeOfHref(href: string): string | null {
   } catch {
     return null;
   }
-  if ( url.origin !== location.origin || !APP_PATH.test(url.pathname)) return null;
-  return routeOf(url.pathname, url.hash);
+  return url.origin === location.origin ? routeOf(url.pathname, url.hash) : null;
 }
 
 /** Open an app page, with a new history entry. */
@@ -2267,7 +2270,7 @@ async function route(): Promise<void> {
   pageTitle = "";
   afterRender = null;
   setWatchId(null);
-  const hash = routeOf(location.pathname, location.hash);
+  const hash = routeOf(location.pathname, location.hash) ?? "/";
   let html: string;
   try {
     let m: RegExpExecArray | null;
@@ -2961,7 +2964,9 @@ if (new URLSearchParams(location.search).has("debug")) {
 
 // Links from before the real paths: /#/r/tmdb-movie-603, /#/browse?kind=movie.
 if (location.pathname === "/" && location.hash.startsWith("#/")) {
-  const [path, state] = location.hash.slice(1).split(/\?(.*)/s);
+  const [route, state] = location.hash.slice(1).split(/\?(.*)/s);
+  const old = /^\/(?:r\/([\w-]+)|tv\/(\d+))$/.exec(route!);
+  const path = old ? (idPath(old[1] ?? `tmdb-tv-${old[2]}`) ?? "/") : route;
   history.replaceState(history.state, "", `${path}${location.search}${state ? `#${state}` : ""}`);
 }
 

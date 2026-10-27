@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createPages } from "../src/server/pages.js";
-import { slug, titlePath } from "../src/shared/paths.js";
+import { idPath, pathId, slug, titlePath } from "../src/shared/paths.js";
 import type { IndexEntry, Report } from "../src/shared/types.js";
 
 const SHELL = `<!doctype html>
@@ -53,28 +53,36 @@ test("slug keeps a-z, 0-9, and dashes, with the first year", () => {
   assert.ok(slug("word ".repeat(40), null).length <= 80);
 });
 
-test("titlePath gives /r/ for movies and books, and /tv/ for a series", () => {
-  assert.equal(titlePath(MATRIX), "/r/tmdb-movie-603/the-matrix-1999");
+test("titlePath and pathId convert between ids and paths of each kind", () => {
+  assert.equal(titlePath(MATRIX), "/movie/603/the-matrix-1999");
   assert.equal(titlePath(SERIES), "/tv/1399/game-of-thrones-2011");
-  assert.equal(titlePath({ id: "ol-OL1W", kind: "book", title: "!!", years: null }), "/r/ol-OL1W");
+  assert.equal(titlePath({ id: "tmdb-tv-1399-s01", kind: "tv", title: "Game of Thrones", years: "2011" }), "/tv/1399/season/1/game-of-thrones-2011");
+  assert.equal(titlePath({ id: "ol-OL1W", kind: "book", title: "!!", years: null }), "/book/OL1W");
+  assert.equal(titlePath({ id: "bad", title: "x" }), "/");
+  for (const id of ["tmdb-movie-603", "ol-OL1W", "tmdb-tv-1399", "tmdb-tv-1399-s01", "tmdb-tv-1399-s12"]) {
+    assert.equal(pathId(idPath(id)!), id);
+    assert.equal(pathId(`${idPath(id)}/any-slug`), id);
+  }
+  assert.equal(pathId("/tv/1399/season"), "tmdb-tv-1399"); // A series slug, not a season.
+  for (const p of ["/movie/abc", "/movie/603/a/b", "/book/603", "/r/tmdb-movie-603", "/browse"]) assert.equal(pathId(p), null, p);
 });
 
 test("a rated title page has its title, description, canonical link, and summary", async () => {
   const { pages } = pagesWith();
   // Routing ignores the slug: a wrong one gets the same page, with the right canonical link.
-  const res = await pages.request("https://example.com/r/tmdb-movie-603/old-name");
+  const res = await pages.request("https://example.com/movie/603/old-name");
   assert.equal(res.status, 200);
   const html = await res.text();
   assert.match(html, /<title>Parents' Guide - The Matrix \(1999\)<\/title>/);
   assert.match(html, /<meta name="description" content="A hacker learns &lt;the truth&gt;\." \/>/);
   assert.equal(html.match(/name="description"/g)!.length, 1);
-  assert.match(html, /<link rel="canonical" href="https:\/\/example\.com\/r\/tmdb-movie-603\/the-matrix-1999" \/>/);
+  assert.match(html, /<link rel="canonical" href="https:\/\/example\.com\/movie\/603\/the-matrix-1999" \/>/);
   assert.match(html, /<main id="app" aria-live="polite"><article class="prerender">/);
   assert.match(html, /<li>Violence 4 of 5<\/li><li>Profanity and crude language 2 of 5<\/li>/);
   assert.doesNotMatch(html, /noindex/);
 
   // No slug works too.
-  assert.match(await (await pages.request("https://example.com/r/tmdb-movie-603")).text(), /The Matrix \(1999\)/);
+  assert.match(await (await pages.request("https://example.com/movie/603")).text(), /The Matrix \(1999\)/);
 });
 
 test("a TV series page uses its list entry, and reads no saved result", async () => {
@@ -96,14 +104,14 @@ test("a season page uses its saved result", async () => {
     categories: { violence: { score: 5, treatment: null, notes: "" } },
   } as unknown as Report;
   const { pages } = pagesWith([season]);
-  const html = await (await pages.request("https://example.com/r/tmdb-tv-1399-s01")).text();
+  const html = await (await pages.request("https://example.com/tv/1399/season/1")).text();
   assert.match(html, /<title>Parents' Guide - Game of Thrones: Season 1 \(2011\)<\/title>/);
-  assert.match(html, /href="https:\/\/example\.com\/r\/tmdb-tv-1399-s01\/game-of-thrones-season-1-2011"/);
+  assert.match(html, /href="https:\/\/example\.com\/tv\/1399\/season\/1\/game-of-thrones-2011"/);
 });
 
 test("a title that is not rated gets the plain app page with noindex", async () => {
   const { pages } = pagesWith();
-  const res = await pages.request("https://example.com/r/tmdb-movie-1");
+  const res = await pages.request("https://example.com/movie/1");
   assert.equal(res.status, 200);
   const html = await res.text();
   assert.match(html, /<meta name="robots" content="noindex" \/>/);
@@ -137,7 +145,7 @@ test("sitemap.xml lists the home page and every rated title", async () => {
   const xml = await res.text();
   assert.deepEqual(
     [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]),
-    ["https://example.com/", "https://example.com/r/tmdb-movie-603/the-matrix-1999", "https://example.com/tv/1399/game-of-thrones-2011"],
+    ["https://example.com/", "https://example.com/movie/603/the-matrix-1999", "https://example.com/tv/1399/game-of-thrones-2011"],
   );
   assert.deepEqual(calls, []);
 });

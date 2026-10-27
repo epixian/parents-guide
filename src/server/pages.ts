@@ -7,7 +7,7 @@
 
 import { Hono, type Context } from "hono";
 import { CATEGORIES, SCORE_MAX, type CategoryId } from "../shared/categories.js";
-import { slug, titlePath } from "../shared/paths.js";
+import { idPath, pathId, slug, titlePath } from "../shared/paths.js";
 import type { IndexEntry, Report } from "../shared/types.js";
 import type { ReportService } from "./reports.js";
 
@@ -28,7 +28,7 @@ function clip(text: string, max: number): string {
 interface PageMeta {
   title: string;
   description?: string;
-  /** Path of the canonical page, e.g. /r/tmdb-movie-603/the-matrix-1999. */
+  /** Path of the canonical page, e.g. /movie/603/the-matrix-1999. */
   canonical?: string;
   image?: string | null;
   noindex?: boolean;
@@ -138,13 +138,17 @@ export function createPages(reports: Pick<ReportService, "titles" | "savedReport
     const entry = entryMap(titles).get(id) ?? null;
     // A TV series has no saved result of its own: its seasons do.
     const report = id.startsWith("tmdb-tv-") && !/-s\d+$/.test(id) ? null : await reports.savedReport(id);
-    const seasonSlug = report && slug(`${report.title} ${report.subtitle ?? ""}`, report.releaseDate);
-    const path = entry ? titlePath(entry) : seasonSlug ? `/r/${id}/${seasonSlug}` : `/r/${id}`;
+    // A season: the series title and the season's year.
+    const seasonSlug = report && slug(report.title, report.releaseDate);
+    const path = entry ? titlePath(entry) : `${idPath(id)}${seasonSlug ? `/${seasonSlug}` : ""}`;
     // Not rated yet: the app can rate it, but search engines should not list it.
     return page(c, titleMeta(entry, report, path) ?? { title: SITE_TITLE, noindex: true });
   };
-  pages.get("/r/:id{[\\w-]+}/:slug?", (c) => titlePage(c, c.req.param("id")));
-  pages.get("/tv/:n{\\d+}/:slug?", (c) => titlePage(c, `tmdb-tv-${c.req.param("n")}`));
+  // /movie/603/<slug>, /book/OL82563W/<slug>, /tv/1399/<slug>, /tv/1399/season/1/<slug> (see src/shared/paths.ts).
+  pages.get("*", async (c, next) => {
+    const id = pathId(c.req.path);
+    return id ? titlePage(c, id) : next();
+  });
 
   pages.get("/browse", (c) => page(c, { title: `${SITE_TITLE} - Browse rated titles`, canonical: "/browse" }));
   for (const p of PRIVATE_PAGES) pages.get(p, (c) => page(c, { title: SITE_TITLE, noindex: true }));

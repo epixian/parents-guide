@@ -1,4 +1,5 @@
 import { expect, type APIRequestContext, type Page } from "@playwright/test";
+import { idPath } from "../src/shared/paths.js";
 import type { IndexEntry } from "../src/shared/types.js";
 
 // Shared setup for the browser tests. The tests use only titles that are
@@ -10,6 +11,9 @@ export const MATRIX = "tmdb-movie-603";
 export const DIE_HARD = "tmdb-movie-562";
 /** A rated TV series (Ted Lasso). Season 1 is rated. */
 export const TED_LASSO = "97546";
+
+/** The page path of a report id, without the slug: tmdb-movie-603 → /movie/603. */
+export const pagePath = (id: string) => idPath(id)!;
 
 /** What a test puts in localStorage before the page loads. Values are stored as JSON. */
 export type Storage = Partial<{

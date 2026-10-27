@@ -1,7 +1,7 @@
 // Service worker: offline use, in the installed app and in browser tabs.
 // Registered by main.ts in production builds only.
 //
-// - App pages (/, /r/..., /browse, ...): network first, so a deploy reaches
+// - App pages (/, /movie/..., /tv/..., /browse, ...): network first, so a deploy reaches
 //   every visitor who is online. With no answer in 3 seconds, or no network,
 //   the saved copy of "/". The app reads the path, so that copy draws any
 //   page. Only "/" is saved: a title page's HTML has that title's meta tags.
@@ -26,8 +26,9 @@ const PAGE_TIMEOUT_MS = 3000;
 /** Files that are not in index.html, saved at install. */
 const STATIC = ["/favicon.svg", "/manifest.webmanifest", "/fonts/fredoka-600-logo.woff2", "/icons/icon-192.png"];
 const APP_FILE = /^\/(assets|fonts|icons|logos)\/|^\/(favicon\.svg|manifest\.webmanifest)$/;
-/** The app's pages, as in APP_PATH in main.ts. Not privacy.html. */
-const APP_PAGE = /^\/(?:$|(?:r|tv)\/[^/]+(?:\/[^/]*)?$|(?:browse|watchlist|recommended|preferences|search)$)/;
+/** The app's pages: as APP_PAGE in main.ts, plus the title pages of src/shared/paths.ts. Not privacy.html. */
+const APP_PAGE =
+  /^\/(?:(?:browse|watchlist|recommended|preferences|search)?|movie\/\d+(?:\/[^/]*)?|book\/OL\d+W(?:\/[^/]*)?|tv\/\d+(?:\/season\/\d+)?(?:\/[^/]*)?)$/;
 const API_SAVED = /^\/api\/(report|tv|mood|watch|similar|recent|trending|catalog|providers)(\/|$)/;
 
 /** The /assets/ files that a page uses. */

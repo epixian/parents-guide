@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { MATRIX, ready, setUp } from "./helpers.js";
+import { MATRIX, pagePath, ready, setUp } from "./helpers.js";
 
 // The search box suggestions and the search results page.
 
@@ -25,7 +25,7 @@ test("suggestions show rated titles as the user types, and open one with the key
   for (let i = 0; i <= index; i++) await input.press("ArrowDown");
   await expect(input).toHaveAttribute("aria-activedescendant", `suggestion-${index}`);
   await input.press("Enter");
-  await expect(page).toHaveURL(new RegExp(`/r/${MATRIX}/the-matrix-1999$`));
+  await expect(page).toHaveURL(new RegExp(`${pagePath(MATRIX)}/the-matrix-1999$`));
   await expect(page.getByRole("heading", { level: 1, name: /The Matrix/ })).toBeVisible();
   await expect(list).toBeHidden();
   expect(errors).toEqual([]);
@@ -56,7 +56,7 @@ test("the results page lists rated titles first, with type filters", async ({ pa
 
   const results = page.locator("#search-results");
   // Rated titles show at once, with the "Rated" badge.
-  const matrix = results.locator(".results > li", { has: page.locator(`a[href^="/r/${MATRIX}/"]`) });
+  const matrix = results.locator(".results > li", { has: page.locator(`a[href^="${pagePath(MATRIX)}/"]`) });
   await expect(matrix).toBeVisible();
   await expect(matrix.locator(".badge.rated")).toHaveText("Rated");
 

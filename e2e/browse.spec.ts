@@ -24,7 +24,7 @@ test("Browse lists every rated title, and the type filters go in the URL", async
   await expect(page).toHaveURL(/kind=book/);
   expect(await count(page)).toBe(titles.filter((t) => t.kind === "book").length);
   const hrefs = await page.locator("#browse-results .cards > li > a").evaluateAll((els) => els.map((el) => el.getAttribute("href")));
-  for (const href of hrefs) expect(href).toMatch(/^\/r\/ol-/);
+  for (const href of hrefs) expect(href).toMatch(/^\/book\/OL\d+W/);
 
   // The last type cannot be turned off.
   await form.getByRole("checkbox", { name: "Books" }).click();

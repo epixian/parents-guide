@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { pagePath } from "./helpers.js";
 
 // Recommendations and the fit line, scored by the taste worker (see
 // src/client/tasteClient.ts). The thumbs are a fixed test set: action movies
@@ -50,7 +51,7 @@ test("the home page shows recommendations, scored in a worker", async ({ page })
 
 test("a title page shows the fit line for a strong match", async ({ page }) => {
   const errors = await setUp(page);
-  await page.goto(`/r/${MATCH}`);
+  await page.goto(pagePath(MATCH));
   const fit = page.locator("#fit");
   await expect(fit).toBeVisible();
   await expect(fit).toContainText(/liked/i);
@@ -63,7 +64,7 @@ test("without workers, the page scores on its own thread", async ({ page }) => {
   page.on("worker", () => workers++);
   await page.goto("/");
   await expect(page.locator(".recommended .cards > li").first()).toBeVisible();
-  await page.goto(`/r/${MATCH}`);
+  await page.goto(pagePath(MATCH));
   await expect(page.locator("#fit")).toBeVisible();
   expect(workers).toBe(0);
   expect(errors).toEqual([]);

@@ -184,3 +184,15 @@ test("a crawler gets saved results only, and never starts an AI lookup", async (
   assert.equal((await api.request("/mood/tmdb-movie-562", { headers })).status, 404);
   assert.deepEqual(ai, []);
 });
+
+test("the API refuses browser calls from another site", async () => {
+  const api = apiWith({ value: "s-1" });
+  for (const site of ["cross-site", "same-site"]) {
+    const res = await api.request("/titles", { headers: { "sec-fetch-site": site } });
+    assert.equal(res.status, 403, site);
+  }
+  // This site's pages, a typed address, and clients without the header.
+  for (const headers of [{ "sec-fetch-site": "same-origin" }, { "sec-fetch-site": "none" }, {}]) {
+    assert.equal((await api.request("/titles", { headers })).status, 200, JSON.stringify(headers));
+  }
+});

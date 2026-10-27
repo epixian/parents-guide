@@ -93,6 +93,17 @@ export function createApi(
   catalogBrotli = new BrotliCache(),
 ): Hono {
   const api = new Hono();
+
+  // Only this site's pages may call the API from a browser. Another site's page
+  // could otherwise make its visitors' browsers start AI lookups, from many IPs,
+  // past the per-IP limit. Browsers set Sec-Fetch-Site, and page scripts cannot
+  // change it. Without it (older browsers, curl), the other limits still apply.
+  api.use("*", async (c, next) => {
+    const site = c.req.header("sec-fetch-site");
+    if (site === "cross-site" || site === "same-site") return c.json<ApiError>({ error: "Not allowed from another site" }, 403);
+    await next();
+  });
+
   /** The title list as JSON text for one version, so each version is converted only once. */
   let titlesJson: { tag: string; text: string } | null = null;
 

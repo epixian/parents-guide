@@ -125,6 +125,8 @@ line to `<CACHE_DIR>/usage.jsonl`. To total the cost:
 node -e 'let t=0;for(const l of require("fs").readFileSync(process.argv[1],"utf8").split("\n"))if(l)t+=JSON.parse(l).cost??0;console.log("$"+t.toFixed(2))' data/cache/usage.jsonl
 ```
 
+Two limits keep the cost down. Each IP gets `AI_LOOKUPS_PER_IP_PER_HOUR` new lookups (default 30). The whole site gets `AI_LOOKUPS_PER_DAY` new lookups per UTC day (default 300, about $3; `0` turns it off), whatever the callers do. After that, new titles get a "try again tomorrow" message, and saved ratings still show. The daily count starts from today's live lines in `usage.jsonl`, so a restart does not reset it. It counts lookups only, never visitors. Batch scripts are not limited.
+
 ## Rating many titles at batch prices
 
 `npm run batch -- <ids-file> [--dry-run]` rates a list of report ids through the

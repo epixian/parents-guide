@@ -16,6 +16,7 @@ import { getBook } from "./catalog/openlibrary.js";
 import { getMovie, getTvSeason, getTvSeries } from "./catalog/tmdb.js";
 import type { WorkDetails } from "./catalog/types.js";
 import { classify, rateMood } from "./classify.js";
+import { DailyLimit } from "./dailyLimit.js";
 import { HttpError } from "./http.js";
 import type { Popularity } from "./popularity.js";
 import type { RateLimiter } from "./rateLimit.js";
@@ -86,6 +87,7 @@ export class ReportService {
     private readonly popularity: Popularity,
     private readonly changeLog = new TitleChangeLog(null),
     private readonly storedProviders?: (ids: string[], save: (id: string, providers: number[]) => void) => Promise<void>,
+    private readonly daily = new DailyLimit(0),
   ) {
     this.index = new TitleIndex(changeLog);
   }
@@ -224,6 +226,10 @@ export class ReportService {
 
     if (!this.limiter.take(clientKey)) {
       return fallback(new HttpError(429, "Too many new lookups. Try again later."));
+    }
+    if (!this.daily.take(now)) {
+      console.warn(`Daily AI lookup limit reached; not rating ${id}`);
+      return fallback(new HttpError(503, "The site has made all its new ratings for today. Try again tomorrow."));
     }
 
     let work: WorkDetails;

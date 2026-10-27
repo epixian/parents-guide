@@ -9,6 +9,7 @@ import { backup } from "./backup.js";
 import { FileReportCache } from "./cache.js";
 import { CatalogIndex } from "./catalogIndex.js";
 import { config } from "./config.js";
+import { DailyLimit } from "./dailyLimit.js";
 import { createPages } from "./pages.js";
 import { Popularity } from "./popularity.js";
 import { RateLimiter } from "./rateLimit.js";
@@ -22,6 +23,9 @@ fs.mkdirSync(config.cacheDir, { recursive: true });
 
 const limiter = new RateLimiter(config.aiLookupsPerIpPerHour, 60 * 60 * 1000);
 setInterval(() => limiter.sweep(), 10 * 60 * 1000).unref();
+
+const daily = new DailyLimit(config.aiLookupsPerDay);
+await daily.load(path.join(config.cacheDir, "usage.jsonl"));
 
 const popularity = new Popularity(path.join(config.cacheDir, "popularity.json"));
 await popularity.load();
@@ -37,6 +41,7 @@ const reports = new ReportService(
   changeLog,
   // The saved streaming services at any age, with no TMDB request (maxFetches 0).
   async (ids, save) => void (await watch.sweep(ids, save, { maxFetches: 0 })),
+  daily,
 );
 
 // The view counts and the usage log change often; copy them off-site every 10 minutes if changed.

@@ -87,7 +87,7 @@ export const config = {
   tmdbApiKey: process.env.TMDB_API_KEY || "",
   aiLookupsPerIpPerHour: intEnv("AI_LOOKUPS_PER_IP_PER_HOUR", 30),
   // New AI lookups per UTC day for the whole site, whatever the callers. 0: no limit.
-  aiLookupsPerDay: intEnv("AI_LOOKUPS_PER_DAY", 300),
+  aiLookupsPerDay: intEnv("AI_LOOKUPS_PER_DAY", 100),
   trustProxy: process.env.TRUST_PROXY === "1",
   // Contact URL or email for the Open Library User-Agent. With a contact,
   // Open Library allows about 3 requests per second; without one, about 1.

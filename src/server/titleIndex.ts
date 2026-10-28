@@ -15,6 +15,7 @@ interface ResultEntry {
   title: string;
   years: string | null;
   imageUrl: string | null;
+  subtitle: string | null;
   /** When the title was first rated. Older files have no addedAt. */
   addedAt: string;
   themeTags: ThemeTag[];
@@ -43,6 +44,7 @@ function toEntry(r: Report): ResultEntry {
     title: r.title,
     years: r.info?.years ?? null,
     imageUrl: r.info?.imageUrl ?? null,
+    subtitle: r.info?.subtitle ?? null,
     addedAt: r.addedAt ?? r.refreshedAt,
     themeTags: r.themeTags ?? [],
     bookCategories: r.bookCategories ?? [],
@@ -85,6 +87,7 @@ function mergeTitle(results: ResultEntry[]): IndexEntry {
     imageUrl: newest.imageUrl,
     addedAt: newest.addedAt,
     ratedParts: results.length,
+    ...(newest.subtitle ? { subtitle: newest.subtitle } : {}),
     themeTags: [...tagCounts.entries()].sort((a, b) => b[1] - a[1]).map(([tag]) => tag),
     scores,
     treatments,

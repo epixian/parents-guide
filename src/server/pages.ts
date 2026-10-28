@@ -94,7 +94,9 @@ function scoreText(scores: Partial<Record<CategoryId, number>>): string[] {
 /** The page meta for a rated title, from its list entry and, for a movie, book, or season, its saved result. */
 export function titleMeta(entry: IndexEntry | null, report: Report | null, path: string): PageMeta | null {
   if (!entry && !report) return null;
-  const name = report?.subtitle ? `${report.title}: ${report.subtitle}` : (entry?.title ?? report!.title);
+  // Books: the catalog subtitle ("The Graphic Novel"), else the byline in report.subtitle.
+  const subtitle = report?.info?.subtitle ?? entry?.subtitle ?? report?.subtitle;
+  const name = subtitle ? `${report?.title ?? entry!.title}: ${subtitle}` : (entry?.title ?? report!.title);
   const years = entry?.years ?? report?.releaseDate?.slice(0, 4) ?? null;
   const heading = years ? `${name} (${years})` : name;
   const scores =

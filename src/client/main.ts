@@ -1097,7 +1097,7 @@ function jumpLinks(sections: [id: string, label: string][]): string {
 /** Book categories as links to Browse with that category. */
 const bookCategoryLinks = (ids: BookCategory[]) =>
   ids
-    .map((id) => `<a href="/browse#${new URLSearchParams({ book: id })}">${esc(BOOK_CATEGORY_BY_ID.get(id)?.label ?? id)}</a>`)
+    .map((id) => `<a href="/browse#${new URLSearchParams({ shelf: id })}">${esc(BOOK_CATEGORY_BY_ID.get(id)?.label ?? id)}</a>`)
     .join(" · ");
 
 /** Details box: credits, book categories, themes, and the catalog link. */
@@ -1369,7 +1369,8 @@ async function showReport(id: string): Promise<string> {
   }
   const r = res.report;
   setWatchId(r.id.startsWith("tmdb-") ? r.id : null, seq);
-  pageTitle = withYears(r.kind === "tv-season" && r.subtitle ? `${r.title} — ${r.subtitle}` : r.title, r.info);
+  const subtitle = r.kind === "tv-season" ? r.subtitle : (r.info?.subtitle ?? null);
+  pageTitle = withYears(subtitle ? `${r.title} — ${subtitle}` : r.title, r.info);
   pageMeta = `Rated ${new Date(r.refreshedAt).toLocaleDateString()} by ${r.model} · confidence: ${r.confidence}`;
   // A result saved before moods existed: the server rates the mood now, and the tiles fill in.
   if (!hasMood(r)) {
@@ -1384,7 +1385,7 @@ async function showReport(id: string): Promise<string> {
   return `${back}
     ${titleHeader(
       r.title,
-      r.kind === "tv-season" ? r.subtitle : null,
+      subtitle,
       r.info,
       compositesHtml((id) => r.categories[id]?.score),
       r.id,
@@ -1977,7 +1978,7 @@ function tagChips(res: BrowseResponse, selected: Set<string>): string {
 }
 
 /** "(2 selected)" for the Book categories heading; empty when none. */
-const bookCount = (params: URLSearchParams) => tagCount(params.getAll("book").length);
+const shelfCount = (params: URLSearchParams) => tagCount(params.getAll("shelf").length);
 
 /** Book category chips by group: categories in the current results and selected ones, in list order. */
 function bookChips(res: BrowseResponse, selected: Set<string>): string {
@@ -1993,7 +1994,7 @@ function bookChips(res: BrowseResponse, selected: Set<string>): string {
         <span class="tag-chips">${chips
           .map(
             (c) =>
-              `<label class="chip-check" title="${esc(c.description)}"><input type="checkbox" name="book" value="${c.id}"${selected.has(c.id) ? " checked" : ""} />${esc(c.label)} <span class="count">${counts.get(c.id) ?? 0}</span></label>`,
+              `<label class="chip-check" title="${esc(c.description)}"><input type="checkbox" name="shelf" value="${c.id}"${selected.has(c.id) ? " checked" : ""} />${esc(c.label)} <span class="count">${counts.get(c.id) ?? 0}</span></label>`,
           )
           .join("")}</span>
       </div>`,
@@ -2060,7 +2061,7 @@ async function showBrowse(query: string): Promise<string> {
   const kinds = new Set(params.getAll("kind").flatMap((v) => v.split(",")));
   const sort = params.get("sort") ?? "added";
   const selectedTags = new Set(params.getAll("tag").filter((t) => (THEME_TAGS as readonly string[]).includes(t)));
-  const selectedBook = new Set(params.getAll("book").filter((id) => BOOK_CATEGORY_BY_ID.has(id)));
+  const selectedShelf = new Set(params.getAll("shelf").filter((id) => BOOK_CATEGORY_BY_ID.has(id)));
   const moods = moodFilterCount(params);
   pageTitle = "Browse";
 
@@ -2086,9 +2087,9 @@ async function showBrowse(query: string): Promise<string> {
         <summary>Theme tags <span class="count" id="tag-count">${tagCount(selectedTags.size)}</span></summary>
         <div class="tag-chips" id="browse-tags" aria-label="Theme tags">${tagChips(res, selectedTags)}</div>
       </details>
-      <details class="topic-filters"${selectedBook.size ? " open" : ""}>
-        <summary>Book categories <span class="count" id="book-count">${bookCount(params)}</span></summary>
-        <div id="browse-book" aria-label="Book categories">${bookChips(res, selectedBook)}</div>
+      <details class="topic-filters"${selectedShelf.size ? " open" : ""}>
+        <summary>Book categories <span class="count" id="shelf-count">${shelfCount(params)}</span></summary>
+        <div id="browse-shelf" aria-label="Book categories">${bookChips(res, selectedShelf)}</div>
       </details>
       <details class="topic-filters"${moods ? " open" : ""}>
         <summary>Mood <span class="count" id="mood-count">${moods ? `(${moods} set)` : ""}</span></summary>
@@ -2124,7 +2125,7 @@ async function updateBrowse(form: HTMLFormElement): Promise<void> {
   const params = browseParams(form);
   history.replaceState({ scrollY: 0, depth } satisfies PageState, "", `/browse${params.size ? `#${params}` : ""}`);
   document.querySelector("#tag-count")!.textContent = tagCount(params.getAll("tag").length);
-  document.querySelector("#book-count")!.textContent = bookCount(params);
+  document.querySelector("#shelf-count")!.textContent = shelfCount(params);
   const moods = moodFilterCount(params);
   document.querySelector("#mood-count")!.textContent = moods ? `(${moods} set)` : "";
   const results = document.querySelector<HTMLElement>("#browse-results")!;
@@ -2138,7 +2139,7 @@ async function updateBrowse(form: HTMLFormElement): Promise<void> {
     document.querySelector("#browse-count")!.textContent = countText(res);
     watchMore();
     document.querySelector("#browse-tags")!.innerHTML = tagChips(res, new Set(params.getAll("tag")));
-    document.querySelector("#browse-book")!.innerHTML = bookChips(res, new Set(params.getAll("book")));
+    document.querySelector("#browse-shelf")!.innerHTML = bookChips(res, new Set(params.getAll("shelf")));
   } catch (err) {
     if (seq === browseSeq) results.innerHTML = errorHtml(err);
   } finally {
@@ -2809,7 +2810,7 @@ function showSuggestions(items: Suggestion[], q: string): void {
       <li role="option" id="suggestion-${i}" data-index="${i}" aria-selected="false">
         ${s.imageUrl ? `<img src="${esc(thumbUrl(s.imageUrl))}" alt="" width="32" height="48" />` : `<span class="noimg" aria-hidden="true"></span>`}
         <span>
-          ${esc(s.title)}${s.years ? ` <span class="muted">(${esc(s.years)})</span>` : ""}
+          ${esc(s.title)}${s.subtitle ? ` <span class="muted">— ${esc(s.subtitle)}</span>` : ""}${s.years ? ` <span class="muted">(${esc(s.years)})</span>` : ""}
           <span class="badge">${KIND_LABEL[s.kind]}</span>
           ${s.rated === false ? `<span class="unrated muted small">Not rated yet</span>` : ""}
         </span>

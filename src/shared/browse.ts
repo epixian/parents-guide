@@ -23,7 +23,7 @@ import type {
 //   hideService=8,15            services the user does not have (TMDB ids; repeat the key, or comma-separate).
 //                               The client adds it from "My services" for each request; it is not in the page URL.
 //   tag=friendship&tag=family   has every listed theme tag
-//   book=middle-grade&book=young-adult&book=fantasy
+//   shelf=middle-grade&shelf=young-adult&shelf=fantasy
 //                               book categories (see bookCategories.ts): any of the listed ones in
 //                               each group, and every group listed (middle grade or young adult, and fantasy)
 //   tone=4,5&depth=3            mood level is one of these (1-5; repeat the key, or comma-separate)
@@ -46,7 +46,7 @@ export interface BrowseFilters {
   hiddenServices: Set<number>;
   tags: ThemeTag[];
   /** Allowed book categories per group. A title must have one of them in every listed group. */
-  book: Partial<Record<BookCategoryGroup, BookCategory[]>>;
+  shelf: Partial<Record<BookCategoryGroup, BookCategory[]>>;
   /** Allowed levels per mood scale. A title with no mood fails a scale with levels. */
   mood: Partial<Record<MoodScale, number[]>>;
   max: Partial<Record<CategoryId, number>>;
@@ -98,11 +98,11 @@ export function parseBrowseQuery(params: URLSearchParams): BrowseFilters {
   const unknownTag = tags.find((t) => !TAGS.has(t));
   if (unknownTag) throw new BrowseQueryError(`Unknown theme tag: ${unknownTag}`);
 
-  const book: BrowseFilters["book"] = {};
-  for (const id of new Set(params.getAll("book").flatMap((v) => v.split(",")).filter(Boolean))) {
+  const shelf: BrowseFilters["shelf"] = {};
+  for (const id of new Set(params.getAll("shelf").flatMap((v) => v.split(",")).filter(Boolean))) {
     const c = BOOK_CATEGORY_BY_ID.get(id);
     if (!c) throw new BrowseQueryError(`Unknown book category: ${id}`);
-    (book[c.group] ??= []).push(c.id);
+    (shelf[c.group] ??= []).push(c.id);
   }
 
   const mood: BrowseFilters["mood"] = {};
@@ -135,7 +135,7 @@ export function parseBrowseQuery(params: URLSearchParams): BrowseFilters {
     streaming: !!streaming,
     hiddenServices: new Set(hiddenServices),
     tags: tags as ThemeTag[],
-    book,
+    shelf,
     mood,
     max,
     hide,
@@ -171,7 +171,7 @@ function matches(t: IndexEntry, f: BrowseFilters, q: string): boolean {
   if (q && !fold(t.title).includes(q)) return false;
   if (f.streaming && !onMyServices(t.providers, f.hiddenServices)) return false;
   if (f.tags.some((tag) => !t.themeTags.includes(tag))) return false;
-  for (const allowed of Object.values(f.book)) {
+  for (const allowed of Object.values(f.shelf)) {
     if (!allowed.some((id) => t.bookCategories?.includes(id))) return false;
   }
   for (const [id, levels] of Object.entries(f.mood) as [MoodScale, number[]][]) {
@@ -347,7 +347,15 @@ export function suggestTitles(
       if (rank !== null && (!fuzzy || rank === 5)) found.push({ s: toSuggestion(), rank, length: title.text.length });
     };
     for (const t of titles) {
-      add(t, () => ({ id: t.id, kind: t.kind, title: t.title, years: t.years, imageUrl: t.imageUrl, rated: true }));
+      add(t, () => ({
+        id: t.id,
+        kind: t.kind,
+        title: t.title,
+        years: t.years,
+        imageUrl: t.imageUrl,
+        ...(t.subtitle ? { subtitle: t.subtitle } : {}),
+        rated: true,
+      }));
     }
     for (const c of catalog) {
       if (ratedIds.has(c.id)) continue;

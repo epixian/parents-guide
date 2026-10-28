@@ -44,14 +44,14 @@ test("a book's category links open Browse with that category", async ({ page, re
   const id = book!.bookCategories![0]!;
   await page.goto(`/book/${book!.id.slice("ol-".length)}`);
   await ready(page);
-  const links = page.locator("#sec-details dd a[href^='/browse#book=']");
+  const links = page.locator("#sec-details dd a[href^='/browse#shelf=']");
   await expect(links).toHaveCount(book!.bookCategories!.length);
 
   await links.first().click();
-  await expect(page).toHaveURL(new RegExp(`/browse#book=${id}$`));
+  await expect(page).toHaveURL(new RegExp(`/browse#shelf=${id}$`));
   expect(await count(page)).toBe(titles.filter((t) => t.bookCategories?.includes(id)).length);
-  await expect(page.locator(`#browse-book input[value="${id}"]`)).toBeChecked();
-  await expect(page.locator("#book-count")).toHaveText("(1 selected)");
+  await expect(page.locator(`#browse-shelf input[value="${id}"]`)).toBeChecked();
+  await expect(page.locator("#shelf-count")).toHaveText("(1 selected)");
   expect(errors).toEqual([]);
 });
 

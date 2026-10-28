@@ -35,6 +35,8 @@ export interface WorkInfo {
   /** Labeled lists in display order, e.g. Director, Starring, Studio, Author, Publisher. */
   credits: { label: string; entries: CreditEntry[] }[];
   imageUrl: string | null;
+  /** Book subtitle, e.g. "The Graphic Novel" (see bookSubtitle). Books only; null when none. Older files may not have it. */
+  subtitle?: string | null;
   /** The title's page at its catalog source. */
   source: { name: string; url: string } | null;
   /** Average user score at the catalog source. Null when it has too few votes. Older files may not have it. */
@@ -169,6 +171,8 @@ export interface Suggestion {
   title: string;
   years: string | null;
   imageUrl: string | null;
+  /** Book subtitle (see WorkInfo.subtitle). Rated books only. */
+  subtitle?: string;
   /**
    * False for a popular TMDB title with no saved result: opening it starts an AI lookup.
    * Null when the rated list did not load, so it is not known.
@@ -208,6 +212,8 @@ export interface IndexEntry {
   addedAt: string;
   /** 1 for movies and books; number of rated seasons for TV. */
   ratedParts: number;
+  /** Book subtitle (see WorkInfo.subtitle). Left out when there is none. */
+  subtitle?: string;
   themeTags: ThemeTag[];
   /** Library categories (see Report.bookCategories). Books only; left out when there are none. */
   bookCategories?: BookCategory[];

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { MATRIX, pagePath, ready, setUp } from "./helpers.js";
+import { MATRIX, pagePath, ratedTitles, ready, setUp } from "./helpers.js";
 
 // The search box suggestions and the search results page.
 
@@ -28,6 +28,26 @@ test("suggestions show rated titles as the user types, and open one with the key
   await expect(page).toHaveURL(new RegExp(`${pagePath(MATRIX)}/the-matrix-1999$`));
   await expect(page.getByRole("heading", { level: 1, name: /The Matrix/ })).toBeVisible();
   await expect(list).toBeHidden();
+  expect(errors).toEqual([]);
+});
+
+test("a book's subtitle shows in the suggestions and, muted, in the page heading", async ({ page, request }) => {
+  const errors = await setUp(page);
+  const book = (await ratedTitles(request)).find((t) => t.subtitle);
+  test.skip(!book, "No saved book has a subtitle yet");
+  await page.goto("/");
+  await ready(page);
+  const input = page.locator("#search-input");
+  await input.click();
+  await input.pressSequentially(book!.title, { delay: 30 });
+  const option = page.locator("#suggestions").getByRole("option", { name: new RegExp(`— ${book!.subtitle}`) }).first();
+  await expect(option).toBeVisible();
+  await expect(option.locator(".muted").first()).toHaveText(`— ${book!.subtitle}`);
+
+  await option.click();
+  const heading = page.getByRole("heading", { level: 1 });
+  await expect(heading).toContainText(book!.title);
+  await expect(heading.locator(".muted")).toHaveText(`— ${book!.subtitle}`);
   expect(errors).toEqual([]);
 });
 

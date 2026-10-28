@@ -82,6 +82,7 @@ export async function searchOpenLibrary(query: string): Promise<SearchResult[]> 
 
 interface Work {
   title: string;
+  subtitle?: string;
   description?: string | { value: string };
   subjects?: string[];
   subject_people?: string[];
@@ -104,6 +105,7 @@ function publicationDate(work: Work, firstPublishYear: number | undefined): stri
 }
 
 interface Edition {
+  subtitle?: string;
   publish_date?: string;
   publishers?: string[];
   languages?: { key: string }[];
@@ -118,11 +120,35 @@ function earliestPublisher(editions: Edition[]): string | null {
   for (const e of editions) {
     const publisher = e.publishers?.[0]?.trim();
     const year = Number(/\d{4}/.exec(e.publish_date ?? "")?.[0]);
-    const english = !e.languages?.length || e.languages.some((l) => l.key === "/languages/eng");
-    if (!publisher || !year || !english) continue;
+    if (!publisher || !year || !isEnglish(e)) continue;
     if (!best || year < best.year) best = { year, publisher };
   }
   return best?.publisher ?? null;
+}
+
+const isEnglish = (e: Edition) => !e.languages?.length || e.languages.some((l) => l.key === "/languages/eng");
+
+/**
+ * The work's subtitle, or else the subtitle that more than half of the
+ * English (or unlabeled) editions share, such as "The Graphic Novel". Edition
+ * subtitles are noisy ("Book One of the Lunar Chronicles" on 3 of 25 editions,
+ * "Chapters 1-5" on one), so a rare one is left out.
+ */
+export function bookSubtitle(workSubtitle: string | undefined, editions: Edition[]): string | null {
+  const tidy = (s: string | undefined) => {
+    const t = (s ?? "").trim().replace(/\s+/g, " ");
+    return t.length > 1 ? t[0]!.toUpperCase() + t.slice(1) : "";
+  };
+  if (tidy(workSubtitle)) return tidy(workSubtitle);
+  const english = editions.filter(isEnglish);
+  const counts = new Map<string, number>();
+  for (const e of english) {
+    const s = tidy(e.subtitle);
+    if (s) counts.set(s.toLowerCase(), (counts.get(s.toLowerCase()) ?? 0) + 1);
+  }
+  const [best, n] = [...counts.entries()].sort((a, b) => b[1] - a[1])[0] ?? ["", 0];
+  if (n * 2 <= english.length) return null;
+  return tidy(english.map((e) => e.subtitle).find((s) => tidy(s).toLowerCase() === best));
 }
 
 const publisherEntry = (name: string | null) => (name ? { name, url: null } : null);
@@ -139,6 +165,7 @@ export async function getBook(workId: string, now: Date): Promise<WorkDetails> {
   const releaseDate = publicationDate(work, doc?.first_publish_year);
   const description = typeof work.description === "string" ? work.description : work.description?.value;
   const authors = doc?.author_name ?? [];
+  const subtitle = bookSubtitle(work.subtitle, editions.entries ?? []);
 
   const info: WorkInfo = {
     years: releaseDate ? releaseDate.slice(0, 4) : null,
@@ -154,6 +181,7 @@ export async function getBook(workId: string, now: Date): Promise<WorkDetails> {
       ["Publisher", [publisherEntry(earliestPublisher(editions.entries ?? []))]],
     ]),
     imageUrl: doc?.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null,
+    subtitle,
     source: { name: "Open Library", url: `${BASE}/works/${workId}` },
     // Open Library reader ratings (1-5 stars). Books get fewer ratings than movies get votes.
     audience: audienceScore("Open Library", doc?.ratings_average, doc?.ratings_count, 5, 10),
@@ -163,6 +191,7 @@ export async function getBook(workId: string, now: Date): Promise<WorkDetails> {
   const context = [
     `Type: book`,
     `Title: ${work.title}`,
+    subtitle ? `Subtitle: ${subtitle}` : "",
     authors.length ? `Author: ${authors.join(", ")}` : "",
     `First published: ${releaseDate ?? "unknown"}`,
     description ? `Description: ${truncate(description, 2000)}` : "",

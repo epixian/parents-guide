@@ -56,17 +56,17 @@ test("book categories: any in a group, and every group listed", () => {
     entry("bio", { kind: "book", bookCategories: ["young-adult", "nonfiction", "biography-memoir"] }),
     entry("movie"),
   ];
-  assert.deepEqual(ids("book=young-adult&sort=title", books), ["bio", "ya"]);
-  assert.deepEqual(ids("book=middle-grade&book=young-adult&book=fantasy&sort=title", books), ["mg", "ya"]);
-  assert.deepEqual(ids("book=young-adult,graphic-novel", books), ["ya"]);
-  assert.deepEqual(browseTitles(books, parse("book=fantasy")).bookCategories, [
+  assert.deepEqual(ids("shelf=young-adult&sort=title", books), ["bio", "ya"]);
+  assert.deepEqual(ids("shelf=middle-grade&shelf=young-adult&shelf=fantasy&sort=title", books), ["mg", "ya"]);
+  assert.deepEqual(ids("shelf=young-adult,graphic-novel", books), ["ya"]);
+  assert.deepEqual(browseTitles(books, parse("shelf=fantasy")).bookCategories, [
     { id: "middle-grade", count: 1 },
     { id: "young-adult", count: 1 },
     { id: "fiction", count: 2 },
     { id: "graphic-novel", count: 1 },
     { id: "fantasy", count: 2 },
   ]);
-  assert.throws(() => parse("book=cookbook"), /Unknown book category/);
+  assert.throws(() => parse("shelf=cookbook"), /Unknown book category/);
 });
 
 test("streaming on my services: a title passes when any of its services is not hidden", () => {

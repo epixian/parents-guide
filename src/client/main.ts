@@ -12,6 +12,7 @@ import {
 } from "../shared/categories.js";
 import { DEPTH_LABELS, DEPTH_MAX, FEELING_LABELS, FEELING_MAX, MOOD_SCALES, TONE_LABELS, TONE_MAX, hasMood } from "../shared/mood.js";
 import { THEME_TAGS } from "../shared/themes.js";
+import { canScan, scanIsbn } from "./scan.js";
 import { BOOK_CATEGORIES, BOOK_CATEGORY_BY_ID, BOOK_CATEGORY_GROUPS, type BookCategory } from "../shared/bookCategories.js";
 import type {
   AudienceScore,
@@ -2914,6 +2915,17 @@ document.addEventListener("keydown", (e) => {
   e.preventDefault();
   searchInput.focus();
   searchInput.select();
+});
+
+// Barcode scan: search for the ISBN, the same as typing it.
+const scanButton = document.querySelector<HTMLButtonElement>("#scan-button")!;
+scanButton.hidden = !canScan();
+scanButton.addEventListener("click", async () => {
+  closeSuggestions();
+  const isbn = await scanIsbn();
+  if (!isbn) return scanButton.focus();
+  searchInput.value = isbn;
+  navigate(`/search#q=${encodeURIComponent(isbn)}`);
 });
 
 searchForm.addEventListener("submit", (e) => {

@@ -76,7 +76,7 @@
           id="search-input"
           type="search"
           name="q"
-          placeholder="Movie, TV show, or book title"
+          placeholder="Title or ISBN"
           autocomplete="off"
           required
           minlength="2"
@@ -87,6 +87,12 @@
           aria-controls="suggestions"
           aria-keyshortcuts="/ Control+K Meta+K"
         />
+        <!-- Shown by main.ts when the browser can use a camera (see scan.ts). -->
+        <button type="button" id="scan-button" class="scan-button" aria-label="Scan a book barcode" title="Scan a book barcode" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 5v14M6 5v14M10 5v14M13 5v14M15 5v14M19 5v14M21 5v14" />
+          </svg>
+        </button>
         <button type="submit">Search</button>
         <!-- Rated and popular titles that match the text, filled by main.ts as the visitor types. -->
         <ul id="suggestions" class="suggestions" role="listbox" aria-label="Suggestions" hidden></ul>

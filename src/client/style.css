@@ -302,6 +302,59 @@ button,
   color: var(--accent-text);
 }
 
+/* Barcode button in the search box: plain, so the Search button stays the main action. */
+.search .scan-button {
+  padding: 0 8px;
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+  line-height: 0;
+}
+
+.search .scan-button[hidden] {
+  display: none;
+}
+
+.scan-button svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+/* The barcode scanner: the camera video with a guide box for the barcode. */
+.scan-dialog {
+  width: min(480px, calc(100vw - 32px));
+}
+
+.scan-view {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: #000;
+}
+
+.scan-view video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.scan-guide {
+  position: absolute;
+  inset: 30% 12%;
+  border: 2px solid rgb(255 255 255 / 0.85);
+  border-radius: 6px;
+  box-shadow: 0 0 0 100vmax rgb(0 0 0 / 0.35);
+}
+
+.scan-status {
+  min-height: 3em;
+  margin: 12px 0 0;
+}
+
 .prefs-anchor {
   position: relative;
 }

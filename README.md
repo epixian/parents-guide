@@ -4,7 +4,7 @@ AI summaries of parental concerns for movies, TV shows, and books. A user search
 
 ## How it works
 
-1. `GET /api/search?q=` searches TMDB (movies, TV) and Open Library (books).
+1. `GET /api/search?q=` searches TMDB (movies, TV) and Open Library (books). Open Library also finds a book by its ISBN-10 or ISBN-13, with or without hyphens. The barcode button in the search box scans the ISBN barcode on a book with the camera and searches for it (see `src/client/scan.ts`). It uses the browser's `BarcodeDetector` where there is one (Android Chrome), else the `@ericblade/quagga2` reader (JavaScript), which loads from this site on the first scan. The video stays in the browser. A store barcode (UPC) does not give the ISBN, so the scanner asks for the ISBN barcode instead.
 2. `GET /api/report/:id` returns the cached result for one work, or runs one AI lookup (Claude Haiku 5.5, effort `high`) on a cache miss and caches it.
    - Ids: `tmdb-movie-603`, `tmdb-tv-1399-s01` (one TV season), `ol-OL27482W`.
 3. `GET /api/tv/:tmdbId` returns the season list, the cached season results, and the series range (min-max per category). It never calls the AI.

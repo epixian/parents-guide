@@ -19,7 +19,7 @@ import { HttpError } from "./http.js";
 import { recordUsage } from "./usage.js";
 
 /** Bump when the prompt or the category list changes. Stored in each cached result. */
-export const PROMPT_VERSION = 7;
+export const PROMPT_VERSION = 8;
 
 // The API does not enforce numeric ranges or enums inside nested objects; the
 // SDK only checks them after the response arrives, and a failed check wastes
@@ -79,8 +79,9 @@ Treatment rules:
 
 Other rules:
 - Use the catalog metadata provided and your own knowledge of the work.
-- Episode summaries and other metadata are short and leave out many storylines. Use your own knowledge of the work for every category. Do not score a category 0 only because the metadata does not mention it. If you are not sure whether the content is present, say so in the notes.
+- Episode summaries and other metadata are short and leave out many storylines. Use your own knowledge of the work for every category. Do not score a category 0 only because the metadata does not mention it. If you are not sure whether the content is present, use "may" in the notes (e.g. "May include a few mild swear words.").
 - Be factual and neutral. Describe what is in the work; do not moralize or tell parents what to decide.
+- Write the notes and the summary as plain statements about the work. Never write about yourself, your memory, or what you recall or know: no "I", "as I recall", "I am not certain", or "from memory". The confidence rating already tells parents how well you know the work.
 - In each category's notes, give one to three short sentences with specific examples (scenes, words, themes). Mild spoilers are acceptable when needed to describe content. If a score is 0, say briefly that the content is absent or negligible.
 - themes lists three to six major themes of the work in a few words each, such as "grief and loss", "coming of age", "friendship", "redemption", or "power and corruption".
 - theme_tags lists two to five tags from this fixed list that best match the major themes, spelled exactly as shown: ${THEME_TAGS.join(", ")}.
@@ -88,7 +89,7 @@ Other rules:
 - positives lists up to five short positive elements, such as courage, honesty, sacrifice, forgiveness, faith, strong family bonds, or educational value. Use an empty list if there are none.
 - The summary is three to five sentences: the overall content profile and the most important concerns.
 - The summary is shown to parents: state what the work contains. Put any doubt about details in the category notes, never in the summary.
-- Set confidence to "high" if you know the work well, "medium" if you know it partly, and "low" if you rely mostly on the metadata. Never invent specific scenes you do not know about; with low confidence, say in the notes that details are uncertain.
+- Set confidence to "high" if you know the work well, "medium" if you know it partly, and "low" if you rely mostly on the metadata. Never invent specific scenes you do not know about; with low confidence, keep the notes general rather than adding doubts.
 
 ${MOOD_RULES}`;
 

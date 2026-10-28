@@ -1,3 +1,4 @@
+import { BOOK_CATEGORIES, BOOK_CATEGORY_BY_ID, type BookCategory, type BookCategoryGroup } from "./bookCategories.js";
 import { CATEGORIES, SCORE_MAX, SCORE_MIN, TREATMENTS, type CategoryId, type TreatmentId } from "./categories.js";
 import { MOOD_SCALES, type MoodScale } from "./mood.js";
 import { THEME_TAGS, type ThemeTag } from "./themes.js";
@@ -22,6 +23,9 @@ import type {
 //   hideService=8,15            services the user does not have (TMDB ids; repeat the key, or comma-separate).
 //                               The client adds it from "My services" for each request; it is not in the page URL.
 //   tag=friendship&tag=family   has every listed theme tag
+//   book=middle-grade&book=young-adult&book=fantasy
+//                               book categories (see bookCategories.ts): any of the listed ones in
+//                               each group, and every group listed (middle grade or young adult, and fantasy)
 //   tone=4,5&depth=3            mood level is one of these (1-5; repeat the key, or comma-separate)
 //   max.violence=2              score at most 2 (max. and hide. come from the saved concern limits;
 //                               the client adds them for each request, not in the page URL)
@@ -41,6 +45,8 @@ export interface BrowseFilters {
   streaming: boolean;
   hiddenServices: Set<number>;
   tags: ThemeTag[];
+  /** Allowed book categories per group. A title must have one of them in every listed group. */
+  book: Partial<Record<BookCategoryGroup, BookCategory[]>>;
   /** Allowed levels per mood scale. A title with no mood fails a scale with levels. */
   mood: Partial<Record<MoodScale, number[]>>;
   max: Partial<Record<CategoryId, number>>;
@@ -92,6 +98,13 @@ export function parseBrowseQuery(params: URLSearchParams): BrowseFilters {
   const unknownTag = tags.find((t) => !TAGS.has(t));
   if (unknownTag) throw new BrowseQueryError(`Unknown theme tag: ${unknownTag}`);
 
+  const book: BrowseFilters["book"] = {};
+  for (const id of new Set(params.getAll("book").flatMap((v) => v.split(",")).filter(Boolean))) {
+    const c = BOOK_CATEGORY_BY_ID.get(id);
+    if (!c) throw new BrowseQueryError(`Unknown book category: ${id}`);
+    (book[c.group] ??= []).push(c.id);
+  }
+
   const mood: BrowseFilters["mood"] = {};
   for (const { id } of MOOD_SCALES) {
     const levels = [...new Set(params.getAll(id).flatMap((v) => v.split(",")).filter(Boolean).map(Number))];
@@ -122,6 +135,7 @@ export function parseBrowseQuery(params: URLSearchParams): BrowseFilters {
     streaming: !!streaming,
     hiddenServices: new Set(hiddenServices),
     tags: tags as ThemeTag[],
+    book,
     mood,
     max,
     hide,
@@ -157,6 +171,9 @@ function matches(t: IndexEntry, f: BrowseFilters, q: string): boolean {
   if (q && !fold(t.title).includes(q)) return false;
   if (f.streaming && !onMyServices(t.providers, f.hiddenServices)) return false;
   if (f.tags.some((tag) => !t.themeTags.includes(tag))) return false;
+  for (const allowed of Object.values(f.book)) {
+    if (!allowed.some((id) => t.bookCategories?.includes(id))) return false;
+  }
   for (const [id, levels] of Object.entries(f.mood) as [MoodScale, number[]][]) {
     if (!t.mood || !levels.includes(t.mood[id])) return false;
   }
@@ -193,6 +210,8 @@ export function browseTitles(titles: readonly IndexEntry[], f: BrowseFilters): B
   const found = f.sort === "random" ? shuffled(matched, f.seed) : matched.sort(SORTERS[f.sort]);
   const counts = new Map<ThemeTag, number>();
   for (const t of found) for (const tag of t.themeTags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
+  const bookCounts = new Map<BookCategory, number>();
+  for (const t of found) for (const id of t.bookCategories ?? []) bookCounts.set(id, (bookCounts.get(id) ?? 0) + 1);
   return {
     total: found.length,
     offset: f.offset,
@@ -200,6 +219,7 @@ export function browseTitles(titles: readonly IndexEntry[], f: BrowseFilters): B
     tags: [...counts.entries()]
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
       .map(([tag, count]) => ({ tag, count })),
+    bookCategories: BOOK_CATEGORIES.flatMap(({ id }) => (bookCounts.has(id) ? [{ id, count: bookCounts.get(id)! }] : [])),
   };
 }
 

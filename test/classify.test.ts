@@ -5,7 +5,15 @@ import { CATEGORIES } from "../src/shared/categories.js";
 import { hasMood } from "../src/shared/mood.js";
 import type { Mood } from "../src/shared/types.js";
 import type { WorkDetails } from "../src/server/catalog/types.js";
-import { buildMoodRequest, buildRequest, moodFromMessage, normalizeMood, reportFromMessage } from "../src/server/classify.js";
+import {
+  bookCategoriesFromMessage,
+  buildBookCategoriesRequest,
+  buildMoodRequest,
+  buildRequest,
+  moodFromMessage,
+  normalizeMood,
+  reportFromMessage,
+} from "../src/server/classify.js";
 import { estimateCost } from "../src/server/usage.js";
 
 const work: WorkDetails = {
@@ -41,6 +49,7 @@ const output = {
   theme_tags: ["Friendship", "not-a-tag"],
   mood: { tone: 4.4, feeling: 9, depth: 1.6, note: " Warm and gentle. " },
   original_publisher: "",
+  book_categories: [],
 };
 
 test("buildRequest uses a plain JSON schema, so it also works in a batch", () => {
@@ -66,6 +75,25 @@ test("reportFromMessage builds a normalized report", () => {
   assert.deepEqual(report.themeTags, ["friendship"]);
   assert.deepEqual(report.mood, { tone: 4, feeling: 5, depth: 2, note: "Warm and gentle.", version: 2 });
   assert.equal(report.refreshedAt, "2026-10-14T00:00:00.000Z");
+});
+
+test("reportFromMessage keeps book categories for books only", () => {
+  const out = JSON.stringify({ ...output, book_categories: ["Young Adult", "fiction", "fantasy", "middle-grade", "made-up"] });
+  const at = new Date();
+  const book = reportFromMessage("ol-OL1W", "book", work, at, message(out));
+  assert.deepEqual(book.bookCategories, ["young-adult", "fiction", "fantasy"]);
+  const movie = reportFromMessage("tmdb-movie-1", "movie", work, at, message(out));
+  assert.equal("bookCategories" in movie, false);
+});
+
+test("buildBookCategoriesRequest sends the saved summary and the category list; bookCategoriesFromMessage normalizes", () => {
+  const report = reportFromMessage("ol-OL1W", "book", work, new Date(), message(JSON.stringify(output)));
+  const req = buildBookCategoriesRequest(report);
+  assert.equal(req.output_config?.effort, "low");
+  assert.match(String(req.system), /graphic-novel/);
+  assert.match(JSON.stringify(req.messages), /A short test summary/);
+  const answer = message(JSON.stringify({ book_categories: ["Graphic Novel", "nonfiction", "Biography & Memoir"] }));
+  assert.deepEqual(bookCategoriesFromMessage(answer), ["nonfiction", "graphic-novel", "biography-memoir"]);
 });
 
 test("reportFromMessage rejects refusals, cut-off output, and bad JSON", () => {

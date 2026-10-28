@@ -23,6 +23,8 @@
     "batch:dev": "tsx src/server/batch.ts",
     "backfill:mood": "node dist/server/backfillMood.js",
     "backfill:mood:dev": "tsx src/server/backfillMood.ts",
+    "backfill:book-categories": "node dist/server/backfillBookCategories.js",
+    "backfill:book-categories:dev": "tsx src/server/backfillBookCategories.ts",
     "backfill:genres": "node dist/server/backfillGenres.js",
     "backfill:genres:dev": "tsx src/server/backfillGenres.ts",
     "backup:sync": "node dist/server/backupSync.js",

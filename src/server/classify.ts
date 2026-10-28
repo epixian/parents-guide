@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
+import { BOOK_CATEGORY_RULES, normalizeBookCategories, type BookCategory } from "../shared/bookCategories.js";
 import {
   CATEGORIES,
   SCORE_LABELS,
@@ -19,7 +20,7 @@ import { HttpError } from "./http.js";
 import { recordUsage } from "./usage.js";
 
 /** Bump when the prompt or the category list changes. Stored in each cached result. */
-export const PROMPT_VERSION = 8;
+export const PROMPT_VERSION = 9;
 
 // The API does not enforce numeric ranges or enums inside nested objects; the
 // SDK only checks them after the response arrives, and a failed check wastes
@@ -51,6 +52,7 @@ const outputSchema = z.object({
   theme_tags: z.array(z.string()).describe(`Two to five of: ${THEME_TAGS.join(", ")}`),
   mood: moodSchema,
   original_publisher: z.string(),
+  book_categories: z.array(z.string()),
 });
 
 const SYSTEM_PROMPT = `You help parents decide whether a movie, TV season, or book is right for their child.
@@ -86,6 +88,7 @@ Other rules:
 - themes lists three to six major themes of the work in a few words each, such as "grief and loss", "coming of age", "friendship", "redemption", or "power and corruption".
 - theme_tags lists two to five tags from this fixed list that best match the major themes, spelled exactly as shown: ${THEME_TAGS.join(", ")}.
 - original_publisher: for a book, the publisher of the first edition (e.g. "George Allen & Unwin" for The Hobbit), or an empty string if you are not sure. For movies and TV, always an empty string.
+- ${BOOK_CATEGORY_RULES}
 - positives lists up to five short positive elements, such as courage, honesty, sacrifice, forgiveness, faith, strong family bonds, or educational value. Use an empty list if there are none.
 - The summary is three to five sentences: the overall content profile and the most important concerns.
 - The summary is shown to parents: state what the work contains. Put any doubt about details in the category notes, never in the summary.
@@ -189,6 +192,7 @@ function toReport(id: string, kind: Report["kind"], work: WorkDetails, now: Date
     positives: out.positives.slice(0, 5),
     themes: out.themes.slice(0, 6),
     themeTags: normalizeThemeTags(out.theme_tags).slice(0, 5),
+    ...(kind === "book" ? { bookCategories: normalizeBookCategories(out.book_categories) } : {}),
     mood: normalizeMood(out.mood),
     info: withPublisher(work.info, kind === "book" ? out.original_publisher.trim() : ""),
   };
@@ -281,4 +285,45 @@ export function moodFromMessage(message: Anthropic.Message): Mood {
 /** Rate the mood of a saved result now (live price). */
 export async function rateMood(report: Report): Promise<Mood> {
   return moodFromMessage(await send(report.id, buildMoodRequest(report)));
+}
+
+// ---------- Book categories only ----------
+// A light prompt that adds library categories to a book saved before they
+// existed. Like the mood prompt, it sends the saved summary, not the catalog
+// data. Only the backfill script uses it.
+
+const bookCategoriesSchema = z.object({ book_categories: z.array(z.string()) });
+
+const BOOK_CATEGORIES_SYSTEM_PROMPT = `You help parents find books for their children.
+Give the library categories of the book. Use the saved description below and your own knowledge of the book.
+
+${BOOK_CATEGORY_RULES}`;
+
+function bookCategoriesUserMessage(r: Report): string {
+  const lines = [
+    `Title: ${r.title}${r.subtitle ? ` (${r.subtitle})` : ""}`,
+    r.info?.years ? `First published: ${r.info.years}` : "",
+    `Summary of content: ${r.summary}`,
+    r.themes?.length ? `Themes: ${r.themes.join("; ")}` : "",
+  ];
+  return `Give the library categories of this book.\n\n${lines.filter(Boolean).join("\n")}`;
+}
+
+/** Request parameters for the categories of a saved book. The backfill script sends it in a batch. */
+export function buildBookCategoriesRequest(report: Report): Anthropic.MessageCreateParamsNonStreaming {
+  return {
+    model: config.model,
+    // Thinking counts toward max_tokens: room for it plus the short answer.
+    max_tokens: 4000,
+    system: BOOK_CATEGORIES_SYSTEM_PROMPT,
+    messages: [{ role: "user", content: bookCategoriesUserMessage(report) }],
+    output_config: {
+      effort: "low",
+      format: { type: "json_schema", schema: zodOutputFormat(bookCategoriesSchema).schema },
+    },
+  };
+}
+
+export function bookCategoriesFromMessage(message: Anthropic.Message): BookCategory[] {
+  return normalizeBookCategories(parseOutput(message, bookCategoriesSchema).book_categories);
 }

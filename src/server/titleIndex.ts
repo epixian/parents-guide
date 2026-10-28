@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import type { BookCategory } from "../shared/bookCategories.js";
 import { CATEGORIES, type CategoryId, type TreatmentId } from "../shared/categories.js";
 import { hasMood } from "../shared/mood.js";
 import type { ThemeTag } from "../shared/themes.js";
@@ -17,6 +18,7 @@ interface ResultEntry {
   /** When the title was first rated. Older files have no addedAt. */
   addedAt: string;
   themeTags: ThemeTag[];
+  bookCategories: BookCategory[];
   scores: Partial<Record<CategoryId, number>>;
   treatments: Partial<Record<CategoryId, TreatmentId>>;
   /** Catalog user score as a percent, or null. */
@@ -43,6 +45,7 @@ function toEntry(r: Report): ResultEntry {
     imageUrl: r.info?.imageUrl ?? null,
     addedAt: r.addedAt ?? r.refreshedAt,
     themeTags: r.themeTags ?? [],
+    bookCategories: r.bookCategories ?? [],
     scores,
     treatments,
     mood: hasMood(r) ? { tone: r.mood.tone, feeling: r.mood.feeling, depth: r.mood.depth } : null,
@@ -85,6 +88,8 @@ function mergeTitle(results: ResultEntry[]): IndexEntry {
     themeTags: [...tagCounts.entries()].sort((a, b) => b[1] - a[1]).map(([tag]) => tag),
     scores,
     treatments,
+    // Books have one result, so no merge is needed.
+    ...(newest.bookCategories.length ? { bookCategories: newest.bookCategories } : {}),
     ...(userScore != null ? { userScore } : {}),
     ...(mood ? { mood } : {}),
     ...(genres.size ? { genres: [...genres] } : {}),

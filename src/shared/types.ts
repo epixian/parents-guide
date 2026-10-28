@@ -1,3 +1,4 @@
+import type { BookCategory } from "./bookCategories.js";
 import type { CategoryId, TreatmentId } from "./categories.js";
 import type { ThemeTag } from "./themes.js";
 
@@ -100,6 +101,8 @@ export interface Report {
   themes?: string[];
   /** Theme tags from the fixed list, for filtering. Older files may not have them. */
   themeTags?: ThemeTag[];
+  /** Library categories from the fixed list (age level, type, format, genre). Books only. Older files may not have them; the backfill script adds them. */
+  bookCategories?: BookCategory[];
   /** Tone, feeling, and depth. Older files may not have it; GET /api/mood/:id or the backfill script adds it. */
   mood?: Mood;
   /** Catalog facts. Older cached files may not have it; the server adds it on the next read. */
@@ -206,6 +209,8 @@ export interface IndexEntry {
   /** 1 for movies and books; number of rated seasons for TV. */
   ratedParts: number;
   themeTags: ThemeTag[];
+  /** Library categories (see Report.bookCategories). Books only; left out when there are none. */
+  bookCategories?: BookCategory[];
   /** Highest score per category (across seasons for TV). */
   scores: Partial<Record<CategoryId, number>>;
   /** Every treatment seen per category (across seasons for TV). */
@@ -230,6 +235,8 @@ export interface BrowseResponse {
   items: IndexEntry[];
   /** Theme tags across all matches, most common first. */
   tags: { tag: ThemeTag; count: number }[];
+  /** Book categories across all matches, in list order. */
+  bookCategories: { id: BookCategory; count: number }[];
 }
 
 /** How a title streams on a service: in a subscription (or free), or free with ads. Rent and buy are never shown. */

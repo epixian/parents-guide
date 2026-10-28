@@ -12,6 +12,7 @@ import {
 } from "../shared/categories.js";
 import { DEPTH_LABELS, DEPTH_MAX, FEELING_LABELS, FEELING_MAX, MOOD_SCALES, TONE_LABELS, TONE_MAX, hasMood } from "../shared/mood.js";
 import { THEME_TAGS } from "../shared/themes.js";
+import { BOOK_CATEGORIES, BOOK_CATEGORY_BY_ID, BOOK_CATEGORY_GROUPS, type BookCategory } from "../shared/bookCategories.js";
 import type {
   AudienceScore,
   BrowseResponse,
@@ -1093,11 +1094,18 @@ function jumpLinks(sections: [id: string, label: string][]): string {
     .join("")}</nav>`;
 }
 
-/** Details box: credits, themes, and the catalog link. */
-function detailsBox(info: WorkInfo | undefined, themes: string[] = []): string {
+/** Book categories as links to Browse with that category. */
+const bookCategoryLinks = (ids: BookCategory[]) =>
+  ids
+    .map((id) => `<a href="/browse#${new URLSearchParams({ book: id })}">${esc(BOOK_CATEGORY_BY_ID.get(id)?.label ?? id)}</a>`)
+    .join(" · ");
+
+/** Details box: credits, book categories, themes, and the catalog link. */
+function detailsBox(info: WorkInfo | undefined, themes: string[] = [], bookCategories: BookCategory[] = []): string {
   // Values are HTML: credits may contain links.
   const rows: [label: string, html: string][] = [
     ...(info?.credits ?? []).map((c): [string, string] => [c.label, (c.entries ?? []).map(creditHtml).join(", ")]),
+    ...(bookCategories.length ? [["Categories", bookCategoryLinks(bookCategories)] as [string, string]] : []),
     ...(themes.length ? [["Themes", esc(themes.join(" · "))] as [string, string]] : []),
   ];
   return `
@@ -1393,7 +1401,7 @@ async function showReport(id: string): Promise<string> {
     ${ratingsSection(r)}
     ${summarySection(r, mood)}
     ${similarSection()}
-    ${detailsBox(r.info, r.themes)}`;
+    ${detailsBox(r.info, r.themes, r.bookCategories)}`;
 }
 
 /** Themes across the rated seasons, most frequent first. */
@@ -1968,6 +1976,31 @@ function tagChips(res: BrowseResponse, selected: Set<string>): string {
     .join("");
 }
 
+/** "(2 selected)" for the Book categories heading; empty when none. */
+const bookCount = (params: URLSearchParams) => tagCount(params.getAll("book").length);
+
+/** Book category chips by group: categories in the current results and selected ones, in list order. */
+function bookChips(res: BrowseResponse, selected: Set<string>): string {
+  const counts = new Map(res.bookCategories.map((c) => [c.id as string, c.count]));
+  const shown = BOOK_CATEGORIES.filter((c) => counts.has(c.id) || selected.has(c.id));
+  if (!shown.length) return `<span class="muted small">No book categories in these results.</span>`;
+  return BOOK_CATEGORY_GROUPS.flatMap((g) => {
+    const chips = shown.filter((c) => c.group === g.id);
+    if (!chips.length) return [];
+    return [
+      `<div class="mood-filter">
+        <span class="mood-filter-label">${esc(g.label)}</span>
+        <span class="tag-chips">${chips
+          .map(
+            (c) =>
+              `<label class="chip-check" title="${esc(c.description)}"><input type="checkbox" name="book" value="${c.id}"${selected.has(c.id) ? " checked" : ""} />${esc(c.label)} <span class="count">${counts.get(c.id) ?? 0}</span></label>`,
+          )
+          .join("")}</span>
+      </div>`,
+    ];
+  }).join("");
+}
+
 /** "24 titles" above the list; empty when nothing matches (the list says so). */
 const countText = (res: BrowseResponse) => (res.total ? `${res.total} title${res.total === 1 ? "" : "s"}` : "");
 
@@ -2027,6 +2060,7 @@ async function showBrowse(query: string): Promise<string> {
   const kinds = new Set(params.getAll("kind").flatMap((v) => v.split(",")));
   const sort = params.get("sort") ?? "added";
   const selectedTags = new Set(params.getAll("tag").filter((t) => (THEME_TAGS as readonly string[]).includes(t)));
+  const selectedBook = new Set(params.getAll("book").filter((id) => BOOK_CATEGORY_BY_ID.has(id)));
   const moods = moodFilterCount(params);
   pageTitle = "Browse";
 
@@ -2051,6 +2085,10 @@ async function showBrowse(query: string): Promise<string> {
       <details class="topic-filters"${selectedTags.size ? " open" : ""}>
         <summary>Theme tags <span class="count" id="tag-count">${tagCount(selectedTags.size)}</span></summary>
         <div class="tag-chips" id="browse-tags" aria-label="Theme tags">${tagChips(res, selectedTags)}</div>
+      </details>
+      <details class="topic-filters"${selectedBook.size ? " open" : ""}>
+        <summary>Book categories <span class="count" id="book-count">${bookCount(params)}</span></summary>
+        <div id="browse-book" aria-label="Book categories">${bookChips(res, selectedBook)}</div>
       </details>
       <details class="topic-filters"${moods ? " open" : ""}>
         <summary>Mood <span class="count" id="mood-count">${moods ? `(${moods} set)` : ""}</span></summary>
@@ -2086,6 +2124,7 @@ async function updateBrowse(form: HTMLFormElement): Promise<void> {
   const params = browseParams(form);
   history.replaceState({ scrollY: 0, depth } satisfies PageState, "", `/browse${params.size ? `#${params}` : ""}`);
   document.querySelector("#tag-count")!.textContent = tagCount(params.getAll("tag").length);
+  document.querySelector("#book-count")!.textContent = bookCount(params);
   const moods = moodFilterCount(params);
   document.querySelector("#mood-count")!.textContent = moods ? `(${moods} set)` : "";
   const results = document.querySelector<HTMLElement>("#browse-results")!;
@@ -2099,6 +2138,7 @@ async function updateBrowse(form: HTMLFormElement): Promise<void> {
     document.querySelector("#browse-count")!.textContent = countText(res);
     watchMore();
     document.querySelector("#browse-tags")!.innerHTML = tagChips(res, new Set(params.getAll("tag")));
+    document.querySelector("#browse-book")!.innerHTML = bookChips(res, new Set(params.getAll("book")));
   } catch (err) {
     if (seq === browseSeq) results.innerHTML = errorHtml(err);
   } finally {

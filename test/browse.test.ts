@@ -49,6 +49,26 @@ test("filters by kind, title text without accents, and every tag", () => {
   assert.deepEqual(ids("tag=war&tag=friendship", TITLES), ["c"]);
 });
 
+test("book categories: any in a group, and every group listed", () => {
+  const books = [
+    entry("mg", { kind: "book", bookCategories: ["middle-grade", "fiction", "fantasy"] }),
+    entry("ya", { kind: "book", bookCategories: ["young-adult", "fiction", "graphic-novel", "fantasy"] }),
+    entry("bio", { kind: "book", bookCategories: ["young-adult", "nonfiction", "biography-memoir"] }),
+    entry("movie"),
+  ];
+  assert.deepEqual(ids("book=young-adult&sort=title", books), ["bio", "ya"]);
+  assert.deepEqual(ids("book=middle-grade&book=young-adult&book=fantasy&sort=title", books), ["mg", "ya"]);
+  assert.deepEqual(ids("book=young-adult,graphic-novel", books), ["ya"]);
+  assert.deepEqual(browseTitles(books, parse("book=fantasy")).bookCategories, [
+    { id: "middle-grade", count: 1 },
+    { id: "young-adult", count: 1 },
+    { id: "fiction", count: 2 },
+    { id: "graphic-novel", count: 1 },
+    { id: "fantasy", count: 2 },
+  ]);
+  assert.throws(() => parse("book=cookbook"), /Unknown book category/);
+});
+
 test("streaming on my services: a title passes when any of its services is not hidden", () => {
   const titles = [
     entry("a", { providers: [8, 15] }),

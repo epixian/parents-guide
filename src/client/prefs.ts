@@ -204,24 +204,38 @@ const NOT_INTERESTED_KEY = "notInterested";
 export const loadNotInterested = () => loadRecord(NOT_INTERESTED_KEY, (v): v is string => typeof v === "string");
 export const saveNotInterested = (ids: Record<string, string>) => saveRecord(NOT_INTERESTED_KEY, ids);
 
-// Set after this browser connected to Google Drive for the backup, cleared
-// after "Delete backup" removes the access. Only this flag: the page cannot
-// ask Google about the access without loading Google's script first.
-const DRIVE_KEY = "driveBackup";
+// "<service id>Backup" (for Google Drive: "driveBackup"; for the file on
+// this device: "localBackup"): set after this browser used the backup there,
+// cleared after "Delete backup" removes the access. The value is the ISO time
+// of the last backup this browser made or restored there, or "1" if it only
+// connected. Only this flag: the page cannot ask the service about the access
+// or the file without loading the service's script and signing in first.
+const backupKey = (service: string) => `${service}Backup`;
 
-export function driveUsed(): boolean {
+function backupValue(service: string): string | null {
   try {
-    return localStorage.getItem(DRIVE_KEY) === "1";
+    return localStorage.getItem(backupKey(service));
   } catch {
-    return false;
+    return null;
   }
 }
 
-export function setDriveUsed(used: boolean): void {
+export const backupUsed = (service: string): boolean => backupValue(service) !== null;
+
+/** The time of the last backup this browser made or restored there, or null if not known. */
+export function backupDate(service: string): Date | null {
+  const value = backupValue(service);
+  const date = value && value !== "1" ? new Date(value) : null;
+  return date && !isNaN(date.getTime()) ? date : null;
+}
+
+/** when: the backup's time. Without it, a known time stays. */
+export function setBackupUsed(service: string, used: boolean, when?: Date): void {
   try {
-    if (used) localStorage.setItem(DRIVE_KEY, "1");
-    else localStorage.removeItem(DRIVE_KEY);
+    if (!used) localStorage.removeItem(backupKey(service));
+    else if (when) localStorage.setItem(backupKey(service), when.toISOString());
+    else if (!backupUsed(service)) localStorage.setItem(backupKey(service), "1");
   } catch {
-    // Storage blocked: Delete backup shows only until the page reloads.
+    // Storage blocked: Delete backup and the date show only until the page reloads.
   }
 }

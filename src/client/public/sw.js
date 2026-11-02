@@ -62,6 +62,12 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
+  // The Dropbox sign-in comes back with a one-time code in the query. Ask for
+  // the page without it, so the code does not reach the web server's log.
+  if (req.mode === "navigate" && url.pathname === "/dropbox-auth.html" && url.search) {
+    event.respondWith(fetch("/dropbox-auth.html"));
+    return;
+  }
   // Only app pages: other pages (privacy.html) must not replace the saved copy of "/".
   if (req.mode === "navigate" && APP_PAGE.test(url.pathname)) event.respondWith(page(event, url.pathname));
   else if (APP_FILE.test(url.pathname)) event.respondWith(cacheFirst(req));

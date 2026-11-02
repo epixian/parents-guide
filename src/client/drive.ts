@@ -3,10 +3,12 @@
 // not to the user's other files. Google's sign-in script loads on the first
 // click, so visitors who do not use the backup get no request to Google.
 
+import type { CloudBackup } from "./backup.js";
+
 declare const __GOOGLE_CLIENT_ID__: string;
 
 /** Empty when the build has no GOOGLE_CLIENT_ID; then the backup is not offered. */
-export const driveClientId = __GOOGLE_CLIENT_ID__;
+const driveClientId = __GOOGLE_CLIENT_ID__;
 
 const SCOPE = "https://www.googleapis.com/auth/drive.appdata";
 const FILE_NAME = "parents-guide-backup.json";
@@ -104,7 +106,7 @@ async function findFile(): Promise<{ id: string; modifiedTime: string } | null> 
 }
 
 /** Write the text to the backup file, or create the file. */
-export async function saveToDrive(text: string): Promise<void> {
+async function saveToDrive(text: string): Promise<void> {
   const file = await findFile();
   if (file) {
     await drive(`${UPLOAD}/${file.id}?uploadType=media`, {
@@ -124,7 +126,7 @@ export async function saveToDrive(text: string): Promise<void> {
  * Delete every backup file, then remove the site's access to the user's Drive,
  * so the next backup asks for permission again. Returns the number of files deleted.
  */
-export async function deleteFromDrive(): Promise<number> {
+async function deleteFromDrive(): Promise<number> {
   const files = await findFiles();
   for (const file of files) await drive(`${FILES}/${file.id}`, { method: "DELETE" });
   if (token) {
@@ -136,8 +138,21 @@ export async function deleteFromDrive(): Promise<number> {
 }
 
 /** The backup file's text, or null if there is no backup. */
-export async function loadFromDrive(): Promise<string | null> {
+async function loadFromDrive(): Promise<string | null> {
   const file = await findFile();
   if (!file) return null;
   return (await drive(`${FILES}/${file.id}?alt=media`)).text();
 }
+
+/** Null when the build has no GOOGLE_CLIENT_ID. The id "drive" keeps the "driveBackup" flag. */
+export const googleDrive: CloudBackup | null = driveClientId
+  ? {
+      id: "drive",
+      name: "Google Drive",
+      about: "Save to a hidden app folder in your Google Drive. The app cannot see your other files.",
+      icon: `<svg viewBox="0 0 87.3 78" aria-hidden="true"><path fill="#0066da" d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z"/><path fill="#00ac47" d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0-1.2 4.5h27.5z"/><path fill="#ea4335" d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z"/><path fill="#00832d" d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z"/><path fill="#2684fc" d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z"/><path fill="#ffba00" d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z"/></svg>`,
+      save: saveToDrive,
+      load: loadFromDrive,
+      remove: deleteFromDrive,
+    }
+  : null;

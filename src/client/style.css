@@ -469,6 +469,79 @@ button,
   display: none;
 }
 
+/* Where to back up: one tab per place, with its logo. The selected tab has the accent border. */
+.backup-picker {
+  display: grid;
+  /* Equal tabs; three fit on a phone, and a long date wraps inside its tab. */
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  max-width: calc(4 * 136px + 3 * 8px);
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.backup-tab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 8px 8px;
+  text-align: center;
+  white-space: normal;
+  font-size: 0.8rem;
+}
+
+.backup-tab svg {
+  width: 28px;
+  height: 28px;
+}
+
+.backup-date {
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+/* The date on its own line, in one piece: "Backed up" / "Dec 30, 2025". */
+.backup-date span {
+  display: block;
+  white-space: nowrap;
+}
+
+.backup-tab[aria-selected="true"] {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+/* Connected: this browser used the service's backup (see backupUsed). */
+.backup-check {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.backup-panel[hidden] {
+  display: none;
+}
+
 /* A dialog that asks before a change that cannot be undone. */
 .modal {
   max-width: min(420px, calc(100vw - 32px));

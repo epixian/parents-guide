@@ -58,3 +58,30 @@ export function restoreBackup(storage: Store, backup: Backup): void {
     else storage.setItem(key, value);
   }
 }
+
+/**
+ * A cloud service that keeps one backup file for the user. Each service runs
+ * in the browser only, with access to its own app folder only. To add a
+ * service, implement this and add it to backupServices.ts.
+ */
+export interface CloudBackup {
+  /** Short id for the buttons and the "<id>Backup" flag in prefs.ts. */
+  id: string;
+  /** The name in the buttons and messages, e.g. "Google Drive". */
+  name: string;
+  /** One sentence under the buttons: where the file goes and what the site can see. */
+  about: string;
+  /** The service's logo, as inline SVG, for the backup picker. */
+  icon: string;
+  /** Write the text to the backup file, or create the file. */
+  save(text: string): Promise<void>;
+  /** The backup file's text, or null if there is no backup. */
+  load(): Promise<string | null>;
+  /** Delete the backup file, and remove the site's access. Returns the number of files deleted. */
+  remove(): Promise<number>;
+  /**
+   * For a service whose sign-in leaves the page: finish the sign-in after the
+   * page comes back. True if it did; then main.ts runs the action again.
+   */
+  resume?(): Promise<boolean>;
+}

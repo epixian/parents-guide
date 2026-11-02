@@ -89,8 +89,9 @@
           <li>There are no accounts, cookies, ads, or tracking scripts.</li>
           <li>Your choices, watchlist, and thumbs stay in your browser.</li>
           <li>
-            If you back up your preferences to Google Drive, your browser talks to Google directly. Neither the web
-            server nor the application backend sees your data.
+            You can save a backup file of your choices on your device. If you back up to Google Drive or Dropbox,
+            your browser talks to that service directly. Neither the web server nor the application backend sees
+            your data.
           </li>
         </ul>
       </div>
@@ -146,6 +147,29 @@
         <a href="https://archive.org/about/terms.php" target="_blank" rel="noopener">Internet Archive (Open Library)</a>.
       </p>
 
+      <h3>Backup file on your device (optional)</h3>
+      <p>
+        On the Preferences page, "Save to this device" downloads a backup file,
+        <code>parents-guide-backup-</code> with the date in the name. It holds the same choices that are in your browser: topics,
+        limits, streaming services, watchlist, thumbs, "Not interested" titles, and search filter. Your browser makes the
+        file; nothing is sent to the web server or the application backend.
+      </p>
+      <ul>
+        <li>
+          If your browser can share files (most phones can), "Share backup…" opens your device's share sheet. You choose where the file goes, for example Files,
+          email, or a cloud app such as Proton Drive or iCloud Drive. The app you choose handles the file under its own
+          terms.
+        </li>
+        <li>
+          "Restore from a file" reads a backup file that you pick. Your browser reads the file; it is not uploaded.
+        </li>
+        <li>
+          After a save or share that your browser confirms, it remembers the date, to show it on the Preferences page.
+          It does not remember the file's name or location.
+        </li>
+        <li>The file is not encrypted. Keep it where only you can open it, and delete it when you no longer need it.</li>
+      </ul>
+
       <h3>Google Drive backup (optional)</h3>
       <p>
         On the Preferences page, you can back up your choices to Google Drive and restore them on another device. This
@@ -169,8 +193,9 @@
         </li>
         <li>The access token is kept in your browser's memory only, and expires after about one hour.</li>
         <li>
-          Your browser remembers only that it used the backup, so it can show the "Delete backup" button. It does not
-          store your Google account, name, or email address.
+          Your browser remembers only that it used the backup, and the date of the last backup it made or restored
+          there, so it can show the "Delete backup" button and the date. It does not store your Google account, name, or
+          email address.
         </li>
       </ul>
       <p>
@@ -184,6 +209,44 @@
         <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener">Google API Services User Data Policy</a>,
         including the Limited Use requirements. We use the data only to back up and restore your choices for you. We do
         not sell it, share it, use it for ads, or use it to train AI models.
+      </p>
+
+      <h3>Dropbox backup (optional)</h3>
+      <p>
+        On the Preferences page, you can also back up your choices to Dropbox and restore them on another device. This is
+        how it works:
+      </p>
+      <ul>
+        <li>Nothing connects to Dropbox until you click "Back up to Dropbox" or "Restore from Dropbox".</li>
+        <li>
+          When you click, this tab opens Dropbox's sign-in and asks for access to one app folder only: Apps -&gt;
+          Parents' Guide. The site cannot see, read, or change any of your other files.
+        </li>
+        <li>
+          After you sign in, Dropbox sends this tab back to the site with a one-time code. Your browser exchanges the
+          code with Dropbox for an access token. The code is useless without a secret that only your browser tab has,
+          and it is normally not sent to the web server.
+        </li>
+        <li>
+          The site saves one file, <code>parents-guide-backup.json</code>, in that folder. It holds the same choices as
+          the Google Drive backup.
+        </li>
+        <li>
+          Your browser sends the file directly to Dropbox. Neither the web server nor the application backend receives
+          the file, your Dropbox access token, your name, or your email address.
+        </li>
+        <li>The access token is kept in your browser's memory only, and expires after about four hours.</li>
+        <li>
+          Your browser remembers only that it used the backup, and the date of the last backup it made or restored
+          there, so it can show the "Delete backup" button and the date. It does not store your Dropbox account, name, or
+          email address.
+        </li>
+      </ul>
+      <p>
+        <strong>To delete the backup:</strong> on the Preferences page, click "Delete backup" under Dropbox. This deletes
+        the file and ends the site's access token. To remove the site from your account, go to
+        <a href="https://www.dropbox.com/account/connected_apps" target="_blank" rel="noopener">Dropbox settings, Connected apps</a>.
+        You can also delete the Apps -&gt; Parents' Guide folder in Dropbox.
       </p>
 
       <h3>How the ratings are made</h3>
@@ -216,7 +279,7 @@
         </li>
         <li>
           <strong>No warranty.</strong> The site is provided "as is", without any warranty. We are not responsible for
-          decisions made from its content, or for loss of data in your browser or your Google Drive backup.
+          decisions made from its content, or for loss of data in your browser, your backup file, or your cloud backup.
         </li>
         <li>
           <strong>Free to use.</strong> The site is free. We can change or stop it, or any part of it, at any time.
@@ -235,8 +298,8 @@
           trademarks belong to their owners.
         </li>
         <li>
-          <strong>Google Drive.</strong> If you use the backup, Google's own terms apply to your Google account and
-          Drive.
+          <strong>Google Drive and Dropbox.</strong> If you use a cloud backup, that service's own terms apply to
+          your account with it.
         </li>
       </ul>
 
@@ -248,6 +311,10 @@
 
       <h2 id="changelog">Changelog</h2>
       <ul>
+        <li>
+          <strong>November 2, 2026:</strong> Added the backup file on your device, and the Dropbox backup. Your
+          browser remembers the date of your last backup.
+        </li>
         <li><strong>October 27, 2026:</strong> Added how to remove access in your Google Account settings.</li>
         <li><strong>October 26, 2026:</strong> Initial version.</li>
       </ul>

@@ -38,13 +38,15 @@ import { type Fit, fitFor, markSignals, MIN_MARKED, type TasteModel } from "../s
 import { onMyServices, parseBrowseQuery, withinLimits } from "../shared/browse.js";
 import { tasteModelFor } from "./tasteClient.js";
 import { deleteTitles } from "./titleStore.js";
-import { makeBackup, parseBackup, restoreBackup } from "./backup.js";
-import { deleteFromDrive, driveClientId, loadFromDrive, saveToDrive } from "./drive.js";
+import { type CloudBackup, makeBackup, parseBackup, restoreBackup } from "./backup.js";
+import { canShareBackup, saveBackupFile, shareBackup } from "./backupFile.js";
+import { cloudBackups } from "./backupServices.js";
 import { idPath, pathId, titlePath } from "../shared/paths.js";
 import { browse, prefetchTitles, preloadSearch, suggest, titleList, titlesById, titlesReady } from "./titles.js";
 import {
-  driveUsed,
-  setDriveUsed,
+  backupDate,
+  backupUsed,
+  setBackupUsed,
   loadHidden,
   loadLimits,
   loadHiddenProviders,
@@ -130,7 +132,10 @@ function showPreferences(): string {
   searchInput.value = "";
   pageTitle = "Preferences";
   dismissTip();
-  afterRender = loadServices;
+  afterRender = () => {
+    loadServices();
+    void resumeCloud();
+  };
   return `
     <h1>Preferences</h1>
     <section class="prefs-section">
@@ -144,45 +149,103 @@ function showPreferences(): string {
     </section>${dataHtml()}`;
 }
 
-/** "Your data": the Google Drive backup (when the build has a client ID), and Delete all data. */
+/** The device icon for "This device" in the backup picker. */
+const DEVICE_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M12 7v7m-3-3 3 3 3-3M10 18h4"/></svg>`;
+
+/** The tab the backup picker shows: "local" or a cloud service id. */
+let backupTab = "local";
+
+/**
+ * The backup picker's tabs: this device first, then the services this browser
+ * is connected to, then the others, each group in alphabetical order.
+ */
+function backupTabsHtml(): string {
+  const order = [...cloudBackups].sort(
+    (a, b) => Number(backupUsed(b.id)) - Number(backupUsed(a.id)) || a.name.localeCompare(b.name),
+  );
+  const tab = (id: string, name: string, icon: string, connected: boolean) => {
+    const selected = id === backupTab;
+    const date = backupDate(id);
+    return `<button type="button" role="tab" class="backup-tab" id="backup-tab-${id}" data-backup-tab="${id}" aria-controls="backup-panel-${id}" aria-selected="${selected}" tabindex="${selected ? 0 : -1}">${icon}<span class="backup-name">${esc(name)}</span>${
+      date ? `<span class="backup-date" title="${esc(date.toLocaleString())}">Backed up <span>${esc(shortDate(date))}</span></span>` : ""
+    }${connected ? `<span class="backup-check" title="Connected"><span aria-hidden="true">✓</span><span class="visually-hidden"> (connected)</span></span>` : ""}</button>`;
+  };
+  return [tab("local", "This device", DEVICE_ICON, false), ...order.map((s) => tab(s.id, s.name, s.icon, backupUsed(s.id)))].join("");
+}
+
+/** "Nov 2", with the year if it is not this year: "Nov 2, 2025". */
+function shortDate(date: Date): string {
+  const year = date.getFullYear() === new Date().getFullYear() ? undefined : "numeric";
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year });
+}
+
+/** Show the tab's panel. Draws the tabs again, so a change in the connected services moves them too. */
+function selectBackupTab(id: string, focus = false): void {
+  backupTab = id;
+  const picker = document.querySelector<HTMLElement>("#your-data .backup-picker");
+  if (!picker) return;
+  picker.innerHTML = backupTabsHtml();
+  for (const panel of document.querySelectorAll<HTMLElement>("#your-data .backup-panel")) panel.hidden = panel.id !== `backup-panel-${id}`;
+  if (focus) picker.querySelector<HTMLButtonElement>(`[data-backup-tab="${id}"]`)!.focus();
+}
+
+/** "Your data": the backup picker (this device, and each cloud service whose build has a client ID), and Delete all data. */
 function dataHtml(): string {
-  const drive = driveClientId
-    ? `
-      <p class="muted">Save your choices, watchlist, and thumbs to a hidden app folder in your Google Drive. Restore them on another device. The app sees only its own folder, not your other files.</p>
+  const panel = (id: string, body: string) =>
+    `<div class="backup-panel" role="tabpanel" id="backup-panel-${id}" aria-labelledby="backup-tab-${id}"${id === "local" ? "" : ` data-service="${id}"`}${id === backupTab ? "" : " hidden"}>${body}</div>`;
+  const cloud = cloudBackups
+    .map((s) =>
+      panel(
+        s.id,
+        `
+        <p class="muted">${esc(s.about)}</p>
+        <p class="pref-actions">
+          <button type="button" data-data="save">Back up to ${esc(s.name)}</button>
+          <button type="button" data-data="restore">Restore from ${esc(s.name)}</button>
+          <button type="button" data-data="delete"${backupUsed(s.id) ? "" : " hidden"}>Delete backup</button>
+        </p>`,
+      ),
+    )
+    .join("");
+  return `
+    <section class="prefs-section" id="your-data">
+      <h2>Your data</h2>
+      <p class="muted">Back up your choices, watchlist, and thumbs. Restore them on this or another device.</p>
+      <div class="backup-picker" role="tablist" aria-label="Where to back up">${backupTabsHtml()}</div>
+      ${panel(
+        "local",
+        `
+        <p class="muted">Save a backup file on this device, or share it to another app.</p>
+        <p class="pref-actions">
+          <button type="button" data-data="file-save">Save to this device</button>
+          <button type="button" data-data="file-share"${canShareBackup() ? "" : " hidden"}>Share backup…</button>
+          <button type="button" data-data="file-restore">Restore from a file</button>
+        </p>`,
+      )}${cloud}
+      <input type="file" id="restore-file" hidden />
+      <p class="muted">Remove everything this site saved in this browser.</p>
       <p class="pref-actions">
-        <button type="button" data-data="save">Back up to Google Drive</button>
-        <button type="button" data-data="restore">Restore from Google Drive</button>
-        <button type="button" data-data="delete"${driveUsed() ? "" : " hidden"}>Delete backup</button>
+        <button type="button" data-data="clear">Delete all data</button>
       </p>
+      <p id="data-status" class="data-status muted small" role="status"></p>
       <dialog id="delete-dialog" class="modal" aria-labelledby="delete-dialog-title">
         <form method="dialog">
           <h2 id="delete-dialog-title">Delete the backup?</h2>
-          <p>This deletes the backup from your Google Drive, and removes this site's access to your Drive. You cannot undo this.</p>
+          <p>This deletes the backup from your <span data-service-name></span>, and ends this site's access to it. You cannot undo this.</p>
           <p class="muted small">The choices, watchlist, and thumbs on this device stay.</p>
           <p class="modal-actions">
             <button value="cancel" autofocus>Cancel</button>
             <button value="delete" class="danger">Delete backup</button>
           </p>
         </form>
-      </dialog>`
-    : "";
-  return `
-    <section class="prefs-section" id="your-data">
-      <h2>Your data</h2>${drive}
-      <p class="muted">Delete all data removes everything this site saved in this browser.</p>
-      <p class="pref-actions">
-        <button type="button" data-data="clear">Delete all data</button>
-      </p>
-      <p id="data-status" class="data-status muted small" role="status"></p>
+      </dialog>
       <dialog id="clear-dialog" class="modal" aria-labelledby="clear-dialog-title">
         <form method="dialog">
           <h2 id="clear-dialog-title">Delete all data?</h2>
           <p>This deletes your choices, limits, streaming services, watchlist, thumbs, and the saved title list from this browser. You cannot undo this.</p>
-          ${
-            driveClientId
-              ? `<label class="pref" id="clear-drive"><input type="checkbox" name="drive" /> Also delete the backup in Google Drive</label>`
-              : ""
-          }
+          ${cloudBackups
+            .map((s) => `<label class="pref" data-service="${s.id}"><input type="checkbox" name="${s.id}" /> Also delete the backup in ${esc(s.name)}</label>`)
+            .join("")}
           <p class="modal-actions">
             <button value="cancel" autofocus>Cancel</button>
             <button value="clear" class="danger">Delete all data</button>
@@ -193,18 +256,78 @@ function dataHtml(): string {
 }
 
 app.addEventListener("click", (e) => {
+  const tab = (e.target as HTMLElement).closest<HTMLButtonElement>("#your-data [data-backup-tab]");
+  if (tab) selectBackupTab(tab.dataset.backupTab!, true);
+});
+
+// The tabs, as in the ARIA tabs pattern: arrows, Home, and End move between them.
+app.addEventListener("keydown", (e) => {
+  const tab = (e.target as HTMLElement).closest<HTMLButtonElement>("#your-data [data-backup-tab]");
+  if (!tab) return;
+  const tabs = [...tab.parentElement!.querySelectorAll<HTMLButtonElement>("[data-backup-tab]")];
+  const i = tabs.indexOf(tab);
+  const next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
+  if (next === undefined) return;
+  e.preventDefault();
+  selectBackupTab(tabs[(next + tabs.length) % tabs.length]!.dataset.backupTab!, true);
+});
+
+app.addEventListener("click", (e) => {
   const button = (e.target as HTMLElement).closest<HTMLButtonElement>("#your-data .pref-actions button[data-data]");
   if (!button) return;
-  // Deletes ask first, in a dialog; "Cancel" has the focus, so Enter does not delete.
   const action = button.dataset.data as DataAction;
-  if (action === "delete" || action === "clear") {
+  const service = cloudBackups.find((s) => s.id === button.closest<HTMLElement>("[data-service]")?.dataset.service);
+  if (action === "file-save") {
+    // No await before the save: the save dialog needs the click.
+    saveBackupFile(backupText()).then(
+      (r) => {
+        // Only a save the page saw finish. A download has no "saved" event, so it shows nothing.
+        dataStatus(r && "saved" in r ? `Saved ${r.saved}.` : "");
+        if (r && "saved" in r) localSaved();
+      },
+      (err: Error) => dataStatus(err.message, true),
+    );
+  } else if (action === "file-share") {
+    // No await before the share: the browser allows it only right after the click.
+    shareBackup(backupText()).then(
+      (shared) => {
+        dataStatus(shared ? "Shared the backup." : "");
+        if (shared) localSaved();
+      },
+      (err: Error) => {
+        // The browser does not allow sharing after all: hide the button until the page loads again.
+        if (err.name === "NotAllowedError") {
+          button.hidden = true;
+          return dataStatus('This browser does not allow sharing. Use "Save to this device".', true);
+        }
+        dataStatus(err.message, true);
+      },
+    );
+  } else if (action === "file-restore") {
+    const input = document.querySelector<HTMLInputElement>("#restore-file")!;
+    input.value = "";
+    input.click();
+  } else if (action === "delete" || action === "clear") {
+    // Deletes ask first, in a dialog; "Cancel" has the focus, so Enter does not delete.
     const dialog = document.querySelector<HTMLDialogElement>(`#${action}-dialog`)!;
     dialog.querySelector("form")!.reset();
-    // The Drive choice only after this browser used the backup, like "Delete backup".
-    const drive = dialog.querySelector<HTMLElement>("#clear-drive");
-    if (drive) drive.hidden = !driveUsed();
+    if (service) {
+      dialog.dataset.service = service.id;
+      dialog.querySelector("[data-service-name]")!.textContent = service.name;
+    }
+    // A service's choice only after this browser used its backup, like "Delete backup".
+    for (const label of dialog.querySelectorAll<HTMLElement>("label[data-service]")) label.hidden = !backupUsed(label.dataset.service!);
     dialog.showModal();
-  } else void runData(action);
+  } else if (service) void runCloud(action, service);
+});
+
+// No accept filter: on Android, a filter can grey out a file from a cloud app
+// that does not give it the JSON type. parseBackup checks the text.
+app.addEventListener("change", (e) => {
+  const input = e.target as HTMLInputElement;
+  if (input.id !== "restore-file") return;
+  const file = input.files?.[0];
+  if (file) void withDataButtons(async () => restoreFrom(await file.text(), "The file is not a Parents' Guide backup."));
 });
 
 // The dialog's form closes it with the clicked button's value (Escape leaves it empty).
@@ -212,15 +335,96 @@ app.addEventListener(
   "close",
   (e) => {
     const dialog = e.target as HTMLDialogElement;
-    if (dialog.id === "delete-dialog" && dialog.returnValue === "delete") void runData("delete");
+    if (dialog.id === "delete-dialog" && dialog.returnValue === "delete") {
+      const service = cloudBackups.find((s) => s.id === dialog.dataset.service);
+      if (service) void runCloud("delete", service);
+    }
     if (dialog.id === "clear-dialog" && dialog.returnValue === "clear") {
-      void runData("clear", !!dialog.querySelector<HTMLInputElement>('input[name="drive"]')?.checked);
+      const also = cloudBackups.filter((s) => dialog.querySelector<HTMLInputElement>(`input[name="${s.id}"]`)?.checked);
+      void withDataButtons(() => clearData(also));
     }
   },
   true, // "close" does not bubble.
 );
 
-type DataAction = "save" | "restore" | "delete" | "clear";
+type DataAction = "save" | "restore" | "delete" | "clear" | "file-save" | "file-share" | "file-restore";
+
+/**
+ * sessionStorage: the cloud action that runs again after a sign-in that left
+ * the page (Dropbox). "clear" keeps the services whose backup is still to delete.
+ */
+const PENDING_KEY = "pendingDataAction";
+type Pending = { action: "save" | "restore" | "delete"; service: string } | { action: "clear"; services: string[] };
+
+function setPending(pending: Pending | null): void {
+  try {
+    if (pending) sessionStorage.setItem(PENDING_KEY, JSON.stringify(pending));
+    else sessionStorage.removeItem(PENDING_KEY);
+  } catch {
+    // Storage blocked: Dropbox cannot sign in either (see dropbox.ts).
+  }
+}
+
+function takePending(): Pending | null {
+  try {
+    const pending = JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? "null") as Pending | null;
+    sessionStorage.removeItem(PENDING_KEY);
+    return pending;
+  } catch {
+    return null;
+  }
+}
+
+/** After a sign-in that left the page: finish it, then run the action that waited for it. */
+async function resumeCloud(): Promise<void> {
+  for (const service of cloudBackups) {
+    if (!service.resume) continue;
+    let resumed: boolean;
+    try {
+      resumed = await service.resume();
+    } catch (err) {
+      takePending();
+      selectBackupTab(service.id);
+      dataStatus((err as Error).message, true);
+      document.querySelector("#your-data")?.scrollIntoView();
+      continue;
+    }
+    if (!resumed) continue;
+    const pending = takePending();
+    selectBackupTab(service.id);
+    document.querySelector("#your-data")?.scrollIntoView();
+    if (pending?.action === "clear") {
+      void withDataButtons(() => clearData(cloudBackups.filter((s) => pending.services.includes(s.id))));
+    } else if (pending?.service === service.id) void runCloud(pending.action, service);
+  }
+}
+
+const backupText = () => JSON.stringify(makeBackup(localStorage));
+
+/** The "This device" tab shows the date of the last backup file. */
+function localSaved(): void {
+  setBackupUsed("local", true, new Date());
+  selectBackupTab(backupTab);
+}
+
+function dataStatus(text: string, error = false): void {
+  const status = document.querySelector<HTMLElement>("#data-status")!;
+  status.textContent = text;
+  status.classList.toggle("error", error);
+}
+
+/** Run the work with the data buttons off; an error shows in the status line. */
+async function withDataButtons(work: () => Promise<void>): Promise<void> {
+  const buttons = [...document.querySelectorAll<HTMLButtonElement>("#your-data .pref-actions button")];
+  buttons.forEach((b) => (b.disabled = true));
+  try {
+    await work();
+  } catch (err) {
+    dataStatus((err as Error).message, true);
+  } finally {
+    buttons.forEach((b) => (b.disabled = false));
+  }
+}
 
 /** Everything the app saves in this browser: localStorage, the title list in IndexedDB, and the offline caches. */
 async function clearAllData(): Promise<void> {
@@ -234,57 +438,69 @@ async function clearAllData(): Promise<void> {
   if ("caches" in window) for (const key of await caches.keys()) await caches.delete(key);
 }
 
-/** clearDrive: with "clear", also delete the Drive backup. */
-async function runData(action: DataAction, clearDrive = false): Promise<void> {
-  const status = document.querySelector<HTMLElement>("#data-status")!;
-  const buttons = [...document.querySelectorAll<HTMLButtonElement>("#your-data .pref-actions button")];
-  const say = (text: string, error = false) => {
-    status.textContent = text;
-    status.classList.toggle("error", error);
-  };
-  /** Delete shows only while this browser has access to the user's Drive. */
-  const connected = (used: boolean) => {
-    setDriveUsed(used);
-    document.querySelector<HTMLButtonElement>('#your-data button[data-data="delete"]')!.hidden = !used;
-  };
-  buttons.forEach((b) => (b.disabled = true));
-  try {
-    if (action === "save") {
-      say("Backing up…");
-      await saveToDrive(JSON.stringify(makeBackup(localStorage)));
-      connected(true);
-      say(`Backed up ${new Date().toLocaleString()}.`);
-    } else if (action === "clear") {
-      if (clearDrive) {
-        say("Deleting the backup…");
-        await deleteFromDrive();
-      }
-      say("Deleting all data…");
-      await clearAllData();
-      // Back to the home page, which reads the empty storage.
-      location.replace("/");
-    } else if (action === "delete") {
-      say("Deleting the backup…");
-      const n = await deleteFromDrive();
-      connected(false);
-      say(n ? "Deleted the backup, and removed this site's access to your Drive." : "There was no backup. Removed this site's access to your Drive.");
-    } else {
-      say("Loading the backup…");
-      const text = await loadFromDrive();
-      connected(true);
-      const backup = text === null ? null : parseBackup(text);
-      if (!backup) return say(text === null ? "There is no backup in your Google Drive." : "The backup file is not valid.", true);
-      const when = new Date(backup.savedAt).toLocaleString();
-      if (!confirm(`Replace the choices, watchlist, and thumbs on this device with the backup from ${when}?`)) return say("");
-      restoreBackup(localStorage, backup);
-      // The page keeps the choices in memory; a reload reads the restored ones.
-      location.reload();
-    }
-  } catch (err) {
-    say((err as Error).message, true);
-  } finally {
-    buttons.forEach((b) => (b.disabled = false));
+/** also: the cloud services whose backup to delete first. */
+async function clearData(also: CloudBackup[]): Promise<void> {
+  for (const [i, service] of also.entries()) {
+    // If the sign-in leaves the page, only the services not done yet run again.
+    setPending({ action: "clear", services: also.slice(i).map((s) => s.id) });
+    dataStatus(`Deleting the backup in ${service.name}…`);
+    await service.remove();
   }
+  setPending(null);
+  dataStatus("Deleting all data…");
+  await clearAllData();
+  // Back to the home page, which reads the empty storage.
+  location.replace("/");
+}
+
+/** Ask, then replace the choices on this device with the backup in the text. */
+function restoreFrom(text: string, invalid: string): void {
+  const backup = parseBackup(text);
+  if (!backup) return dataStatus(invalid, true);
+  const when = new Date(backup.savedAt).toLocaleString();
+  if (!confirm(`Replace the choices, watchlist, and thumbs on this device with the backup from ${when}?`)) return dataStatus("");
+  restoreBackup(localStorage, backup);
+  // The page keeps the choices in memory; a reload reads the restored ones.
+  location.reload();
+}
+
+function runCloud(action: "save" | "restore" | "delete", service: CloudBackup): Promise<void> {
+  /** Delete shows only while this browser has access to the service. */
+  const connected = (used: boolean, when?: Date) => {
+    setBackupUsed(service.id, used, when);
+    document.querySelector<HTMLButtonElement>(`#your-data [data-service="${service.id}"] button[data-data="delete"]`)!.hidden = !used;
+    // The tab moves to the front, or back, and shows the check.
+    selectBackupTab(backupTab);
+  };
+  // If the sign-in leaves the page, this stays, and resumeCloud runs the action again.
+  setPending({ action, service: service.id });
+  return withDataButtons(async () => {
+    if (action === "save") {
+      dataStatus("Backing up…");
+      await service.save(backupText());
+      connected(true, new Date());
+      dataStatus(`Backed up to ${service.name} ${new Date().toLocaleString()}.`);
+    } else if (action === "delete") {
+      dataStatus("Deleting the backup…");
+      const n = await service.remove();
+      connected(false);
+      dataStatus(
+        n
+          ? `Deleted the backup, and ended this site's access to your ${service.name}.`
+          : `There was no backup. Ended this site's access to your ${service.name}.`,
+      );
+    } else {
+      dataStatus("Loading the backup…");
+      const text = await service.load();
+      // The tab shows the date of the backup that is there now.
+      const backup = text === null ? null : parseBackup(text);
+      // No file there: forget the date, so the tab does not show a backup that is gone.
+      if (text === null) setBackupUsed(service.id, false);
+      connected(true, backup ? new Date(backup.savedAt) : undefined);
+      if (text === null) return dataStatus(`There is no backup in your ${service.name}.`, true);
+      restoreFrom(text, "The backup file is not valid.");
+    }
+  }).finally(() => setPending(null));
 }
 
 app.addEventListener("change", (e) => {

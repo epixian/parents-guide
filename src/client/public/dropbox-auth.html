@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex" />
+    <title>Dropbox sign-in · Parents' Guide</title>
+    <!--
+      The Dropbox sign-in comes back here (see src/client/dropbox.ts). Save
+      the answer for the Preferences page, which finishes the sign-in. The
+      code is useless without the PKCE verifier, which only this tab has.
+    -->
+    <script>
+      try {
+        sessionStorage.setItem("dropboxAnswer", location.search);
+      } catch {
+        // Storage blocked: the Preferences page shows nothing to finish.
+      }
+      location.replace("/preferences");
+    </script>
+  </head>
+  <body>
+    <p><a href="/preferences">Back to Preferences</a></p>
+  </body>
+</html>

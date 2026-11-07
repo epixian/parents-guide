@@ -134,6 +134,7 @@ test("robots.txt has the Sitemap line only with SITE_URL", async () => {
   // AI training crawlers get nothing; the rest may use everything but search and the private pages.
   assert.match(without, /^User-agent: GPTBot\nUser-agent: ClaudeBot\n(User-agent: [\w-]+\n)+Disallow: \/\n\nUser-agent: \*\n/);
   assert.match(without, /\nUser-agent: \*\nDisallow: \/api\/search\nDisallow: \/search\n/);
+  assert.match(without, /\nUser-agent: \*\n(Disallow: \S+\n)*Disallow: \/movie\/1804245\/the-quiet-harbor-2019\n/);
   assert.doesNotMatch(without, /Disallow: \/api\/\n/);
   assert.doesNotMatch(without, /Sitemap/);
   const withUrl = await (await pagesWith([], "https://example.com/").pages.request("http://x/robots.txt")).text();

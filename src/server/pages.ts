@@ -158,6 +158,8 @@ export function createPages(reports: Pick<ReportService, "titles" | "savedReport
       // text to the catalogs, so it stays out.
       "Disallow: /api/search",
       ...PRIVATE_PAGES.map((p) => `Disallow: ${p}`),
+      // nginx answers this exact path, not the app.
+      "Disallow: /movie/1804245/the-quiet-harbor-2019",
     ];
     if (siteUrl) lines.push("", `Sitemap: ${origin("")}/sitemap.xml`);
     c.header("Cache-Control", "public, max-age=3600");
